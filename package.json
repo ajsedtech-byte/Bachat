@@ -5,6 +5,7 @@
   "description": "Bachat — request-quote-order marketplace API",
   "main": "src/index.js",
   "scripts": {
+    "setup": "node scripts/setup.js",
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "migrate": "node scripts/migrate.js",
