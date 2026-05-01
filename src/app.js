@@ -1,0 +1,94 @@
+const path = require("path");
+const express = require("express");
+const cors = require("cors");
+const { connectDb } = require("./db/connection");
+const authRoutes = require("./routes/auth");
+const requestRoutes = require("./routes/requests");
+const quoteRoutes = require("./routes/quotes");
+const orderRoutes = require("./routes/orders");
+const adminRoutes = require("./routes/admin");
+const productRoutes = require("./routes/products");
+const cartRoutes = require("./routes/cart");
+const { router: paymentRoutes, handleRazorpayWebhook } = require("./routes/payments");
+const { CATEGORIES } = require("./lib/categories");
+
+const app = express();
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      const allowList = (process.env.CORS_ORIGIN || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (!allowList.length) {
+        return callback(null, true);
+      }
+      if (!origin || origin === "null") {
+        return callback(null, false);
+      }
+      if (allowList.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    credentials: true,
+  })
+);
+
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDb();
+    next();
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.post(
+  "/api/payments/razorpay/webhook",
+  express.raw({ type: "application/json" }),
+  handleRazorpayWebhook
+);
+
+app.use("/api/products", express.json({ limit: "8mb" }), productRoutes);
+app.use(express.json({ limit: "1mb" }));
+
+app.get("/", (_req, res) => {
+  res.sendFile(path.join(__dirname, "..", "index.html"));
+});
+
+app.get("/api", (_req, res) => {
+  res.json({ ok: true, service: "bachat-api", version: "0.1.0" });
+});
+
+app.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
+
+/** Public list for signup, dashboards, and product category pickers */
+app.get("/api/categories", (_req, res) => {
+  res.json({ categories: CATEGORIES });
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/requests", requestRoutes);
+app.use("/api/quotes", quoteRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/admin", adminRoutes);
+/* /api/products mounted above with larger JSON limit for image payloads */
+
+/** Serve HTML dashboards from repo root (local dev: http://localhost:3000/UserDashboard.html) */
+app.use(express.static(path.join(__dirname, "..")));
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  const status = err.status || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).json({ error: message });
+});
+
+module.exports = app;

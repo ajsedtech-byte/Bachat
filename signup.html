@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign up — Bachat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Mulish, system-ui, sans-serif; }
+    .font-display { font-family: Outfit, Mulish, system-ui, sans-serif; }
+    html.dark body {
+      background: linear-gradient(to bottom, #020617, #0f172a);
+      color: #e2e8f0;
+    }
+    html.dark header,
+    html.dark #shop-categories-box,
+    html.dark .bg-white,
+    html.dark .bg-neutral-50 {
+      background-color: #0f172a !important;
+    }
+    html.dark .border-neutral-200,
+    html.dark .border-neutral-100,
+    html.dark .border-red-100 {
+      border-color: rgba(148, 163, 184, 0.28) !important;
+    }
+    html.dark .text-neutral-900 { color: #f1f5f9 !important; }
+    html.dark .text-neutral-600,
+    html.dark .text-neutral-500,
+    html.dark .text-neutral-400 { color: #cbd5e1 !important; }
+    html.dark input,
+    html.dark textarea,
+    html.dark select {
+      background: #111827 !important;
+      border-color: rgba(148, 163, 184, 0.28) !important;
+      color: #e2e8f0 !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-teal-50/80 to-neutral-50">
+  <header class="border-b border-neutral-200 bg-white">
+    <div class="max-w-lg mx-auto px-4 min-h-[3.5rem] py-2.5 flex items-center justify-between gap-4">
+      <a href="/" class="inline-flex flex-col gap-0.5 min-w-0" aria-label="Bachat home">
+        <span class="inline-flex items-baseline font-display font-black tracking-tight leading-none">
+          <span class="text-teal-900 text-xl">Bach</span><span class="text-orange-600 text-xl font-bold">at</span>
+        </span>
+        <span class="text-[10px] sm:text-[11px] font-semibold text-teal-800/85 tracking-wide">Local deals, real savings</span>
+      </a>
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" type="button" class="px-3 py-2 rounded-lg text-xs font-black border border-neutral-300 text-neutral-700">Dark</button>
+        <a href="/login.html" id="login-link" class="shrink-0 text-sm font-bold text-neutral-600 hover:text-orange-600">Log in</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-lg mx-auto px-4 py-10">
+    <h1 class="text-2xl font-black text-neutral-900 mb-1">Create your account</h1>
+    <p class="text-neutral-500 text-sm mb-6">Customers post requests. Shopkeepers receive matching leads.</p>
+
+    <div id="step-form">
+      <div class="flex rounded-xl border border-neutral-200 p-1 mb-6 bg-neutral-50">
+        <button type="button" id="tab-buyer" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors bg-white shadow text-orange-600">Customer</button>
+        <button type="button" id="tab-seller" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors text-neutral-500">Shopkeeper</button>
+      </div>
+      <p id="err" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4"></p>
+
+      <form id="f" class="space-y-4">
+        <input type="hidden" name="role" id="role" value="buyer">
+        <div>
+          <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Email</label>
+          <input name="email" type="email" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Password</label>
+          <input name="password" type="password" required minlength="6" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Full name</label>
+          <input name="name" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Phone (optional)</label>
+          <input name="phone" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="+91">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">City</label>
+            <input name="city" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="Indore">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Region</label>
+            <input name="region" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="MP">
+          </div>
+        </div>
+        <div id="seller-fields" class="hidden space-y-4 border-t border-neutral-100 pt-4">
+          <div>
+            <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Shop name</label>
+            <input name="shop_name" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="Metro Electronics">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-neutral-500 uppercase mb-2">Shop categories <span class="text-neutral-400 font-normal normal-case">(select all that apply — India-focused list)</span></label>
+            <div id="shop-categories-box" class="max-h-64 overflow-y-auto rounded-xl border border-neutral-200 bg-neutral-50 p-3 space-y-2 text-sm">
+              <p class="text-neutral-500 text-sm">Loading categories…</p>
+            </div>
+          </div>
+        </div>
+        <button type="submit" id="btn" class="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 disabled:opacity-50 shadow-md">Continue</button>
+      </form>
+    </div>
+
+    <div id="step-verify" class="hidden">
+      <p class="text-neutral-600 text-sm mb-4">Enter the 6-digit code we sent to <strong id="vemail"></strong></p>
+      <p id="verr" class="hidden text-sm text-red-600 bg-red-50 border rounded-lg px-3 py-2 mb-4"></p>
+      <input id="vcode" maxlength="6" class="w-full text-center text-2xl font-mono tracking-widest rounded-xl border border-neutral-200 px-4 py-4 mb-4 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="000000">
+      <button type="button" id="vbtn" class="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 mb-3 shadow-md">Verify & go to app</button>
+      <button type="button" id="resend" class="w-full text-sm font-bold text-neutral-600 py-2">Resend code</button>
+    </div>
+  </div>
+
+  <script>
+    async function apiFetch(path, options) {
+      const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+      const proto = location.protocol;
+      const host = location.hostname;
+      const isFile = proto === "file:";
+      const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      const portCandidates = new Set();
+      if (location.port) portCandidates.add(location.port);
+      portCandidates.add("3000");
+      portCandidates.add("3001");
+
+      const attempts = [];
+      if (!isFile) attempts.push({ url: clean, persist: null });
+      if (stored) attempts.push({ url: `${stored}${clean}`, persist: stored });
+      for (const p of portCandidates) {
+        const base = `${proto}//${host}:${p}`;
+        attempts.push({ url: `${base}${clean}`, persist: base });
+      }
+
+      const seen = new Set();
+      let lastErr;
+      for (const { url, persist } of attempts) {
+        if (seen.has(url)) continue;
+        seen.add(url);
+        try {
+          const res = await fetch(url, options);
+          if (persist === null) localStorage.removeItem("bachat_api_base");
+          else if (persist) localStorage.setItem("bachat_api_base", persist);
+          return res;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr;
+    }
+
+    function fillShopCategories() {
+      const box = document.getElementById("shop-categories-box");
+      if (!box) return;
+      apiFetch("/api/categories")
+        .then((r) => {
+          if (!r.ok) throw new Error("bad response");
+          return r.json();
+        })
+        .then((data) => {
+          const cats = data.categories || [];
+          box.innerHTML = "";
+          cats.forEach((c) => {
+            const label = document.createElement("label");
+            label.className = "flex items-center gap-2 cursor-pointer";
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.name = "shop_categories";
+            input.value = c;
+            input.className = "rounded border-neutral-300 text-orange-600 focus:ring-orange-500";
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(" " + c));
+            box.appendChild(label);
+          });
+        })
+        .catch(() => {
+          box.innerHTML =
+            '<p class="text-sm text-red-600 px-1">Could not load categories. Start the server (<code class="bg-neutral-100 px-1 rounded text-xs">npm start</code>) and refresh.</p>';
+        });
+    }
+    document.addEventListener("DOMContentLoaded", fillShopCategories);
+
+    (function () {
+      const toggle = document.getElementById("theme-toggle");
+      const storedTheme = localStorage.getItem("bachat_theme");
+      const prefersDark = storedTheme
+        ? storedTheme === "dark"
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      function setDark(on) {
+        if (on) {
+          document.documentElement.classList.add("dark");
+          toggle.textContent = "Light";
+        } else {
+          document.documentElement.classList.remove("dark");
+          toggle.textContent = "Dark";
+        }
+      }
+      setDark(prefersDark);
+      toggle.addEventListener("click", () => {
+        const next = toggle.textContent === "Dark";
+        setDark(next);
+        localStorage.setItem("bachat_theme", next ? "dark" : "light");
+      });
+
+      const params = new URLSearchParams(location.search);
+      const roleIn = document.getElementById("role");
+      const sellerFields = document.getElementById("seller-fields");
+      const tabBuyer = document.getElementById("tab-buyer");
+      const tabSeller = document.getElementById("tab-seller");
+
+      const loginLink = document.getElementById("login-link");
+      function setRole(r) {
+        roleIn.value = r;
+        if (loginLink) loginLink.href = r === "seller" ? "/login.html?role=seller" : "/login.html";
+        if (r === "seller") {
+          sellerFields.classList.remove("hidden");
+          tabSeller.classList.add("bg-white", "shadow", "text-orange-600");
+          tabSeller.classList.remove("text-neutral-500");
+          tabBuyer.classList.remove("bg-white", "shadow", "text-orange-600");
+          tabBuyer.classList.add("text-neutral-500");
+          sellerFields.querySelector("[name=shop_name]").required = true;
+        } else {
+          sellerFields.classList.add("hidden");
+          tabBuyer.classList.add("bg-white", "shadow", "text-orange-600");
+          tabBuyer.classList.remove("text-neutral-500");
+          tabSeller.classList.remove("bg-white", "shadow", "text-orange-600");
+          tabSeller.classList.add("text-neutral-500");
+          sellerFields.querySelector("[name=shop_name]").required = false;
+        }
+      }
+      if (params.get("role") === "seller") setRole("seller");
+      tabBuyer.addEventListener("click", () => setRole("buyer"));
+      tabSeller.addEventListener("click", () => setRole("seller"));
+
+      let regEmail = "";
+
+      function dashboardFor(role) {
+        if (role === "seller") return "/Shopkeeper%20Dashboard.html";
+        return "/UserDashboard.html";
+      }
+
+      document.getElementById("f").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = document.getElementById("err");
+        err.classList.add("hidden");
+        const fd = new FormData(e.target);
+        const role = fd.get("role");
+        const body = {
+          email: String(fd.get("email") || "").trim(),
+          password: String(fd.get("password") || ""),
+          name: String(fd.get("name") || "").trim(),
+          phone: String(fd.get("phone") || "").trim(),
+          city: String(fd.get("city") || "").trim(),
+          region: String(fd.get("region") || "").trim(),
+          role,
+        };
+        if (role === "seller") {
+          body.shop_name = String(fd.get("shop_name") || "").trim();
+          body.categories = fd.getAll("shop_categories");
+          if (!body.shop_name) {
+            err.textContent = "Shop name is required for shopkeepers.";
+            err.classList.remove("hidden");
+            return;
+          }
+          if (!body.categories || body.categories.length === 0) {
+            err.textContent = "Choose at least one shop category.";
+            err.classList.remove("hidden");
+            return;
+          }
+        }
+        const btn = document.getElementById("btn");
+        btn.disabled = true;
+        try {
+          const res = await apiFetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "Registration failed");
+          regEmail = body.email;
+          document.getElementById("vemail").textContent = regEmail;
+          document.getElementById("step-form").classList.add("hidden");
+          document.getElementById("step-verify").classList.remove("hidden");
+        } catch (x) {
+          err.textContent =
+            x && String(x.message).includes("Failed to fetch")
+              ? "Could not reach API server. Start backend with npm run dev (or set localStorage.bachat_api_base)."
+              : x.message || "Error";
+          err.classList.remove("hidden");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById("vbtn").addEventListener("click", async () => {
+        const verr = document.getElementById("verr");
+        verr.classList.add("hidden");
+        const code = document.getElementById("vcode").value.trim();
+        const btn = document.getElementById("vbtn");
+        btn.disabled = true;
+        try {
+          const res = await apiFetch("/api/auth/verify-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: regEmail, code }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "Invalid code");
+          localStorage.setItem("ajs_token", data.token);
+          const role = data.user && data.user.role;
+          location.href = dashboardFor(role);
+        } catch (x) {
+          verr.textContent = x.message || "Verification failed";
+          verr.classList.remove("hidden");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById("resend").addEventListener("click", async () => {
+        await apiFetch("/api/auth/resend-verification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: regEmail }),
+        });
+        alert("If an account exists, a new code was sent.");
+      });
+    })();
+  </script>
+</body>
+</html>

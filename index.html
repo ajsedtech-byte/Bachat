@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bachat - Smart Local Marketplace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal-900: #0f3f3f;
+      --teal-700: #0f766e;
+      --orange-500: #f97316;
+      --orange-600: #ea580c;
+    }
+
+    body { font-family: Mulish, system-ui, sans-serif; }
+    .font-display { font-family: Outfit, Mulish, system-ui, sans-serif; }
+    .glass { backdrop-filter: blur(8px); }
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .elevate {
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .elevate:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 30px rgba(2, 6, 23, 0.12);
+    }
+    html.dark body {
+      background: linear-gradient(to bottom, #020617, #0f172a, #111827);
+      color: #e2e8f0;
+    }
+    html.dark header {
+      background: rgba(15, 23, 42, 0.82) !important;
+      border-color: rgba(148, 163, 184, 0.2) !important;
+    }
+    html.dark footer {
+      background: #0f172a !important;
+      border-color: rgba(148, 163, 184, 0.2) !important;
+    }
+    html.dark [class*="bg-white"],
+    html.dark [class*="bg-slate-50"],
+    html.dark [class*="bg-teal-50"],
+    html.dark [class*="bg-orange-50"] {
+      background-color: #0f172a !important;
+    }
+    html.dark [class*="border-slate-200"],
+    html.dark [class*="border-slate-300"],
+    html.dark [class*="border-neutral-200"] {
+      border-color: rgba(148, 163, 184, 0.28) !important;
+    }
+    html.dark [class*="text-slate-900"],
+    html.dark [class*="text-slate-800"],
+    html.dark [class*="text-neutral-900"] {
+      color: #f1f5f9 !important;
+    }
+    html.dark [class*="text-slate-700"],
+    html.dark [class*="text-slate-600"],
+    html.dark [class*="text-slate-500"],
+    html.dark [class*="text-neutral-600"],
+    html.dark [class*="text-neutral-500"] {
+      color: #cbd5e1 !important;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-teal-50 via-white to-orange-50 text-slate-900">
+  <header class="sticky top-0 z-40 border-b border-white/50 bg-white/80 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="inline-flex items-baseline font-display font-black tracking-tight" aria-label="Bachat home">
+        <span class="text-teal-900 text-3xl">Bach</span><span class="text-orange-600 text-3xl">at</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm font-bold text-slate-600">
+        <a href="#how" class="hover:text-teal-700">How it works</a>
+        <a href="#features" class="hover:text-teal-700">Features</a>
+        <a href="#trust" class="hover:text-teal-700">Why Bachat</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" type="button" class="px-3 py-2 rounded-lg text-xs font-black border border-slate-300 text-slate-700 hover:border-teal-500">
+          Dark
+        </button>
+        <a href="/login.html" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-700 hover:text-orange-600">Log in</a>
+        <a href="/signup.html" class="px-4 py-2 rounded-lg text-sm font-bold bg-orange-500 text-white hover:bg-orange-600 shadow">Sign up</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="relative overflow-hidden reveal">
+      <div class="absolute -top-24 -left-20 w-72 h-72 rounded-full bg-teal-200/45 blur-3xl"></div>
+      <div class="absolute -bottom-20 -right-10 w-72 h-72 rounded-full bg-orange-200/50 blur-3xl"></div>
+      <div class="max-w-7xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <p class="inline-flex items-center rounded-full bg-teal-100 text-teal-800 text-xs font-extrabold px-3 py-1 mb-5 tracking-wide">INDIA-FIRST LOCAL COMMERCE</p>
+          <h1 class="font-display font-black text-4xl md:text-6xl leading-tight text-slate-900">
+            Bachat turns local shopping into a
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-orange-600">deal-winning experience</span>
+          </h1>
+          <p class="mt-5 text-base md:text-lg text-slate-600 leading-relaxed max-w-xl">
+            Customers post what they need. Nearby shopkeepers compete with live quotes. You close faster with better prices, verified sellers, and smooth order flow.
+          </p>
+          <div class="mt-8 flex flex-col sm:flex-row gap-3">
+            <a href="/signup.html" class="px-6 py-3 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-600 shadow-lg shadow-orange-200/80 text-center">
+              Start Free
+            </a>
+            <a href="/login.html" class="px-6 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 font-black hover:border-teal-500 hover:text-teal-700 text-center">
+              Existing Account
+            </a>
+          </div>
+          <div class="mt-7 grid grid-cols-3 gap-3 max-w-md">
+            <div class="rounded-xl bg-white/90 border border-slate-200 p-3 text-center">
+              <p data-count-to="500" data-count-suffix="+" class="font-black text-xl text-teal-700 count-up">0+</p>
+              <p class="text-[11px] font-bold text-slate-500 uppercase">Daily requests</p>
+            </div>
+            <div class="rounded-xl bg-white/90 border border-slate-200 p-3 text-center">
+              <p data-count-to="2.4" data-count-suffix="m" class="font-black text-xl text-teal-700 count-up">0m</p>
+              <p class="text-[11px] font-bold text-slate-500 uppercase">Avg response</p>
+            </div>
+            <div class="rounded-xl bg-white/90 border border-slate-200 p-3 text-center">
+              <p data-count-to="33" data-count-suffix="%" class="font-black text-xl text-teal-700 count-up">0%</p>
+              <p class="text-[11px] font-bold text-slate-500 uppercase">Conversion</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-white/90 shadow-2xl shadow-teal-100/80 p-5 md:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display font-bold text-lg text-slate-900">Live Bachat Flow</h2>
+            <span class="px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[11px] font-extrabold">LIVE</span>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div class="rounded-xl border border-slate-200 p-3 bg-slate-50">
+              <p class="text-[11px] uppercase text-slate-400 font-bold">Customer Request</p>
+              <p class="font-bold text-slate-800">"iPhone 15 Pro Max - budget Rs 1,20,000"</p>
+            </div>
+            <div class="rounded-xl border border-teal-200 p-3 bg-teal-50">
+              <p class="text-[11px] uppercase text-teal-700 font-bold">Quotes in progress</p>
+              <p class="font-bold text-slate-800">3 shopkeepers bidding in real time</p>
+            </div>
+            <div class="rounded-xl border border-orange-200 p-3 bg-orange-50">
+              <p class="text-[11px] uppercase text-orange-700 font-bold">Best quote selected</p>
+              <p class="font-bold text-slate-800">Rs 1,18,000 | Instant fulfillment</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="max-w-7xl mx-auto px-4 py-16 reveal">
+      <h2 class="font-display text-3xl md:text-4xl font-black text-slate-900 text-center">How Bachat works</h2>
+      <p class="text-slate-500 text-center mt-2 max-w-2xl mx-auto">Simple for customers. Powerful for shopkeepers. Reliable for operations.</p>
+      <div class="mt-8 grid md:grid-cols-3 gap-4">
+        <article class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm elevate">
+          <p class="text-xs font-black text-teal-700">01</p>
+          <h3 class="mt-2 font-extrabold text-lg">Post Request</h3>
+          <p class="mt-2 text-slate-600 text-sm">Customer posts requirement with budget, category, and delivery urgency.</p>
+        </article>
+        <article class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm elevate">
+          <p class="text-xs font-black text-teal-700">02</p>
+          <h3 class="mt-2 font-extrabold text-lg">Collect Quotes</h3>
+          <p class="mt-2 text-slate-600 text-sm">Nearby verified sellers send competitive quotes inside one workflow.</p>
+        </article>
+        <article class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm elevate">
+          <p class="text-xs font-black text-teal-700">03</p>
+          <h3 class="mt-2 font-extrabold text-lg">Close Order</h3>
+          <p class="mt-2 text-slate-600 text-sm">Select best quote, finalize instantly, and track fulfillment confidence.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="features" class="bg-teal-950 text-white py-16 reveal">
+      <div class="max-w-7xl mx-auto px-4">
+        <h2 class="font-display text-3xl md:text-4xl font-black text-center">Built for scale, designed for speed</h2>
+        <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
+            <p class="font-extrabold">Live Ops Dashboard</p>
+            <p class="text-sm text-teal-100/80 mt-2">Track request age, SLA, quote ratio, and conversion in one place.</p>
+          </div>
+          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
+            <p class="font-extrabold">Role-based Experience</p>
+            <p class="text-sm text-teal-100/80 mt-2">Customer, shopkeeper, and admin flows tailored to real workflows.</p>
+          </div>
+          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
+            <p class="font-extrabold">Fast Quote Loop</p>
+            <p class="text-sm text-teal-100/80 mt-2">Reduce response time and improve close rate with structured quoting.</p>
+          </div>
+          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
+            <p class="font-extrabold">India-focused Categories</p>
+            <p class="text-sm text-teal-100/80 mt-2">Built around local market categories and practical buying behavior.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="trust" class="max-w-7xl mx-auto px-4 py-16 reveal">
+      <div class="rounded-3xl border border-slate-200 bg-white p-8 md:p-10 shadow-lg">
+        <h2 class="font-display text-3xl md:text-4xl font-black text-slate-900 text-center">The new face of local commerce</h2>
+        <p class="text-slate-600 text-center mt-3 max-w-2xl mx-auto">Bachat gives every local buyer and seller a digital speed advantage without losing neighborhood trust.</p>
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a href="/signup.html" class="px-6 py-3 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-600">Create account</a>
+          <a href="/login.html" class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-black hover:border-teal-500 hover:text-teal-700">Log in now</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 pb-16 reveal">
+      <h2 class="font-display text-3xl md:text-4xl font-black text-slate-900 text-center">Loved by buyers and shopkeepers</h2>
+      <div class="mt-8 grid md:grid-cols-3 gap-4">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm elevate">
+          <p class="text-slate-700 font-semibold">"Earlier I had to call many shops. Now I post once and get real quotes in minutes."</p>
+          <p class="mt-4 text-sm font-black text-teal-700">Priya, Buyer</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm elevate">
+          <p class="text-slate-700 font-semibold">"Bachat gives me serious leads daily. My conversion is much better now."</p>
+          <p class="mt-4 text-sm font-black text-teal-700">Rohit, Shopkeeper</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm elevate">
+          <p class="text-slate-700 font-semibold">"Ops team can track SLA breaches instantly. It feels enterprise-ready."</p>
+          <p class="mt-4 text-sm font-black text-teal-700">Anjali, Operations</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 pb-16 reveal">
+      <div class="grid md:grid-cols-2 gap-6 items-center rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-lg">
+        <div>
+          <h3 class="font-display text-2xl md:text-3xl font-black text-slate-900">Looks amazing on mobile too</h3>
+          <p class="mt-3 text-slate-600">From posting requests to comparing quotes and tracking orders, Bachat is optimized for fast action on any screen size.</p>
+        </div>
+        <div class="flex justify-center">
+          <div class="w-56 rounded-[2rem] border-8 border-slate-900 bg-slate-900 shadow-2xl overflow-hidden">
+            <div class="h-6 bg-slate-900"></div>
+            <div class="bg-gradient-to-b from-teal-100 to-orange-100 p-4 space-y-2">
+              <div class="rounded-lg bg-white p-2 text-[11px] font-bold text-slate-700">REQ-784 | Need AC 1.5T</div>
+              <div class="rounded-lg bg-teal-600 p-2 text-[11px] font-bold text-white">3 quotes received</div>
+              <div class="rounded-lg bg-white p-2 text-[11px] font-bold text-slate-700">Best quote: Rs 32,999</div>
+              <div class="rounded-lg bg-orange-500 p-2 text-[11px] font-bold text-white text-center">Finalize Order</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white">
+    <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-500">
+      <p>© 2026 Bachat. Built for smarter local buying.</p>
+      <p class="font-bold text-slate-600">Fast. Local. Profitable.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      const toggle = document.getElementById("theme-toggle");
+      const storedTheme = localStorage.getItem("bachat_theme");
+      const prefersDark = storedTheme
+        ? storedTheme === "dark"
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      function setDark(on) {
+        if (on) {
+          document.documentElement.classList.add("dark");
+          toggle.textContent = "Light";
+        } else {
+          document.documentElement.classList.remove("dark");
+          toggle.textContent = "Dark";
+        }
+      }
+
+      setDark(prefersDark);
+      toggle.addEventListener("click", () => {
+        const darkNow = toggle.textContent === "Light";
+        const next = !darkNow;
+        setDark(next);
+        localStorage.setItem("bachat_theme", next ? "dark" : "light");
+      });
+
+      const revealEls = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      revealEls.forEach((el) => observer.observe(el));
+
+      const counters = document.querySelectorAll(".count-up");
+      counters.forEach((counter) => {
+        const to = Number(counter.dataset.countTo || "0");
+        const suffix = String(counter.dataset.countSuffix || "");
+        const duration = 1200;
+        const start = performance.now();
+        const tick = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const val = to < 10 ? (to * eased).toFixed(1) : Math.floor(to * eased);
+          counter.textContent = `${val}${suffix}`;
+          if (progress < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bachat Live Ops Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains+Mono', monospace; }
+
+        @keyframes pulse-red {
+            0%, 100% { border-color: #ef4444; box-shadow: 0 0 0 0px rgba(239, 68, 68, 0); }
+            50% { border-color: #b91c1c; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
+        }
+        .sla-breach { animation: pulse-red 2s infinite; border-width: 2px; }
+        
+        .drawer-open { transform: translateX(0); }
+        .drawer-closed { transform: translateX(100%); }
+
+        html.dark body {
+            background: linear-gradient(135deg, #020617, #0f172a, #111827);
+            color: #e2e8f0;
+        }
+        html.dark .bg-white, html.dark .bg-slate-50, html.dark .bg-teal-900\/40 {
+            background-color: #0f172a !important;
+        }
+        html.dark .border-slate-200, html.dark .border-slate-100, html.dark .border-teal-700\/50 {
+            border-color: rgba(148, 163, 184, 0.25) !important;
+        }
+        html.dark .text-slate-900, html.dark .text-slate-800 {
+            color: #f1f5f9 !important;
+        }
+        html.dark .text-slate-600, html.dark .text-slate-500, html.dark .text-slate-400 {
+            color: #cbd5e1 !important;
+        }
+        html.dark input, html.dark textarea, html.dark select {
+            background-color: #111827 !important;
+            color: #e2e8f0 !important;
+            border-color: rgba(148, 163, 184, 0.25) !important;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-teal-50 via-emerald-50 to-slate-50 text-slate-900 min-h-screen">
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- MISSION CONTROL HEADER -->
+        <header class="bg-teal-950 text-white p-4 shadow-xl sticky top-0 z-50 border-b border-teal-800/50">
+            <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-orange-500 p-2 rounded-lg shadow-lg shadow-orange-900/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight">Bachat LIVE OPS</h1>
+                        <p class="text-[10px] text-slate-400 font-mono uppercase tracking-widest">500 Orders/Day System</p>
+                    </div>
+                </div>
+
+                <div id="stats-bar" class="grid grid-cols-3 md:grid-cols-6 gap-3 w-full lg:w-auto">
+                    <!-- Stats injected by JS -->
+                </div>
+                <button id="theme-toggle" type="button" class="px-3 py-2 rounded-lg text-xs font-extrabold border border-teal-700/70 bg-teal-900/40 hover:bg-teal-800">
+                    Dark
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- SIDE NAVIGATION -->
+            <nav class="lg:col-span-2 space-y-2">
+                <button onclick="switchTab('requests')" id="nav-requests" class="nav-btn active w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-sm bg-teal-700 text-white shadow-lg shadow-teal-200/80">
+                    <span class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                        Requests
+                    </span>
+                    <span id="badge-requests" class="bg-white/20 px-2 py-0.5 rounded-full text-[10px]">0</span>
+                </button>
+                <button onclick="switchTab('orders')" id="nav-orders" class="nav-btn w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-white hover:text-slate-900 transition-all">
+                    <span class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                        Orders
+                    </span>
+                    <span id="badge-orders" class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
+                </button>
+                <button onclick="switchTab('ops')" id="nav-ops" class="nav-btn w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-white hover:text-slate-900 transition-all">
+                    <span class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Ops Tracker
+                    </span>
+                </button>
+            </nav>
+
+            <!-- CONTENT AREA -->
+            <div class="lg:col-span-10 space-y-4">
+                <!-- Search & Action Bar -->
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="relative w-full max-w-xs">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        </span>
+                        <input type="text" placeholder="Search ID, Name..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <button onclick="toggleModal('request-modal', true)" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-orange-200/80">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                        New Request
+                    </button>
+                </div>
+
+                <!-- Views -->
+                <div id="view-requests" class="space-y-4"></div>
+                <div id="view-orders" class="hidden overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-sm"></div>
+                <div id="view-ops" class="hidden space-y-4"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADD REQUEST MODAL -->
+    <div id="request-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <form id="request-form">
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="text-xl font-bold">New Mission Entry</h3>
+                    <p class="text-sm text-slate-500">Capture the demand immediately.</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">User Name</label>
+                            <input name="userName" required class="w-full p-2 bg-slate-50 rounded-lg border border-slate-200 outline-none" placeholder="John Doe">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">Phone</label>
+                            <input name="phone" required class="w-full p-2 bg-slate-50 rounded-lg border border-slate-200 outline-none" placeholder="987...">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Category</label>
+                        <select name="category" class="w-full p-2 bg-slate-50 rounded-lg border border-slate-200 outline-none">
+                            <option>Electronics</option><option>Groceries</option><option>Fashion</option><option>Home Decor</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Requirement</label>
+                        <textarea name="requirement" required class="w-full p-2 bg-slate-50 rounded-lg border border-slate-200 h-20 outline-none"></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Budget Range</label>
+                        <input name="budget" type="number" required class="w-full p-2 bg-slate-50 rounded-lg border border-slate-200 outline-none" placeholder="₹">
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-50 flex gap-3">
+                    <button type="button" onclick="toggleModal('request-modal', false)" class="flex-1 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-lg">Cancel</button>
+                    <button type="submit" class="flex-1 py-2 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 shadow-lg shadow-orange-200/80">Start Workflow</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DETAIL DRAWER -->
+    <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-[110] flex flex-col transition-transform duration-300 drawer-closed border-l border-slate-200">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div>
+                <h3 id="drawer-id" class="text-lg font-bold text-slate-900">REQ-ID</h3>
+                <p class="text-xs text-slate-500 uppercase tracking-tighter">Quotes & Fulfilment</p>
+            </div>
+            <button onclick="closeDrawer()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400">✕</button>
+        </div>
+        <div id="drawer-content" class="flex-1 overflow-y-auto p-6 space-y-6"></div>
+        <div id="drawer-footer" class="p-6 bg-slate-50 border-t border-slate-200"></div>
+    </div>
+
+    <script>
+        // --- DATA STATE ---
+        let requests = [
+            { id: 'REQ-101', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), userName: 'Rahul K', phone: '9876543210', category: 'Electronics', requirement: 'iPhone 15 Pro Max', budget: 120000, associate: 'Anjali', status: 'In Progress', quotes: 2 },
+            { id: 'REQ-102', timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(), userName: 'Suresh M', phone: '9988776655', category: 'Groceries', requirement: 'Bulk Basmati Rice 50kg', budget: 4500, associate: 'Amit', status: 'New', quotes: 0 }
+        ];
+
+        let quotes = [
+            { id: 'Q-001', requestId: 'REQ-101', seller: 'Sagar Electronics', price: 118000, delivery: '2h', available: true },
+            { id: 'Q-002', requestId: 'REQ-101', seller: 'Digital World', price: 119500, delivery: 'Instant', available: true }
+        ];
+
+        let orders = [
+            { id: 'ORD-5001', requestId: 'REQ-99', total: 45450, seller: 'Apex Retail', timestamp: new Date().toISOString() }
+        ];
+
+        let currentTab = 'requests';
+        let activeRequestId = null;
+
+        // --- CORE FUNCTIONS ---
+        function render() {
+            renderStats();
+            renderRequests();
+            renderOrders();
+            renderOps();
+            document.getElementById('badge-requests').innerText = requests.length;
+            document.getElementById('badge-orders').innerText = orders.length;
+        }
+
+        function renderStats() {
+            const total = requests.length + orders.length;
+            const conv = total ? ((orders.length / total) * 100).toFixed(1) : 0;
+            const revenue = orders.reduce((s, o) => s + o.total, 0);
+            const avgQuotes = requests.length ? (quotes.length / requests.length).toFixed(1) : 0;
+
+            const html = `
+                ${statCard('Requests', total, 'teal')}
+                ${statCard('Orders', orders.length, 'green')}
+                ${statCard('Conv %', conv + '%', 'white')}
+                ${statCard('Quotes/Req', avgQuotes, 'white')}
+                ${statCard('Resp Time', '3.1m', 'white')}
+                ${statCard('Revenue', '₹' + revenue.toLocaleString(), 'yellow')}
+            `;
+            document.getElementById('stats-bar').innerHTML = html;
+        }
+
+        function statCard(label, val, color) {
+            const colorClass = color === 'green' ? 'text-green-400' : color === 'yellow' ? 'text-yellow-400' : color === 'teal' ? 'text-teal-300' : 'text-white';
+            return `<div class="bg-teal-900/40 p-2 rounded-lg border border-teal-700/50">
+                <p class="text-[10px] font-bold uppercase text-slate-400 leading-none mb-1">${label}</p>
+                <p class="text-sm md:text-base font-bold ${colorClass}">${val}</p>
+            </div>`;
+        }
+
+        function renderRequests() {
+            const container = document.getElementById('view-requests');
+            container.innerHTML = requests.map(req => {
+                const diff = Math.floor((new Date() - new Date(req.timestamp)) / 60000);
+                const isCritical = diff >= 10;
+                const isWarning = diff >= 2 && req.status === 'New';
+                const statusColor = getStatusClasses(req.status);
+
+                return `
+                <div onclick="openDrawer('${req.id}')" class="bg-white border-2 rounded-2xl p-4 md:p-6 shadow-sm transition-all flex flex-col md:flex-row gap-4 items-center group relative overflow-hidden cursor-pointer ${isCritical ? 'sla-breach' : isWarning ? 'border-yellow-400' : 'border-white hover:border-slate-200'}">
+                    ${isCritical ? '<div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">SLA BREACHED</div>' : ''}
+                    <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${statusColor}">${req.userName.charAt(0)}</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">${req.userName}</h4>
+                                <p class="text-xs font-mono text-slate-500">${req.id}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase text-slate-400">Requirement</p>
+                            <p class="text-sm font-semibold truncate">${req.requirement}</p>
+                            <p class="text-xs text-orange-600 font-bold">₹${req.budget}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase text-slate-400">Status</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${statusColor}">${req.status}</span>
+                                <span class="text-xs font-bold ${req.quotes >= 3 ? 'text-green-600' : 'text-slate-400'}">${req.quotes} Quotes</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase text-slate-400">Age / Lead</p>
+                            <p class="text-xs font-bold ${isCritical ? 'text-red-600' : 'text-slate-600'}">⏳ ${diff}m ago</p>
+                            <p class="text-[10px] font-bold text-slate-400 mt-1">👤 ${req.associate}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="p-2 rounded-lg bg-slate-50 text-slate-400">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('view-orders');
+            container.innerHTML = `
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50 border-b text-slate-500 uppercase text-xs font-bold">
+                        <tr><th class="px-6 py-4">Order ID</th><th class="px-6 py-4">Total</th><th class="px-6 py-4">Seller</th><th class="px-6 py-4">Time</th></tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        ${orders.map(o => `
+                            <tr>
+                                <td class="px-6 py-4 font-bold text-teal-700">${o.id}</td>
+                                <td class="px-6 py-4 font-semibold">₹${o.total.toLocaleString()}</td>
+                                <td class="px-6 py-4 text-slate-600">${o.seller}</td>
+                                <td class="px-6 py-4 text-slate-400 text-xs">${new Date(o.timestamp).toLocaleTimeString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderOps() {
+            const associates = [...new Set([...requests.map(r => r.associate), ...orders.map(o => 'Amit')])].filter(a => a !== 'Unassigned');
+            const container = document.getElementById('view-ops');
+            container.innerHTML = associates.map(name => {
+                const handled = requests.filter(r => r.associate === name).length;
+                const closed = orders.filter(o => o.seller !== 'N/A').length; // Mock logic
+                return `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold">${name.charAt(0)}</div>
+                            <div>
+                                <h4 class="font-bold">${name}</h4>
+                                <p class="text-xs text-slate-500">Active Handled: ${handled}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-green-600">${closed} Wins</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Avg Response: 2.4m</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStatusClasses(s) {
+            if (s === 'New') return 'bg-red-50 text-red-700 border-red-200';
+            if (s === 'In Progress') return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+            if (s === 'Quotes Ready') return 'bg-teal-50 text-teal-800 border-teal-200';
+            return 'bg-slate-50 text-slate-700 border-slate-200';
+        }
+
+        // --- INTERACTION ---
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-teal-700', 'text-white', 'shadow-lg'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-slate-500'));
+            
+            const activeBtn = document.getElementById('nav-' + tab);
+            activeBtn.classList.remove('text-slate-500');
+            activeBtn.classList.add('bg-teal-700', 'text-white', 'shadow-lg');
+
+            ['view-requests', 'view-orders', 'view-ops'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById('view-' + tab).classList.remove('hidden');
+        }
+
+        function toggleModal(id, show) {
+            document.getElementById(id).classList.toggle('hidden', !show);
+        }
+
+        document.getElementById('request-form').onsubmit = function(e) {
+            e.preventDefault();
+            const fd = new FormData(this);
+            requests.unshift({
+                id: 'REQ-' + (Math.floor(Math.random() * 9000) + 1000),
+                timestamp: new Date().toISOString(),
+                userName: fd.get('userName'),
+                phone: fd.get('phone'),
+                category: fd.get('category'),
+                requirement: fd.get('requirement'),
+                budget: parseInt(fd.get('budget')),
+                associate: 'Unassigned',
+                status: 'New',
+                quotes: 0
+            });
+            this.reset();
+            toggleModal('request-modal', false);
+            render();
+        };
+
+        function openDrawer(id) {
+            activeRequestId = id;
+            const req = requests.find(r => r.id === id);
+            if (!req) return;
+
+            document.getElementById('drawer-id').innerText = req.id;
+            const drawerContent = document.getElementById('drawer-content');
+            const reqQuotes = quotes.filter(q => q.requestId === id);
+
+            drawerContent.innerHTML = `
+                <div class="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-200">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                        <span>Customer</span><span>Category</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <p class="font-bold">${req.userName} (${req.phone})</p>
+                        <p class="bg-white px-2 py-0.5 rounded text-xs border">${req.category}</p>
+                    </div>
+                    <p class="text-sm text-slate-600 italic border-t pt-2 mt-2">"${req.requirement}"</p>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-sm font-bold uppercase text-slate-500">Quotes (${req.quotes})</h4>
+                        <button onclick="addQuote('${id}')" class="text-xs font-bold text-orange-600 hover:text-orange-700">+ Add Quote</button>
+                    </div>
+                    <div class="space-y-3">
+                        ${reqQuotes.map(q => `
+                            <div class="border rounded-xl p-4 bg-white shadow-sm">
+                                <div class="flex justify-between font-bold"><span>${q.seller}</span><span class="text-orange-600">₹${q.price.toLocaleString()}</span></div>
+                                <p class="text-[10px] text-slate-400 mt-1">Delivery: ${q.delivery} | Available: Yes</p>
+                            </div>
+                        `).join('')}
+                        ${!reqQuotes.length ? '<p class="text-center py-4 text-xs text-slate-400 border-2 border-dashed rounded-xl">No quotes added yet. Call sellers!</p>' : ''}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('drawer-footer').innerHTML = `
+                <button onclick="finalizeOrder('${id}')" ${req.quotes === 0 ? 'disabled' : ''} class="w-full py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 disabled:bg-slate-300 shadow-lg flex items-center justify-center gap-2">
+                    Finalize & Close Order
+                </button>
+            `;
+
+            document.getElementById('detail-drawer').classList.remove('drawer-closed');
+            document.getElementById('detail-drawer').classList.add('drawer-open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('detail-drawer').classList.add('drawer-closed');
+            document.getElementById('detail-drawer').classList.remove('drawer-open');
+        }
+
+        function addQuote(id) {
+            const price = prompt("Enter Price:");
+            if (!price) return;
+            quotes.push({
+                id: 'Q-' + Math.random().toString(36).substr(2, 5),
+                requestId: id,
+                seller: 'Partner Seller',
+                price: parseInt(price),
+                delivery: 'Instant',
+                available: true
+            });
+            const r = requests.find(req => req.id === id);
+            r.quotes++;
+            r.status = 'Quotes Ready';
+            openDrawer(id);
+            render();
+        }
+
+        function finalizeOrder(id) {
+            const req = requests.find(r => r.id === id);
+            orders.unshift({
+                id: 'ORD-' + (Math.floor(Math.random() * 9000) + 1000),
+                requestId: id,
+                total: req.budget,
+                seller: 'Selected Seller',
+                timestamp: new Date().toISOString()
+            });
+            requests = requests.filter(r => r.id !== id);
+            closeDrawer();
+            render();
+        }
+
+        // --- THEME ---
+        (function () {
+            const toggle = document.getElementById("theme-toggle");
+            const storedTheme = localStorage.getItem("bachat_theme");
+            const prefersDark = storedTheme
+                ? storedTheme === "dark"
+                : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+            function setDark(on) {
+                if (on) {
+                    document.documentElement.classList.add("dark");
+                    toggle.textContent = "Light";
+                } else {
+                    document.documentElement.classList.remove("dark");
+                    toggle.textContent = "Dark";
+                }
+            }
+            setDark(prefersDark);
+            toggle.addEventListener("click", () => {
+                const next = toggle.textContent === "Dark";
+                setDark(next);
+                localStorage.setItem("bachat_theme", next ? "dark" : "light");
+            });
+        })();
+
+        // --- AUTO-UPDATE (FOR SLA) ---
+        setInterval(render, 30000); // Re-render every 30s to update time labels
+        render(); // Initial load
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopkeeper Dashboard - Bachat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="border-b border-slate-200 bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="text-xl font-black">Shopkeeper Dashboard</h1>
+      <button id="logout" class="text-sm font-semibold text-red-600">Log out</button>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-4">
+    <div id="msg" class="text-sm text-slate-600">Loading...</div>
+    <section class="grid sm:grid-cols-4 gap-3">
+      <div class="rounded-lg border border-slate-200 bg-white p-4">
+        <div class="text-xs text-slate-500 uppercase font-semibold">Products</div>
+        <div id="count-products" class="text-2xl font-black mt-1">-</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-4">
+        <div class="text-xs text-slate-500 uppercase font-semibold">Open Requests</div>
+        <div id="count-requests" class="text-2xl font-black mt-1">-</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-4">
+        <div class="text-xs text-slate-500 uppercase font-semibold">My Quotes</div>
+        <div id="count-quotes" class="text-2xl font-black mt-1">-</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-4">
+        <div class="text-xs text-slate-500 uppercase font-semibold">My Orders</div>
+        <div id="count-orders" class="text-2xl font-black mt-1">-</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const token = localStorage.getItem("ajs_token");
+    if (!token) location.href = "/login.html";
+
+    async function api(path) {
+      const res = await fetch(path, { headers: { Authorization: "Bearer " + token } });
+      if (res.status === 401) {
+        localStorage.removeItem("ajs_token");
+        location.href = "/login.html";
+        return null;
+      }
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.error) || "Request failed");
+      return data;
+    }
+
+    async function boot() {
+      try {
+        const me = await api("/api/auth/me");
+        if (!me) return;
+        if (!me.user || me.user.role !== "seller") {
+          location.href = "/UserDashboard.html";
+          return;
+        }
+        document.getElementById("msg").textContent = "Welcome, " + (me.user.name || "Shopkeeper");
+        const [products, requests, quotes, orders] = await Promise.all([
+          api("/api/products/seller/mine"),
+          api("/api/requests/seller/open"),
+          api("/api/quotes/mine/seller"),
+          api("/api/orders/seller"),
+        ]);
+        document.getElementById("count-products").textContent = (products?.items || []).length;
+        document.getElementById("count-requests").textContent = (requests || []).length;
+        document.getElementById("count-quotes").textContent = (quotes || []).length;
+        document.getElementById("count-orders").textContent = (orders || []).length;
+      } catch (e) {
+        document.getElementById("msg").textContent = e.message || "Failed to load dashboard";
+      }
+    }
+
+    document.getElementById("logout").addEventListener("click", () => {
+      localStorage.removeItem("ajs_token");
+      localStorage.removeItem("ajs_user");
+      location.href = "/login.html";
+    });
+
+    boot();
+  </script>
+</body>
+</html>

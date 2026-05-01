@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in - Bachat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Mulish, system-ui, sans-serif; }
+    .font-display { font-family: Outfit, Mulish, system-ui, sans-serif; }
+    html.dark body { background: linear-gradient(to bottom, #020617, #0f172a); color: #e2e8f0; }
+    html.dark header, html.dark .bg-white { background-color: #0f172a !important; }
+    html.dark .border-neutral-200, html.dark .border-neutral-300, html.dark .border-red-100 { border-color: rgba(148, 163, 184, 0.28) !important; }
+    html.dark .text-neutral-900 { color: #f1f5f9 !important; }
+    html.dark .text-neutral-600, html.dark .text-neutral-500 { color: #cbd5e1 !important; }
+    html.dark input { background: #111827 !important; border-color: rgba(148, 163, 184, 0.28) !important; color: #e2e8f0 !important; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-teal-50/80 to-neutral-50">
+  <header class="border-b border-neutral-200 bg-white">
+    <div class="max-w-lg mx-auto px-4 min-h-[3.5rem] py-2.5 flex items-center justify-between gap-4">
+      <a href="/" class="inline-flex flex-col gap-0.5 min-w-0" aria-label="Bachat home">
+        <span class="inline-flex items-baseline font-display font-black tracking-tight leading-none"><span class="text-teal-900 text-xl">Bach</span><span class="text-orange-600 text-xl font-bold">at</span></span>
+        <span class="text-[10px] sm:text-[11px] font-semibold text-teal-800/85 tracking-wide">Local deals, real savings</span>
+      </a>
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" type="button" class="px-3 py-2 rounded-lg text-xs font-black border border-neutral-300 text-neutral-700">Dark</button>
+        <a href="/signup.html" class="shrink-0 text-sm font-bold text-neutral-600 hover:text-orange-600">Sign up</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 py-10">
+    <h1 class="text-2xl font-black text-neutral-900 mb-1">Log in</h1>
+    <p class="text-neutral-500 text-sm mb-4">Choose account type, then log in.</p>
+    <p id="err" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4"></p>
+
+    <form id="login-form" class="space-y-4">
+      <input type="hidden" name="role" id="role" value="buyer">
+      <div class="flex rounded-xl border border-neutral-200 p-1 bg-neutral-50">
+        <button type="button" id="tab-buyer" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors bg-white shadow text-orange-600">Customer</button>
+        <button type="button" id="tab-seller" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors text-neutral-500">Shopkeeper</button>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Email</label>
+        <input name="email" type="email" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Password</label>
+        <input name="password" type="password" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+      </div>
+      <button id="btn" type="submit" class="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 disabled:opacity-50 shadow-md">Continue</button>
+      <p class="text-sm text-neutral-600 text-center">
+        New here? <a id="signup-link" href="/signup.html" class="text-teal-700 font-bold hover:text-orange-600">Create account</a>
+      </p>
+    </form>
+  </main>
+
+  <script>
+    function dashboardFor(role) {
+      if (role === "seller") return "/Shopkeeper%20Dashboard.html";
+      if (role === "admin") return "/Admin%20Dashboard.html";
+      return "/UserDashboard.html";
+    }
+
+    (function () {
+      const toggle = document.getElementById("theme-toggle");
+      const roleIn = document.getElementById("role");
+      const tabBuyer = document.getElementById("tab-buyer");
+      const tabSeller = document.getElementById("tab-seller");
+      const signupLink = document.getElementById("signup-link");
+      const storedTheme = localStorage.getItem("bachat_theme");
+      const prefersDark = storedTheme ? storedTheme === "dark" : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      function setDark(on) { if (on) { document.documentElement.classList.add("dark"); toggle.textContent = "Light"; } else { document.documentElement.classList.remove("dark"); toggle.textContent = "Dark"; } }
+      setDark(prefersDark);
+      toggle.addEventListener("click", () => { const next = toggle.textContent === "Dark"; setDark(next); localStorage.setItem("bachat_theme", next ? "dark" : "light"); });
+
+      function setRole(role) {
+        roleIn.value = role;
+        if (signupLink) signupLink.href = role === "seller" ? "/signup.html?role=seller" : "/signup.html";
+        if (role === "seller") {
+          tabSeller.classList.add("bg-white", "shadow", "text-orange-600");
+          tabSeller.classList.remove("text-neutral-500");
+          tabBuyer.classList.remove("bg-white", "shadow", "text-orange-600");
+          tabBuyer.classList.add("text-neutral-500");
+        } else {
+          tabBuyer.classList.add("bg-white", "shadow", "text-orange-600");
+          tabBuyer.classList.remove("text-neutral-500");
+          tabSeller.classList.remove("bg-white", "shadow", "text-orange-600");
+          tabSeller.classList.add("text-neutral-500");
+        }
+      }
+      const params = new URLSearchParams(location.search);
+      setRole(params.get("role") === "seller" ? "seller" : "buyer");
+      tabBuyer.addEventListener("click", () => setRole("buyer"));
+      tabSeller.addEventListener("click", () => setRole("seller"));
+    })();
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const err = document.getElementById("err");
+      const btn = document.getElementById("btn");
+      err.classList.add("hidden");
+      btn.disabled = true;
+      const fd = new FormData(e.target);
+      const selectedRole = String(fd.get("role") || "buyer");
+      const body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || "") };
+      try {
+        const res = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Login failed");
+        const actualRole = data?.user?.role || "";
+        const roleMismatch =
+          selectedRole !== actualRole &&
+          !(selectedRole === "buyer" && actualRole === "admin");
+        if (roleMismatch) {
+          throw new Error(
+            selectedRole === "seller"
+              ? "This account is not a shopkeeper account. Switch to Customer tab."
+              : "This account is a shopkeeper account. Switch to Shopkeeper tab."
+          );
+        }
+        localStorage.setItem("ajs_token", data.token);
+        localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
+        location.href = dashboardFor(actualRole);
+      } catch (x) {
+        err.textContent = x.message || "Error";
+        err.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

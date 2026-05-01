@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard - Bachat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="border-b border-slate-200 bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="text-xl font-black">User Dashboard</h1>
+      <button id="logout" class="text-sm font-semibold text-red-600">Log out</button>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-4">
+    <div id="msg" class="text-sm text-slate-600">Loading...</div>
+    <section class="grid sm:grid-cols-3 gap-3">
+      <div class="rounded-lg border border-slate-200 bg-white p-4">
+        <div class="text-xs text-slate-500 uppercase font-semibold">My Requests</div>
+        <div id="count-requests" class="text-2xl font-black mt-1">-</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-4">
+        <div class="text-xs text-slate-500 uppercase font-semibold">My Orders</div>
+        <div id="count-orders" class="text-2xl font-black mt-1">-</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-4">
+        <div class="text-xs text-slate-500 uppercase font-semibold">Cart Items</div>
+        <div id="count-cart" class="text-2xl font-black mt-1">-</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const token = localStorage.getItem("ajs_token");
+    if (!token) location.href = "/login.html";
+
+    function listCount(x) {
+      return Array.isArray(x) ? x.length : 0;
+    }
+
+    /**
+     * Try same-origin first (correct when HTML + API share one port, e.g. 3001).
+     * Then stored base, then common dev ports — avoids a wrong bachat_api_base from another page.
+     */
+    async function fetchApi(path, init) {
+      const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+      const proto = location.protocol;
+      const host = location.hostname;
+      const isFile = proto === "file:";
+      const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+
+      const portCandidates = new Set();
+      if (location.port) portCandidates.add(location.port);
+      portCandidates.add("3000");
+      portCandidates.add("3001");
+
+      /** @type {{ url: string, persist: string|null|undefined }[]} */
+      const attempts = [];
+      if (!isFile) attempts.push({ url: clean, persist: null });
+      if (stored) attempts.push({ url: `${stored}${clean}`, persist: stored });
+      for (const p of portCandidates) {
+        const base = `${proto}//${host}:${p}`;
+        attempts.push({ url: `${base}${clean}`, persist: base });
+      }
+
+      const seen = new Set();
+      let lastErr;
+      for (const { url, persist } of attempts) {
+        if (seen.has(url)) continue;
+        seen.add(url);
+        try {
+          const res = await fetch(url, init);
+          if (persist === null) localStorage.removeItem("bachat_api_base");
+          else if (persist) localStorage.setItem("bachat_api_base", persist);
+          return res;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr;
+    }
+
+    async function api(path) {
+      const cleanPath = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+      const res = await fetchApi(cleanPath, {
+        headers: { Authorization: "Bearer " + token },
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("ajs_token");
+        location.href = "/login.html";
+        return null;
+      }
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.error) || "Request failed");
+      return data;
+    }
+
+    async function boot() {
+      try {
+        const me = await api("/api/auth/me");
+        if (!me) return;
+        const role = String((me.user && me.user.role) || "").toLowerCase();
+        if (!me.user || role !== "buyer") {
+          location.href = "/Shopkeeper%20Dashboard.html";
+          return;
+        }
+        document.getElementById("msg").textContent = "Welcome, " + (me.user.name || "User");
+        const [requests, orders, cart] = await Promise.all([
+          api("/api/requests/mine"),
+          api("/api/orders/mine"),
+          api("/api/cart"),
+        ]);
+        document.getElementById("count-requests").textContent = listCount(requests);
+        document.getElementById("count-orders").textContent = listCount(orders);
+        document.getElementById("count-cart").textContent = listCount(cart);
+      } catch (e) {
+        document.getElementById("msg").textContent =
+          e && String(e.message).includes("Failed to fetch")
+            ? "Could not reach API server. Run npm run dev (default port 3000 or 3001) and refresh. If it persists, clear localStorage key bachat_api_base."
+            : e.message || "Failed to load dashboard";
+      }
+    }
+
+    document.getElementById("logout").addEventListener("click", () => {
+      localStorage.removeItem("ajs_token");
+      localStorage.removeItem("ajs_user");
+      location.href = "/login.html";
+    });
+
+    boot();
+  </script>
+</body>
+</html>
