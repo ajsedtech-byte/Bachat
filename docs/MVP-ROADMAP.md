@@ -9,7 +9,7 @@ Design mocks show a **full platform** (buyer, shopkeeper, sales, city ops, deliv
 | Auth | Email + password, JWT, roles `buyer`, `seller`, `admin`; email OTP verify (SMTP optional, dev logs OTP). |
 | Buyer | Local **catalog** (city/region), **cart**, **post request**, **list requests**, **view quotes per request**, **place order from quote** (`POST /api/orders` with `quote_id`). |
 | Shopkeeper | **Products CRUD**, **open requests** in area/categories, **quotes**, **orders** tab; listings UI. |
-| Static marketing | `index.html` — landing; **blue UI** aligned to mocks. |
+| Static marketing | `public/index.html` — landing; **blue UI** aligned to mocks. |
 | Deploy | Express + `api/index.js` for Vercel; env via `.env.example` / `npm run setup`. |
 
 ## Phase 2 (near-term, still “marketplace core”)
@@ -34,8 +34,8 @@ Each needs **data model + APIs + pages** (do not pretend exists today):
 
 ## UI north star
 
-- **Blue primary** (`blue-600`–`blue-950`), white surfaces, Inter/Mulish-style sans — see `login.html`, `index.html`, `UserDashboard.html`, `ShopkeeperDashboard.html`.
-- Rich buyer dashboard: sidebar + KPIs + **request → quotes → choose → order** + browse + basket (implemented in `UserDashboard.html`).
+- **Blue primary** (`blue-600`–`blue-950`), white surfaces, Inter/Mulish-style sans — see `public/login.html`, `public/index.html`, `public/UserDashboard.html`, `public/ShopkeeperDashboard.html`.
+- Rich buyer dashboard: sidebar + KPIs + **request → quotes → choose → order** + browse + basket (implemented in `public/UserDashboard.html`).
 
 ## How to test the quote loop
 
