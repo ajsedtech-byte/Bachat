@@ -3,68 +3,384 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Dashboard - Bachat</title>
+  <title>Bachat — Your dashboard</title>
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50 text-slate-900">
-  <header class="border-b border-slate-200 bg-white">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <h1 class="text-xl font-black">User Dashboard</h1>
-      <button id="logout" class="text-sm font-semibold text-red-600">Log out</button>
-    </div>
-  </header>
+<body class="bachat-ui bg-[#f8f9fb] text-slate-900 min-h-screen">
+  <div id="deliver-to" class="hidden" aria-hidden="true"></div>
+  <div class="flex min-h-screen">
+    <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
+      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
+      <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
+        <a href="#dashboard-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#e8f1fc] text-[#0056d2] border-l-4 border-[#0056d2]"><span>📊</span> Dashboard</a>
+        <a href="#requests-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📄</span> My Requests</a>
+        <a href="#orders-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📦</span> My Orders</a>
+        <a href="#payments-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>💳</span> My Payments</a>
+        <a href="#quotes-panel" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>💬</span> Quotes</a>
+        <a href="#saved-section" id="saved-nav" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>⭐</span> Saved Items</a>
+        <a href="#address-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📍</span> Address Book</a>
+        <a href="#browse-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>🛒</span> Shop near you</a>
+        <a href="#cart-section" id="cart-link" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>🧺</span> Basket <span id="cart-badge" class="ml-auto text-xs font-extrabold text-[#0056d2]">0</span></a>
+        <a href="#refer-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>🎁</span> Refer &amp; Earn</a>
+        <a href="#profile-strip" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>👤</span> Profile</a>
+      </nav>
+      <div class="p-4 border-t border-[#e5e7eb] mt-auto space-y-3">
+        <div id="refer-section" class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-4">
+          <p class="text-xs font-extrabold text-slate-900">Refer &amp; Earn</p>
+          <p class="text-[11px] text-slate-600 mt-1">Share your code; friends can enter it at signup. You get credit for each completed signup.</p>
+          <p id="referral-code-line" class="text-[11px] text-slate-500 mt-2">Your code: <span id="referral-code-display" class="font-mono font-bold text-slate-900">—</span></p>
+          <p id="referral-signups-line" class="text-[11px] text-slate-500">Signups with your code: <span id="referral-signups" class="font-bold text-slate-800">0</span></p>
+          <button type="button" id="refer-cta" class="mt-3 w-full py-2 rounded-lg bg-[#0056d2] text-white text-xs font-bold hover:bg-[#0044a8]">Copy signup link</button>
+        </div>
+        <div class="rounded-xl bg-gradient-to-br from-[#0056d2] to-[#0044a8] text-white p-4">
+          <p class="text-xs font-bold opacity-90">Need help?</p>
+          <p class="text-[11px] mt-1 opacity-85">WhatsApp <a href="https://wa.me/919876543210" class="underline font-semibold">+91 98765 43210</a></p>
+          <a href="/admin-support.html" class="mt-3 block text-center w-full py-2 rounded-lg bg-white text-[#0056d2] text-xs font-bold">Support center</a>
+        </div>
+      </div>
+    </aside>
 
-  <main class="max-w-5xl mx-auto px-4 py-6 space-y-4">
-    <div id="msg" class="text-sm text-slate-600">Loading...</div>
-    <section class="grid sm:grid-cols-3 gap-3">
-      <div class="rounded-lg border border-slate-200 bg-white p-4">
-        <div class="text-xs text-slate-500 uppercase font-semibold">My Requests</div>
-        <div id="count-requests" class="text-2xl font-black mt-1">-</div>
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="sticky top-0 z-30 bg-white border-b border-[#e5e7eb] px-3 sm:px-5 py-2.5 sm:py-3 flex flex-wrap items-center gap-2 sm:gap-3">
+        <button type="button" id="header-city" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e5e7eb] text-sm font-semibold text-slate-700 shrink-0">
+          <svg class="w-4 h-4 text-[#0056d2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span id="header-city-label">Indore</span>
+        </button>
+        <div class="flex flex-1 min-w-[140px] max-w-xl items-center gap-2 order-last sm:order-none w-full sm:w-auto basis-full sm:basis-auto">
+          <input id="search-q" type="search" placeholder="Search catalog…" class="flex-1 rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] bg-[#f8f9fb]" />
+          <button type="button" id="search-btn" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold px-4 py-2.5 text-sm shrink-0">Search</button>
+        </div>
+        <button type="button" id="notif-btn" class="relative p-2 rounded-xl border border-[#e5e7eb] text-slate-600 shrink-0 hover:bg-[#f8f9fa]" title="Notifications" aria-label="Notifications">
+          <span class="text-lg" aria-hidden="true">🔔</span>
+          <span id="notif-badge" class="absolute top-0.5 right-0.5 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
+        </button>
+        <div class="relative flex items-center gap-2 shrink-0 ml-auto">
+          <div id="header-avatar" class="w-9 h-9 rounded-full border border-[#e5e7eb] shrink-0 bg-cover bg-center bg-slate-200" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&q=60')"></div>
+          <div class="hidden sm:block min-w-0">
+            <p id="hello-user" class="text-sm font-bold text-slate-900 truncate max-w-[180px]"></p>
+            <p class="text-[11px] text-slate-500">Buyer · <button type="button" id="profile-menu-open" class="font-semibold text-[#0056d2] hover:underline">View profile ▾</button></p>
+          </div>
+          <div id="profile-menu" class="hidden absolute right-0 top-full mt-1 w-52 rounded-xl border border-[#e5e7eb] bg-white shadow-lg py-1 z-50 text-sm">
+            <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="profile">View profile</button>
+            <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="address">Address book</button>
+            <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="payments">My payments</button>
+            <hr class="border-[#e5e7eb]" />
+            <button type="button" id="logout" class="w-full text-left px-4 py-2.5 font-semibold text-red-600 hover:bg-red-50">Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <nav class="lg:hidden flex gap-2 overflow-x-auto px-3 py-2 bg-white border-b border-[#e5e7eb] text-xs font-bold text-slate-600 shrink-0">
+        <a href="#dashboard-home" class="whitespace-nowrap px-3 py-1.5 rounded-lg bg-[#e8f1fc] text-[#0056d2]">Dashboard</a>
+        <a href="#requests-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Requests</a>
+        <a href="#quotes-panel" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Quotes</a>
+        <a href="#orders-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Orders</a>
+        <a href="#browse-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Shop</a>
+        <a href="#cart-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Basket</a>
+        <a href="#payments-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Payments</a>
+        <a href="#saved-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Saved</a>
+        <a href="#address-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Address</a>
+      </nav>
+
+      <main class="flex-1 p-4 lg:p-6 overflow-auto space-y-8">
+        <p id="toast" class="hidden rounded-xl border border-[#e8f1fc] bg-[#e8f1fc] text-[#0044a8] text-sm font-semibold px-4 py-3"></p>
+        <p id="msg" class="text-sm text-slate-500 hidden"></p>
+
+        <section id="dashboard-home" class="space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900">Hello, <span id="dashboard-hello-name">there</span> <span class="inline-block">👋</span></h1>
+              <p id="welcome-tagline" class="text-slate-600 mt-1 max-w-xl text-sm sm:text-base">Find the best price from trusted local sellers in minutes.</p>
+            </div>
+            <a href="#post-section" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0056d2] text-white font-bold text-sm hover:bg-[#0044a8] shadow-md shrink-0 w-full sm:w-auto">+ Post New Requirement</a>
+          </div>
+
+          <div class="rounded-2xl border border-[#0056d2]/15 bg-gradient-to-r from-[#e8f1fc] via-[#eef5fc] to-white p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center gap-6 overflow-hidden shadow-sm">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-[#0056d2] uppercase tracking-wide">Welcome back</p>
+              <p class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1"><span id="welcome-name">there</span>, post your requirement and get the best quotes.</p>
+              <p id="welcome-sub" class="text-sm text-slate-600 mt-2 max-w-lg">Trusted sellers in your city compete for your order.</p>
+              <div class="mt-4 flex flex-wrap items-center gap-3">
+                <a href="#post-section" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0056d2] text-white font-bold text-sm hover:bg-[#0044a8]">📄 Post New Requirement</a>
+                <span class="text-xs text-slate-600 flex items-center gap-1.5 font-medium"><span aria-hidden="true">⏱</span> Get quotes in 2–5 mins</span>
+              </div>
+            </div>
+            <img src="/assets/bachat-logo-light.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto object-contain object-right mx-auto lg:ml-auto shrink-0 drop-shadow-lg hidden sm:block" />
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center text-lg shrink-0" aria-hidden="true">📋</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">Active requests</p>
+                <p id="kpi-active-requests" class="text-xl sm:text-2xl font-extrabold text-[#0056d2] mt-0.5">0</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">View &amp; manage</p>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-lg shrink-0" aria-hidden="true">💬</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">New quotes</p>
+                <p id="kpi-new-quotes" class="text-xl sm:text-2xl font-extrabold text-green-600 mt-0.5">0</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Quotes received</p>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg shrink-0" aria-hidden="true">📦</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">Orders</p>
+                <p id="kpi-orders" class="text-xl sm:text-2xl font-extrabold text-violet-600 mt-0.5">0</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Order history</p>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0" aria-hidden="true">₹</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">Money saved</p>
+                <p id="kpi-savings" class="text-xl sm:text-2xl font-extrabold text-amber-600 mt-0.5">₹—</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Total savings</p>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 -mt-2">*Money saved combines catalog markup spread vs max list price and quote/budget wins on paid orders only.</p>
+
+          <div class="grid lg:grid-cols-2 gap-6">
+            <div class="space-y-6 min-w-0">
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm">
+                <div class="flex justify-between items-center mb-4"><h2 class="font-bold text-slate-900">Recent requests</h2><a href="#requests-section" class="text-xs font-bold text-[#0056d2]">View all →</a></div>
+                <div id="requests-list-dash" class="space-y-2 text-sm"></div>
+              </div>
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm min-h-[160px]" id="latest-quotes-widget">
+                <h2 class="font-bold text-slate-900 mb-4">Latest quotes</h2>
+                <div id="latest-quotes-list" class="text-sm"></div>
+              </div>
+            </div>
+            <div class="space-y-6 min-w-0">
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm" id="active-request-panel">
+                <h2 class="font-bold text-slate-900 mb-1">Active request</h2>
+                <p id="active-request-title" class="text-sm text-slate-500 mb-4">Select a request or post a new one.</p>
+                <div id="active-request-tracker" class="hidden">
+                  <div class="relative flex justify-between gap-1 sm:gap-2 pt-2" aria-label="Request progress">
+                    <div class="hidden sm:block absolute left-[12%] right-[12%] top-7 h-0.5 bg-[#e5e7eb] z-0" aria-hidden="true"></div>
+                    <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                      <span id="tr-step-1" class="w-9 h-9 rounded-full bg-[#0056d2] text-white text-xs font-extrabold flex items-center justify-center ring-4 ring-white">✓</span>
+                      <span class="text-[10px] sm:text-xs font-semibold text-slate-800 mt-2 text-center leading-tight">Request sent</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                      <span id="tr-step-2" class="w-9 h-9 rounded-full bg-slate-200 text-slate-600 text-xs font-extrabold flex items-center justify-center relative">💬<span id="tr-quote-badge" class="absolute -top-1 -right-1 min-w-[1rem] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full items-center justify-center hidden">0</span></span>
+                      <span class="text-[10px] sm:text-xs font-semibold text-slate-600 mt-2 text-center leading-tight">Quotes</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                      <span id="tr-step-3" class="w-9 h-9 rounded-full bg-slate-200 text-slate-600 text-xs font-extrabold flex items-center justify-center">⚖</span>
+                      <span class="text-[10px] sm:text-xs font-semibold text-slate-600 mt-2 text-center leading-tight">Compare</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                      <span id="tr-step-4" class="w-9 h-9 rounded-full bg-slate-200 text-slate-600 text-xs font-extrabold flex items-center justify-center">🛒</span>
+                      <span class="text-[10px] sm:text-xs font-semibold text-slate-600 mt-2 text-center leading-tight">Place order</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm">
+                <div class="flex justify-between items-center mb-4"><h2 class="font-bold text-slate-900">Recent orders</h2><a href="#orders-section" class="text-xs font-bold text-[#0056d2]">View all →</a></div>
+                <div id="orders-list-dash" class="space-y-2 text-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-gradient-to-br from-[#e8f1fc] to-white border border-[#0056d2]/20 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative overflow-hidden">
+            <div class="relative z-10">
+              <p class="text-lg font-extrabold text-slate-900">Need something else?</p>
+              <p class="text-sm text-slate-600 mt-1 max-w-md">Post a requirement and receive seller quotes in minutes.</p>
+            </div>
+            <a href="#post-section" class="relative z-10 inline-flex justify-center px-6 py-3 rounded-xl bg-[#0056d2] text-white font-bold text-sm hover:bg-[#0044a8] shrink-0">Post New Requirement →</a>
+            <span class="absolute bottom-2 right-4 text-6xl opacity-15 pointer-events-none" aria-hidden="true">📋</span>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center">
+              <div class="text-2xl mb-2" aria-hidden="true">🛡</div>
+              <p class="text-xs font-bold text-slate-900">Best price guarantee</p>
+              <p class="text-[11px] text-slate-500 mt-1">Local sellers compete for your order.</p>
+            </div>
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center">
+              <div class="text-2xl mb-2" aria-hidden="true">⏱</div>
+              <p class="text-xs font-bold text-slate-900">Fast quotes</p>
+              <p class="text-[11px] text-slate-500 mt-1">Typical responses in minutes.</p>
+            </div>
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center">
+              <div class="text-2xl mb-2" aria-hidden="true">🔒</div>
+              <p class="text-xs font-bold text-slate-900">Safe payments</p>
+              <p class="text-[11px] text-slate-500 mt-1">Pay securely on Bachat.</p>
+            </div>
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center col-span-2 lg:col-span-1">
+              <div class="text-2xl mb-2" aria-hidden="true">🎧</div>
+              <p class="text-xs font-bold text-slate-900">Help &amp; support</p>
+              <p class="text-[11px] text-slate-500 mt-1"><a href="/admin-support.html" class="text-[#0056d2] font-semibold hover:underline">Contact us</a></p>
+            </div>
+          </div>
+        </section>
+
+        <p id="profile-strip" class="rounded-xl bg-white border border-[#e5e7eb] px-4 py-3 text-sm text-slate-600 scroll-mt-28"><span class="font-semibold text-slate-900">Profile:</span> signed in as <span id="profile-email" class="text-[#0056d2] font-medium"></span></p>
+
+        <section id="address-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm scroll-mt-28">
+          <h2 class="text-lg font-extrabold text-slate-900 mb-2">Address book</h2>
+          <p class="text-sm text-slate-600 mb-4">Used for delivery matching and basket checkout. Save updates your Bachat profile.</p>
+          <form id="address-form" class="grid sm:grid-cols-2 gap-4 max-w-2xl">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Full name</label>
+              <input name="name" id="addr-name" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Phone</label>
+              <input name="phone" id="addr-phone" type="tel" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" placeholder="+91" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">City</label>
+              <input name="city" id="addr-city" required class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Region / state</label>
+              <input name="region" id="addr-region" required class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" />
+            </div>
+            <div class="sm:col-span-2">
+              <button type="submit" id="addr-save" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold text-sm px-6 py-2.5 disabled:opacity-50">Save address</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="payments-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm scroll-mt-28">
+          <h2 class="text-lg font-extrabold text-slate-900 mb-2">My payments</h2>
+          <p class="text-sm text-slate-600 mb-4">Razorpay attempts and capture status per order (from your account).</p>
+          <div id="payments-empty" class="rounded-xl border border-dashed border-[#e5e7eb] px-4 py-8 text-center text-sm text-slate-500">No payment records yet. Complete checkout to see Razorpay order links here.</div>
+          <div id="payments-list" class="hidden space-y-2 text-sm"></div>
+        </section>
+
+        <section id="saved-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm scroll-mt-28">
+          <h2 class="text-lg font-extrabold text-slate-900 mb-2">Saved items</h2>
+          <p class="text-sm text-slate-600 mb-4">Items you saved from the catalog. Open Shop to add more.</p>
+          <div id="saved-list" class="space-y-2 text-sm"></div>
+        </section>
+
+    <!-- Browse -->
+    <section id="browse-section">
+      <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
+        <div>
+          <p class="text-xs font-black uppercase tracking-wider text-blue-600">Near you</p>
+          <h1 class="font-display text-2xl md:text-3xl font-black text-slate-900">Shop near you</h1>
+          <p class="text-slate-600 text-sm mt-1 max-w-xl">Browse items from local shopkeepers in your city — or post a custom request for quotes.</p>
+        </div>
+        <span class="rounded-full bg-blue-900 text-white text-xs font-black px-4 py-2 uppercase tracking-wide">Local stores</span>
       </div>
-      <div class="rounded-lg border border-slate-200 bg-white p-4">
-        <div class="text-xs text-slate-500 uppercase font-semibold">My Orders</div>
-        <div id="count-orders" class="text-2xl font-black mt-1">-</div>
+      <div id="category-pills" class="flex flex-wrap gap-2 mb-4"></div>
+      <div id="catalog-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+      <p id="catalog-empty" class="hidden text-slate-500 text-sm py-8 text-center">No listings match. Try another category or post a request below.</p>
+    </section>
+
+    <!-- Post request -->
+    <section id="post-section" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="font-display text-xl font-black text-slate-900 mb-4">What do you need?</h2>
+      <form id="request-form" class="grid md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Item</label>
+          <input name="product_name" required class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30" placeholder="e.g. Atta 10 kg" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+          <select name="category" id="req-category" required class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 bg-white"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Budget (optional)</label>
+          <div class="flex rounded-xl border border-slate-200 overflow-hidden">
+            <span class="px-3 py-3 bg-slate-50 text-slate-600 font-bold">₹</span>
+            <input name="budget" type="number" min="0" class="flex-1 min-w-0 px-3 py-3 outline-none" placeholder="0" />
+          </div>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Specifications</label>
+          <textarea name="specifications" rows="3" class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30" placeholder="Brand, size, quantity…"></textarea>
+        </div>
+        <div class="md:col-span-2 flex flex-wrap gap-4 items-center">
+          <button type="submit" class="rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-black px-8 py-3 shadow-md disabled:opacity-50" id="req-submit">Post request</button>
+          <span class="text-xs text-slate-500">City/region come from your account.</span>
+        </div>
+      </form>
+    </section>
+
+    <!-- Requests + quotes (mock-style split) -->
+    <section id="requests-section" class="space-y-4">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <h2 class="font-display text-xl font-black text-slate-900">Your requests &amp; quotes</h2>
+        <p class="text-xs text-slate-500 max-w-md">Select a request to compare shopkeeper quotes, then choose one to place your order.</p>
       </div>
-      <div class="rounded-lg border border-slate-200 bg-white p-4">
-        <div class="text-xs text-slate-500 uppercase font-semibold">Cart Items</div>
-        <div id="count-cart" class="text-2xl font-black mt-1">-</div>
+      <div class="grid lg:grid-cols-2 gap-6 items-start">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h3 class="text-xs font-black uppercase tracking-wider text-blue-700 mb-3">Requests</h3>
+          <div id="requests-list" class="space-y-2 text-sm"></div>
+        </div>
+        <div id="quotes-panel" class="rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-sm min-h-[200px] scroll-mt-24">
+          <h3 class="text-xs font-black uppercase tracking-wider text-[#0056d2] mb-3">Compare Quotes</h3>
+          <p id="quotes-hint" class="text-sm text-slate-500 mb-3">Select a request on the left to load quotes.</p>
+          <div id="quotes-list" class="space-y-3"></div>
+        </div>
       </div>
     </section>
+
+    <section id="orders-section" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="font-display text-xl font-black text-slate-900 mb-4">Your orders</h2>
+      <p class="text-xs text-slate-500 mb-3">From quote requests and basket checkout.</p>
+      <div id="orders-list" class="space-y-2 text-sm"></div>
+    </section>
+
+    <!-- Cart -->
+    <section id="cart-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm">
+      <h2 class="text-xl font-extrabold text-slate-900 mb-4">Basket</h2>
+      <div id="cart-body" class="space-y-3 text-sm"></div>
+    </section>
   </main>
+    </div>
+  </div>
 
   <script>
     const token = localStorage.getItem("ajs_token");
     if (!token) location.href = "/login.html";
 
+    function showToast(text, isErr) {
+      const el = document.getElementById("toast");
+      el.textContent = text;
+      el.classList.remove("hidden", "border-blue-200", "bg-blue-50", "text-blue-950", "border-red-200", "bg-red-50", "text-red-800");
+      if (isErr) {
+        el.classList.add("border-red-200", "bg-red-50", "text-red-800");
+      } else {
+        el.classList.add("border-blue-200", "bg-blue-50", "text-blue-950");
+      }
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.add("hidden"), 4500);
+    }
+
     function listCount(x) {
       return Array.isArray(x) ? x.length : 0;
     }
 
-    /**
-     * Try same-origin first (correct when HTML + API share one port, e.g. 3001).
-     * Then stored base, then common dev ports — avoids a wrong bachat_api_base from another page.
-     */
     async function fetchApi(path, init) {
       const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
       const proto = location.protocol;
       const host = location.hostname;
       const isFile = proto === "file:";
       const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
-
       const portCandidates = new Set();
       if (location.port) portCandidates.add(location.port);
       portCandidates.add("3000");
       portCandidates.add("3001");
-
-      /** @type {{ url: string, persist: string|null|undefined }[]} */
       const attempts = [];
       if (!isFile) attempts.push({ url: clean, persist: null });
       if (stored) attempts.push({ url: `${stored}${clean}`, persist: stored });
       for (const p of portCandidates) {
-        const base = `${proto}//${host}:${p}`;
-        attempts.push({ url: `${base}${clean}`, persist: base });
+        attempts.push({ url: `${proto}//${host}:${p}${clean}`, persist: `${proto}//${host}:${p}` });
       }
-
       const seen = new Set();
       let lastErr;
       for (const { url, persist } of attempts) {
@@ -82,11 +398,17 @@
       throw lastErr;
     }
 
-    async function api(path) {
+    async function api(method, path, body) {
       const cleanPath = String(path || "").startsWith("/") ? String(path) : `/${path}`;
-      const res = await fetchApi(cleanPath, {
+      const opts = {
+        method: method || "GET",
         headers: { Authorization: "Bearer " + token },
-      });
+      };
+      if (body != null) {
+        opts.headers["Content-Type"] = "application/json";
+        opts.body = JSON.stringify(body);
+      }
+      const res = await fetchApi(cleanPath, opts);
       if (res.status === 401) {
         localStorage.removeItem("ajs_token");
         location.href = "/login.html";
@@ -97,31 +419,715 @@
       return data;
     }
 
-    async function boot() {
+    let meUser = null;
+    let selectedCategory = "";
+    let lastRequests = [];
+    let selectedRequestId = null;
+    let ordersByRequestId = {};
+
+    function rupee(n) {
+      const x = Number(n);
+      if (!Number.isFinite(x)) return "—";
+      return "₹" + Math.round(x).toLocaleString("en-IN");
+    }
+
+    async function loadReferralInfo() {
       try {
-        const me = await api("/api/auth/me");
-        if (!me) return;
-        const role = String((me.user && me.user.role) || "").toLowerCase();
-        if (!me.user || role !== "buyer") {
-          location.href = "/Shopkeeper%20Dashboard.html";
-          return;
-        }
-        document.getElementById("msg").textContent = "Welcome, " + (me.user.name || "User");
-        const [requests, orders, cart] = await Promise.all([
-          api("/api/requests/mine"),
-          api("/api/orders/mine"),
-          api("/api/cart"),
-        ]);
-        document.getElementById("count-requests").textContent = listCount(requests);
-        document.getElementById("count-orders").textContent = listCount(orders);
-        document.getElementById("count-cart").textContent = listCount(cart);
-      } catch (e) {
-        document.getElementById("msg").textContent =
-          e && String(e.message).includes("Failed to fetch")
-            ? "Could not reach API server. Run npm run dev (default port 3000 or 3001) and refresh. If it persists, clear localStorage key bachat_api_base."
-            : e.message || "Failed to load dashboard";
+        const d = await api("GET", "/api/auth/referral/me");
+        const codeEl = document.getElementById("referral-code-display");
+        const nEl = document.getElementById("referral-signups");
+        if (codeEl) codeEl.textContent = (d.referral_code || "—").toUpperCase();
+        if (nEl) nEl.textContent = String(d.signups != null ? d.signups : 0);
+      } catch (_) {
+        const codeEl = document.getElementById("referral-code-display");
+        if (codeEl) codeEl.textContent = "—";
       }
     }
+
+    async function loadPayments() {
+      const empty = document.getElementById("payments-empty");
+      const list = document.getElementById("payments-list");
+      if (!empty || !list) return;
+      try {
+        const d = await api("GET", "/api/payments/mine");
+        const items = (d && d.items) || [];
+        if (!items.length) {
+          empty.classList.remove("hidden");
+          list.classList.add("hidden");
+          list.innerHTML = "";
+          return;
+        }
+        empty.classList.add("hidden");
+        list.classList.remove("hidden");
+        list.innerHTML = "";
+        items.forEach((row) => {
+          const div = document.createElement("div");
+          div.className = "rounded-lg border border-slate-200 px-4 py-3 flex flex-wrap justify-between gap-2";
+          div.innerHTML =
+            `<div>
+            <p class="font-bold">${escapeHtml(row.order_summary || "Order")}</p>
+            <p class="text-xs text-slate-500">${escapeHtml(row.status || "")} · order ${escapeHtml(row.order_payment_status || "")}</p>
+          </div>
+          <div class="text-right text-sm">
+            <p class="font-extrabold">${rupee(row.amount)}</p>
+            <p class="text-[11px] text-slate-400">${escapeHtml((row.created_at || "").slice(0, 10))}</p>
+          </div>`;
+          list.appendChild(div);
+        });
+      } catch (e) {
+        empty.textContent = e.message || "Could not load payments";
+        empty.classList.remove("hidden");
+        list.classList.add("hidden");
+      }
+    }
+
+    async function loadSaved() {
+      const box = document.getElementById("saved-list");
+      if (!box) return;
+      try {
+        const d = await api("GET", "/api/saved");
+        const items = (d && d.items) || [];
+        box.innerHTML = "";
+        if (!items.length) {
+          box.innerHTML = '<p class="text-slate-500">No saved items yet. Save from Shop near you.</p>';
+          return;
+        }
+        items.forEach((p) => {
+          const div = document.createElement("div");
+          div.className = "flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 last:border-0";
+          div.innerHTML =
+            `<div class="min-w-0">
+            <p class="font-bold">${escapeHtml(p.title)}</p>
+            <p class="text-xs text-slate-500">${escapeHtml(p.shop_name || "")}</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="font-extrabold text-[#0056d2]">${rupee(p.price)}</span>
+            <button type="button" class="text-xs font-bold text-red-600 hover:underline rm-saved" data-pid="${escapeHtml(p.product_id)}">Remove</button>
+          </div>`;
+          box.appendChild(div);
+        });
+        box.querySelectorAll(".rm-saved").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            try {
+              await api("DELETE", "/api/saved/" + encodeURIComponent(btn.getAttribute("data-pid")));
+              showToast("Removed");
+              await loadSaved();
+            } catch (err) {
+              showToast(err.message, true);
+            }
+          });
+        });
+      } catch (e) {
+        box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+      }
+    }
+
+    async function saveProduct(productId) {
+      if (!productId) return;
+      try {
+        await api("POST", "/api/saved", { product_id: productId });
+        showToast("Saved to your list");
+        await loadSaved();
+      } catch (e) {
+        showToast(e.message || "Save failed", true);
+      }
+    }
+
+    async function loadMe() {
+      const me = await api("GET", "/api/auth/me");
+      if (!me || !me.user) return null;
+      const role = String(me.user.role || "").toLowerCase();
+      if (role === "seller") {
+        location.href = "/ShopkeeperDashboard.html";
+        return null;
+      }
+      if (role === "admin") {
+        location.href = "/AdminDashboard.html";
+        return null;
+      }
+      if (role !== "buyer") {
+        location.href = "/login.html";
+        return null;
+      }
+      meUser = me.user;
+      const city = (me.user.city || "").trim();
+      const region = (me.user.region || "").trim();
+      const dt = document.getElementById("deliver-to");
+      if (dt) dt.textContent = city && region ? `Deliver to ${city} — ${region}` : "Set city & region at signup";
+      const hcl = document.getElementById("header-city-label");
+      if (hcl) hcl.textContent = city || "Indore";
+      const nmShort = (me.user.name || "").trim() || (me.user.email || "there").split("@")[0] || "there";
+      document.getElementById("hello-user").textContent = me.user.name || me.user.email || "";
+      const wn = document.getElementById("welcome-name");
+      if (wn) wn.textContent = nmShort || "there";
+      const dhn = document.getElementById("dashboard-hello-name");
+      if (dhn) dhn.textContent = nmShort || "there";
+      const ws = document.getElementById("welcome-sub");
+      if (ws && city) ws.textContent = `Post your requirement and get the best quotes from trusted sellers in ${city}.`;
+      const pe = document.getElementById("profile-email");
+      if (pe) pe.textContent = me.user.email || "";
+      const nm = document.getElementById("addr-name");
+      if (nm) nm.value = (me.user.name || "").trim();
+      const ph = document.getElementById("addr-phone");
+      if (ph) ph.value = (me.user.phone || "").trim();
+      const ct = document.getElementById("addr-city");
+      if (ct) ct.value = (me.user.city || "").trim();
+      const rg = document.getElementById("addr-region");
+      if (rg) rg.value = (me.user.region || "").trim();
+      return me;
+    }
+
+    async function loadAllCategories() {
+      const data = await api("GET", "/api/categories");
+      const sel = document.getElementById("req-category");
+      sel.innerHTML = "";
+      (data.categories || []).forEach((c) => {
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = c;
+        sel.appendChild(o);
+      });
+    }
+
+    async function loadNearbyCategoryPills() {
+      const box = document.getElementById("category-pills");
+      box.innerHTML = "";
+      const addPill = (label, value, active) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = label;
+        b.className =
+          "rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide transition-colors " +
+          (active
+            ? "bg-[#0056d2] text-white border-[#0056d2]"
+            : "bg-white text-slate-600 border-slate-200 hover:border-[#0056d2]");
+        b.addEventListener("click", () => {
+          selectedCategory = value;
+          [...box.querySelectorAll("button")].forEach((x, i) => {
+            const on = (value === "" && i === 0) || x === b;
+            x.className =
+              "rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide transition-colors " +
+              (on
+                ? "bg-[#0056d2] text-white border-[#0056d2]"
+                : "bg-white text-slate-600 border-slate-200 hover:border-[#0056d2]");
+          });
+          loadCatalog();
+        });
+        box.appendChild(b);
+      };
+      addPill("All", "", true);
+      try {
+        const data = await api("GET", "/api/products/catalog/nearby-shop-categories");
+        (data.categories || []).forEach((c) => addPill(c, c, false));
+      } catch (e) {
+        showToast(e.message || "Categories unavailable", true);
+      }
+    }
+
+    async function loadCatalog() {
+      const grid = document.getElementById("catalog-grid");
+      const empty = document.getElementById("catalog-empty");
+      grid.innerHTML = "";
+      const q = document.getElementById("search-q").value.trim();
+      let path = "/api/products/catalog?";
+      const params = new URLSearchParams();
+      if (selectedCategory) params.set("category", selectedCategory);
+      if (q) params.set("q", q);
+      path += params.toString();
+      try {
+        const data = await api("GET", path);
+        const items = data.items || [];
+        if (!items.length) {
+          empty.classList.remove("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+        items.forEach((p) => {
+          const card = document.createElement("div");
+          card.className =
+            "rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col";
+          const img =
+            p.images && p.images[0]
+              ? `<img src="${String(p.images[0]).replace(/"/g, "&quot;")}" alt="" class="h-36 w-full object-cover bg-slate-100" />`
+              : `<div class="h-36 w-full bg-gradient-to-br from-blue-800 to-blue-950 flex items-center justify-center font-display font-black text-white text-lg">Bachat</div>`;
+          card.innerHTML =
+            img +
+            `<div class="p-3 flex-1 flex flex-col">
+              <span class="text-[10px] font-black uppercase text-blue-600">Near you</span>
+              <p class="font-bold text-slate-900 line-clamp-2">${escapeHtml(p.title)}</p>
+              <p class="text-xs text-slate-500 mt-1 line-clamp-1">${escapeHtml(p.shop_name || "")}</p>
+              <p class="text-lg font-black text-blue-950 mt-auto pt-2">${rupee(p.price)}</p>
+              <div class="mt-2 grid grid-cols-2 gap-2">
+                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-lg bg-[#0056d2] hover:bg-[#0044a8] text-white text-xs font-black py-2 add-cart">Basket</button>
+                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-lg border border-[#0056d2] text-[#0056d2] text-xs font-black py-2 hover:bg-[#e8f1fc] save-catalog">Save</button>
+              </div>
+            </div>`;
+          grid.appendChild(card);
+        });
+        grid.querySelectorAll(".add-cart").forEach((btn) => {
+          btn.addEventListener("click", () => addToCart(btn.getAttribute("data-pid")));
+        });
+        grid.querySelectorAll(".save-catalog").forEach((btn) => {
+          btn.addEventListener("click", () => saveProduct(btn.getAttribute("data-pid")));
+        });
+      } catch (e) {
+        empty.classList.remove("hidden");
+        showToast(e.message || "Could not load catalog", true);
+      }
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s == null ? "" : String(s);
+      return d.innerHTML;
+    }
+
+    async function updateKpis() {
+      const elA = document.getElementById("kpi-active-requests");
+      const elQ = document.getElementById("kpi-new-quotes");
+      const elO = document.getElementById("kpi-orders");
+      const elS = document.getElementById("kpi-savings");
+      if (!elA || !elQ || !elO || !elS) return;
+      const activeReq = lastRequests.filter((r) => String(r.status || "").toLowerCase() !== "closed").length;
+      elA.textContent = String(activeReq);
+      let qc = 0;
+      try {
+        for (const r of lastRequests.slice(0, 12)) {
+          const q = await api("GET", "/api/quotes/request/" + encodeURIComponent(r.request_id));
+          if (Array.isArray(q)) qc += q.length;
+        }
+      } catch (_) {}
+      elQ.textContent = String(qc);
+      let orders = [];
+      try {
+        orders = await api("GET", "/api/orders/mine");
+        elO.textContent = String(listCount(orders));
+      } catch (_) {
+        elO.textContent = "0";
+      }
+      try {
+        const sum = await api("GET", "/api/orders/mine/savings-summary");
+        const m = Number(sum && sum.money_saved);
+        elS.textContent = Number.isFinite(m) && m > 0 ? rupee(m) + "*" : "₹0";
+      } catch (_) {
+        elS.textContent = "₹—";
+      }
+      const nb = document.getElementById("notif-badge");
+      if (nb) {
+        const n = Math.min(99, qc + (activeReq > 0 ? 1 : 0));
+        if (n < 1) nb.classList.add("hidden");
+        else {
+          nb.classList.remove("hidden");
+          nb.textContent = String(n);
+        }
+      }
+    }
+
+    function timeAgo(iso) {
+      if (!iso) return "—";
+      const t = new Date(iso).getTime();
+      if (!Number.isFinite(t)) return "—";
+      const s = Math.max(0, Math.floor((Date.now() - t) / 1000));
+      if (s < 60) return "Just now";
+      if (s < 3600) return Math.floor(s / 60) + " min ago";
+      if (s < 86400) return Math.floor(s / 3600) + " hr ago";
+      if (s < 172800) return "Yesterday";
+      return Math.floor(s / 86400) + " days ago";
+    }
+
+    function stepClass(on) {
+      return (
+        "w-9 h-9 rounded-full text-xs font-extrabold flex items-center justify-center ring-4 ring-white " +
+        (on ? "bg-[#0056d2] text-white" : "bg-slate-200 text-slate-600")
+      );
+    }
+
+    async function paintActiveTracker() {
+      const tracker = document.getElementById("active-request-tracker");
+      const titleEl = document.getElementById("active-request-title");
+      if (!tracker || !titleEl) return;
+      const open = lastRequests.filter((r) => String(r.status || "").toLowerCase() !== "closed");
+      const req = open[0] || lastRequests[0];
+      if (!req) {
+        tracker.classList.add("hidden");
+        titleEl.textContent = "No request yet. Post a requirement to track progress here.";
+        return;
+      }
+      titleEl.textContent = req.product_name;
+      tracker.classList.remove("hidden");
+      let qn = 0;
+      try {
+        const q = await api("GET", "/api/quotes/request/" + encodeURIComponent(req.request_id));
+        if (Array.isArray(q)) qn = q.length;
+      } catch (_) {}
+      const ordered = !!ordersByRequestId[req.request_id];
+      const s1 = document.getElementById("tr-step-1");
+      const s2 = document.getElementById("tr-step-2");
+      const s3 = document.getElementById("tr-step-3");
+      const s4 = document.getElementById("tr-step-4");
+      const badge = document.getElementById("tr-quote-badge");
+      if (s1) s1.className = stepClass(true);
+      if (s2) s2.className = stepClass(qn > 0) + " relative";
+      if (s3) s3.className = stepClass(qn > 1 || ordered);
+      if (s4) s4.className = stepClass(ordered);
+      if (badge) {
+        if (qn > 0) {
+          badge.textContent = qn > 9 ? "9+" : String(qn);
+          badge.classList.remove("hidden");
+          badge.classList.add("flex");
+        } else {
+          badge.classList.add("hidden");
+          badge.classList.remove("flex");
+        }
+      }
+    }
+
+    async function loadLatestQuotesPreview() {
+      const box = document.getElementById("latest-quotes-list");
+      if (!box) return;
+      box.innerHTML = "";
+      const pool = [];
+      try {
+        for (const r of lastRequests.filter((x) => String(x.status || "").toLowerCase() !== "closed").slice(0, 8)) {
+          const q = await api("GET", "/api/quotes/request/" + encodeURIComponent(r.request_id));
+          if (Array.isArray(q)) q.forEach((item) => pool.push({ ...item, _reqName: r.product_name }));
+        }
+      } catch (_) {}
+      pool.sort((a, b) => Number(a.price) - Number(b.price));
+      const pick = pool.slice(0, 6);
+      if (!pick.length) {
+        box.innerHTML = '<p class="text-slate-500">No quotes yet. Post a request to receive offers.</p>';
+        return;
+      }
+      pick.forEach((q, i) => {
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between gap-3 py-3 border-b border-[#e5e7eb] last:border-0";
+        const best =
+          i === 0
+            ? '<span class="text-[10px] font-extrabold uppercase bg-[#0056d2] text-white px-2 py-0.5 rounded shrink-0">Best price</span>'
+            : "";
+        row.innerHTML = `<div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2">${best}<span class="font-bold text-slate-900 truncate">${escapeHtml(q.shop_name || "Seller")}</span></div><p class="text-xs text-slate-500 truncate">${escapeHtml(q._reqName || "")}</p></div><div class="text-right shrink-0"><p class="font-extrabold text-[#0056d2]">${rupee(q.price)}</p><button type="button" class="text-xs font-bold text-[#0056d2] mt-1 hover:underline choose-dash-q" data-qid="${escapeHtml(q.quote_id)}">Choose</button></div>`;
+        box.appendChild(row);
+      });
+      box.querySelectorAll(".choose-dash-q").forEach((btn) =>
+        btn.addEventListener("click", () => placeOrder(btn.getAttribute("data-qid")))
+      );
+    }
+
+    async function addToCart(productId) {
+      try {
+        await api("POST", "/api/cart/items", { product_id: productId, quantity: 1 });
+        showToast("Added to basket");
+        await refreshCart();
+      } catch (e) {
+        showToast(e.message || "Cart error", true);
+      }
+    }
+
+    async function refreshCart() {
+      try {
+        const cart = await api("GET", "/api/cart");
+        const n = listCount(cart);
+        document.getElementById("cart-badge").textContent = String(n);
+        const body = document.getElementById("cart-body");
+        body.innerHTML = "";
+        if (!n) {
+          body.innerHTML = '<p class="text-slate-500">Your basket is empty.</p>';
+          return;
+        }
+        cart.forEach((line) => {
+          const row = document.createElement("div");
+          row.className = "flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3";
+          row.innerHTML = `<div>
+            <p class="font-bold">${escapeHtml(line.title)}</p>
+            <p class="text-xs text-slate-500">${rupee(line.price)} × ${line.quantity} = ${rupee(line.line_total)}</p>
+          </div>
+          <button type="button" data-rm="${escapeHtml(line.product_id)}" class="text-red-600 text-xs font-bold hover:underline rm-cart">Remove</button>`;
+          body.appendChild(row);
+        });
+        body.querySelectorAll(".rm-cart").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            try {
+              await api("DELETE", "/api/cart/items/" + btn.getAttribute("data-rm"));
+              showToast("Removed");
+              await refreshCart();
+            } catch (e) {
+              showToast(e.message, true);
+            }
+          });
+        });
+      } catch (e) {
+        document.getElementById("cart-body").innerHTML =
+          '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+      }
+    }
+
+    function paintRequestSelection() {
+      const box = document.getElementById("requests-list");
+      box.querySelectorAll("button[data-request-id]").forEach((btn) => {
+        const on = btn.dataset.requestId === selectedRequestId;
+        btn.className =
+          "w-full text-left rounded-xl border px-4 py-3 transition-shadow " +
+          (on ? "border-[#0056d2] ring-2 ring-[#0056d2]/20 bg-[#e8f1fc]" : "border-slate-200 bg-white hover:border-[#0056d2]/40");
+      });
+    }
+
+    async function loadOrders() {
+      const box = document.getElementById("orders-list");
+      const dash = document.getElementById("orders-list-dash");
+      ordersByRequestId = {};
+      try {
+        const rows = await api("GET", "/api/orders/mine");
+        box.innerHTML = "";
+        if (dash) dash.innerHTML = "";
+        if (!listCount(rows)) {
+          box.innerHTML = '<p class="text-slate-500">No orders yet.</p>';
+          if (dash) dash.innerHTML = '<p class="text-slate-500 text-sm">No orders yet.</p>';
+          return;
+        }
+        rows.forEach((o) => {
+          if (o.request_id) ordersByRequestId[o.request_id] = o;
+          const row = document.createElement("div");
+          row.className =
+            "rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 flex flex-wrap justify-between gap-2";
+          const pay = escapeHtml(o.payment_status || "");
+          const st = escapeHtml(o.order_status || "");
+          row.innerHTML = `<div>
+            <p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
+            <p class="text-xs text-slate-500">${rupee(o.final_price)} total · ${pay} · ${st}</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400">${escapeHtml((o.created_at || "").slice(0, 10))}</span>`;
+          box.appendChild(row);
+        });
+        if (dash) {
+          rows.slice(0, 5).forEach((o) => {
+            const row = document.createElement("div");
+            row.className = "flex items-center gap-3 py-3 border-b border-[#e5e7eb] last:border-0 text-sm cursor-default";
+            const st = String(o.order_status || "").toLowerCase();
+            const badge =
+              st === "delivered"
+                ? "bg-green-100 text-green-800"
+                : "bg-[#e8f1fc] text-[#0056d2]";
+            const dateLine = escapeHtml((o.created_at || "").slice(0, 10));
+            row.innerHTML = `<div class="w-11 h-11 rounded-lg bg-[#f8f9fb] border border-[#e5e7eb] shrink-0 flex items-center justify-center text-base" aria-hidden="true">📦</div><div class="min-w-0 flex-1"><p class="font-bold text-slate-900 truncate">${escapeHtml(o.summary || "Order")}</p><p class="text-xs text-slate-500">${dateLine}</p></div><div class="text-right shrink-0 flex items-center gap-2"><div><p class="font-extrabold text-slate-900">${rupee(o.final_price)}</p><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${badge}">${escapeHtml(o.order_status || "")}</span></div><span class="text-slate-300" aria-hidden="true">›</span></div>`;
+            dash.appendChild(row);
+          });
+        }
+      } catch (e) {
+        box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+        if (dash) dash.innerHTML = "";
+      }
+    }
+
+    async function loadQuotesForRequest(requestId) {
+      const hint = document.getElementById("quotes-hint");
+      const list = document.getElementById("quotes-list");
+      if (!requestId) {
+        hint.textContent = "Select a request on the left to load quotes.";
+        list.innerHTML = "";
+        return;
+      }
+      const reqRow = lastRequests.find((x) => x.request_id === requestId);
+      const closed = reqRow && String(reqRow.status || "").toLowerCase() === "closed";
+      hint.textContent = "Loading quotes…";
+      list.innerHTML = "";
+      try {
+        const quotes = await api("GET", "/api/quotes/request/" + encodeURIComponent(requestId));
+        const arr = Array.isArray(quotes) ? quotes : [];
+        if (!arr.length) {
+          hint.textContent = closed
+            ? "This request is closed."
+            : "No quotes yet. Matching shopkeepers can quote on your request.";
+          return;
+        }
+        hint.textContent = closed
+          ? "Quotes on this request (closed)."
+          : "Choose a quote to place your order.";
+        arr.forEach((q) => {
+          const wrap = document.createElement("div");
+          wrap.className =
+            "rounded-xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/50 p-4 flex flex-col gap-2";
+          const shop = escapeHtml(q.shop_name || "Shopkeeper");
+          const dt = escapeHtml(q.delivery_time || "—");
+          const notes = escapeHtml(q.notes || "");
+          const hasOrder = !!ordersByRequestId[requestId];
+          wrap.innerHTML = `
+            <div class="flex flex-wrap justify-between gap-2 items-start">
+              <div>
+                <p class="font-bold text-slate-900">${shop}</p>
+                <p class="text-xs text-slate-500">${dt}</p>
+              </div>
+              <p class="text-lg font-black text-blue-950">${rupee(q.price)}</p>
+            </div>
+            ${notes ? `<p class="text-xs text-slate-600 line-clamp-3">${notes}</p>` : ""}
+            <button type="button" data-qid="${escapeHtml(q.quote_id)}" class="choose-quote w-full rounded-lg bg-[#0056d2] hover:bg-[#0044a8] text-white text-xs font-black py-2.5 disabled:opacity-50 disabled:cursor-not-allowed">
+              Choose &amp; place order
+            </button>`;
+          list.appendChild(wrap);
+          const btn = wrap.querySelector(".choose-quote");
+          if (closed || hasOrder) {
+            btn.disabled = true;
+            btn.textContent = hasOrder ? "Order already placed" : "Request closed";
+          }
+          btn.addEventListener("click", () => placeOrder(q.quote_id));
+        });
+      } catch (e) {
+        hint.textContent = e.message || "Could not load quotes";
+        showToast(e.message || "Quotes error", true);
+      }
+    }
+
+    async function placeOrder(quoteId) {
+      try {
+        await api("POST", "/api/orders", { quote_id: quoteId });
+        showToast("Order placed.");
+        await loadOrders();
+        await loadRequests();
+        await updateKpis();
+        await loadLatestQuotesPreview();
+      } catch (e) {
+        showToast(e.message || "Order failed", true);
+      }
+    }
+
+    async function loadRequests() {
+      const box = document.getElementById("requests-list");
+      try {
+        const rows = await api("GET", "/api/requests/mine");
+        lastRequests = Array.isArray(rows) ? rows : [];
+        if (!selectedRequestId && lastRequests.length) {
+          const pick =
+            lastRequests.find((r) => String(r.status || "").toLowerCase() !== "closed") || lastRequests[0];
+          selectedRequestId = pick.request_id;
+        } else if (selectedRequestId && !lastRequests.some((r) => r.request_id === selectedRequestId)) {
+          selectedRequestId = lastRequests[0] ? lastRequests[0].request_id : null;
+        }
+        box.innerHTML = "";
+        if (!lastRequests.length) {
+          box.innerHTML = '<p class="text-slate-500">No requests yet.</p>';
+          document.getElementById("quotes-hint").textContent = "Post a request above, then select it here.";
+          document.getElementById("quotes-list").innerHTML = "";
+          const dr = document.getElementById("requests-list-dash");
+          if (dr) dr.innerHTML = '<p class="text-slate-500 text-sm">No requests yet.</p>';
+          await paintActiveTracker();
+          await updateKpis();
+          await loadLatestQuotesPreview();
+          return;
+        }
+        lastRequests.forEach((r) => {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.dataset.requestId = r.request_id;
+          d.className =
+            "w-full text-left rounded-xl border px-4 py-3 transition-shadow border-slate-200 bg-white hover:border-[#0056d2]/40";
+          const oid = ordersByRequestId[r.request_id];
+          const tag = oid
+            ? '<span class="ml-2 text-[10px] font-black uppercase text-green-700 bg-green-100 px-2 py-0.5 rounded">Ordered</span>'
+            : "";
+          d.innerHTML = `<div class="flex flex-wrap justify-between gap-2 items-start">
+            <div>
+              <p class="font-bold text-slate-900">${escapeHtml(r.product_name)}${tag}</p>
+              <p class="text-xs text-slate-500">${escapeHtml(r.category)} · ${escapeHtml(r.status || "")}</p>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 shrink-0">${escapeHtml((r.created_at || "").slice(0, 10))}</span>
+          </div>`;
+          d.addEventListener("click", async () => {
+            selectedRequestId = r.request_id;
+            paintRequestSelection();
+            await loadQuotesForRequest(selectedRequestId);
+          });
+          box.appendChild(d);
+        });
+        paintRequestSelection();
+        await loadQuotesForRequest(selectedRequestId);
+        const dashReq = document.getElementById("requests-list-dash");
+        if (dashReq) {
+          dashReq.innerHTML = "";
+          const open = lastRequests.filter((r) => String(r.status || "").toLowerCase() !== "closed");
+          const show = (open.length ? open : lastRequests).slice(0, 5);
+          if (!show.length) dashReq.innerHTML = '<p class="text-slate-500 text-sm">No requests yet.</p>';
+          else {
+            const metas = await Promise.all(
+              show.map(async (r) => {
+                let n = 0;
+                try {
+                  const q = await api("GET", "/api/quotes/request/" + encodeURIComponent(r.request_id));
+                  if (Array.isArray(q)) n = q.length;
+                } catch (_) {}
+                return { r, n };
+              })
+            );
+            metas.forEach(({ r, n }) => {
+              const row = document.createElement("button");
+              row.type = "button";
+              row.className =
+                "w-full text-left flex gap-3 p-3 rounded-xl border border-[#e5e7eb] hover:bg-[#f8f9fb] transition-colors mb-2 last:mb-0";
+              const oid = ordersByRequestId[r.request_id];
+              const st = String(r.status || "").toLowerCase();
+              let badge = "bg-green-100 text-green-800";
+              let badgeText = n > 0 ? n + " quotes" : escapeHtml(r.status || "Active");
+              if (st === "closed") {
+                badge = "bg-slate-100 text-slate-600";
+                badgeText = "Expired";
+              } else if (oid) {
+                badge = "bg-green-100 text-green-800";
+                badgeText = "Ordered";
+              } else if (n > 0) {
+                badge = "bg-emerald-100 text-emerald-800";
+              }
+              const budget = r.budget != null && Number(r.budget) > 0 ? `<p class="text-xs text-slate-600 mt-0.5">Budget: ${rupee(r.budget)}</p>` : "";
+              row.innerHTML = `<div class="w-12 h-12 rounded-lg bg-[#f8f9fb] border border-[#e5e7eb] shrink-0 flex items-center justify-center text-lg" aria-hidden="true">📦</div><div class="min-w-0 flex-1"><p class="font-bold text-slate-900 truncate">${escapeHtml(r.product_name)}</p><p class="text-xs text-slate-500">${escapeHtml(r.category || "General")}</p>${budget}<div class="flex flex-wrap items-center gap-2 mt-1.5"><span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${badge}">${badgeText}</span><span class="text-[11px] text-slate-400">${timeAgo(r.created_at)}</span></div></div><span class="text-slate-400 shrink-0 self-center text-lg" aria-hidden="true">›</span>`;
+              row.addEventListener("click", async () => {
+                selectedRequestId = r.request_id;
+                document.getElementById("requests-section").scrollIntoView({ behavior: "smooth" });
+                paintRequestSelection();
+                await loadQuotesForRequest(selectedRequestId);
+              });
+              dashReq.appendChild(row);
+            });
+          }
+        }
+        await paintActiveTracker();
+        await updateKpis();
+        await loadLatestQuotesPreview();
+      } catch (e) {
+        box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+      }
+    }
+
+    document.getElementById("request-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("req-submit");
+      btn.disabled = true;
+      const fd = new FormData(e.target);
+      const body = {
+        product_name: String(fd.get("product_name") || "").trim(),
+        category: String(fd.get("category") || "").trim(),
+        specifications: String(fd.get("specifications") || "").trim() || null,
+        budget: fd.get("budget") ? Number(fd.get("budget")) : null,
+      };
+      try {
+        const created = await api("POST", "/api/requests", body);
+        if (created && created.request_id) selectedRequestId = created.request_id;
+        showToast("Request posted");
+        e.target.reset();
+        await loadRequests();
+        await updateKpis();
+        await loadLatestQuotesPreview();
+      } catch (err) {
+        showToast(err.message || "Failed", true);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("search-btn").addEventListener("click", loadCatalog);
+    document.getElementById("search-q").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        loadCatalog();
+      }
+    });
 
     document.getElementById("logout").addEventListener("click", () => {
       localStorage.removeItem("ajs_token");
@@ -129,7 +1135,101 @@
       location.href = "/login.html";
     });
 
-    boot();
+    document.getElementById("cart-link").addEventListener("click", (e) => {
+      e.preventDefault();
+      document.getElementById("cart-section").scrollIntoView({ behavior: "smooth" });
+    });
+
+    (async function boot() {
+      try {
+        await loadMe();
+        await loadReferralInfo();
+        await loadAllCategories();
+        await loadNearbyCategoryPills();
+        await loadCatalog();
+        await refreshCart();
+        await loadOrders();
+        await loadRequests();
+        await loadPayments();
+        await loadSaved();
+        await updateKpis();
+        await loadLatestQuotesPreview();
+      } catch (e) {
+        document.getElementById("msg").textContent = e.message || "Failed to load";
+        document.getElementById("msg").classList.remove("hidden");
+      }
+    })();
+
+    document.getElementById("address-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("addr-save");
+      btn.disabled = true;
+      try {
+        const fd = new FormData(e.target);
+        await api("PATCH", "/api/auth/profile", {
+          name: String(fd.get("name") || "").trim(),
+          phone: String(fd.get("phone") || "").trim(),
+          city: String(fd.get("city") || "").trim(),
+          region: String(fd.get("region") || "").trim(),
+        });
+        showToast("Address saved");
+        await loadMe();
+      } catch (err) {
+        showToast(err.message || "Save failed", true);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    const profileMenu = document.getElementById("profile-menu");
+    const profileMenuOpen = document.getElementById("profile-menu-open");
+    function closeProfileMenu() {
+      if (profileMenu) profileMenu.classList.add("hidden");
+    }
+    if (profileMenuOpen && profileMenu) {
+      profileMenuOpen.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        profileMenu.classList.toggle("hidden");
+      });
+    }
+    document.querySelectorAll(".profile-menu-item").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const act = el.getAttribute("data-action");
+        closeProfileMenu();
+        if (act === "profile") document.getElementById("profile-strip")?.scrollIntoView({ behavior: "smooth" });
+        if (act === "address") document.getElementById("address-section")?.scrollIntoView({ behavior: "smooth" });
+        if (act === "payments") document.getElementById("payments-section")?.scrollIntoView({ behavior: "smooth" });
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (!profileMenu || profileMenu.classList.contains("hidden")) return;
+      if (profileMenu.contains(e.target) || (profileMenuOpen && profileMenuOpen.contains(e.target))) return;
+      closeProfileMenu();
+    });
+
+    document.getElementById("notif-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showToast("Quotes, orders, and delivery updates will appear here.", false);
+    });
+
+    document.getElementById("refer-cta")?.addEventListener("click", async () => {
+      const code = (document.getElementById("referral-code-display")?.textContent || "").trim();
+      if (!code || code === "—") {
+        showToast("Referral code not ready yet.", true);
+        return;
+      }
+      const path = "/signup.html?ref=" + encodeURIComponent(code);
+      const link =
+        location.origin && location.origin !== "null" ? location.origin.replace(/\/$/, "") + path : path;
+      try {
+        await navigator.clipboard.writeText(link);
+        showToast("Signup link copied");
+      } catch (_) {
+        showToast("Share: " + link, false);
+      }
+    });
   </script>
 </body>
 </html>

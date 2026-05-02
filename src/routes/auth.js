@@ -10,6 +10,7 @@ const { generateSixDigitCode, hashOtp, verifyOtp } = require("../utils/otp");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatUser, formatSeller } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
+const { ensureReferralCode } = require("../lib/referralCode");
 
 const router = express.Router();
 
@@ -45,6 +46,7 @@ router.post("/register", async (req, res, next) => {
       shop_name,
       category,
       categories,
+      referral_code,
     } = req.body || {};
 
     if (!email || !password || !name || !city || !region) {
@@ -69,9 +71,19 @@ router.post("/register", async (req, res, next) => {
     const codeHash = await hashOtp(code);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
+    let referredById = null;
+    if (referral_code) {
+      const ref = await User.findOne({
+        referralCode: String(referral_code).trim().toUpperCase(),
+      }).lean();
+      if (ref && String(ref._id)) {
+        referredById = ref._id;
+      }
+    }
+
     const session = await mongoose.startSession();
+    let createdUser;
     try {
-      let createdUser;
       await session.withTransaction(async () => {
         const [user] = await User.create(
           [
@@ -83,6 +95,7 @@ router.post("/register", async (req, res, next) => {
               city,
               region,
               role,
+              referredBy: referredById || undefined,
             },
           ],
           { session }
@@ -110,6 +123,8 @@ router.post("/register", async (req, res, next) => {
           { session }
         );
       });
+
+      await ensureReferralCode(User, createdUser);
 
       await sendMail({
         to: createdUser.email,
@@ -174,6 +189,7 @@ router.post("/verify-email", async (req, res, next) => {
     await otp.save();
     user.emailVerifiedAt = new Date();
     await user.save();
+    await ensureReferralCode(User, user);
 
     const fresh = await User.findById(user._id).lean();
     const token = signToken(fresh);
@@ -252,12 +268,125 @@ router.get("/me", requireAuth, async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+    await ensureReferralCode(User, user);
     let seller = null;
     if (user.role === "seller") {
       const s = await Seller.findOne({ user: user._id });
       seller = s ? formatSeller(s) : null;
     }
     return res.json({ user: formatUser(user), seller });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/profile", requireAuth, async (req, res, next) => {
+  try {
+    const { name, phone, city, region } = req.body || {};
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (name != null) user.name = String(name).trim() || user.name;
+    if (phone != null) user.phone = String(phone).trim();
+    if (city != null) user.city = String(city).trim() || user.city;
+    if (region != null) user.region = String(region).trim() || user.region;
+    if (!user.city || !user.region) {
+      return badRequest(res, "city and region are required");
+    }
+    await user.save();
+    if (user.role === "seller") {
+      const seller = await Seller.findOne({ user: user._id });
+      if (seller) {
+        seller.city = user.city;
+        seller.region = user.region;
+        await seller.save();
+      }
+    }
+    await ensureReferralCode(User, user);
+    let sellerOut = null;
+    if (user.role === "seller") {
+      const s = await Seller.findOne({ user: user._id });
+      sellerOut = s ? formatSeller(s) : null;
+    }
+    return res.json({ user: formatUser(user), seller: sellerOut });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/referral/me", requireAuth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const code = await ensureReferralCode(User, user);
+    const signups = await User.countDocuments({ referredBy: user._id });
+    return res.json({ referral_code: code, signups });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/login-otp/request", async (req, res, next) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return badRequest(res, "email is required");
+    }
+    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    if (!user || !user.emailVerifiedAt) {
+      return res.json({ message: "If an account exists, a code was sent." });
+    }
+    const code = generateSixDigitCode();
+    const codeHash = await hashOtp(code);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await EmailOtp.create({
+      user: user._id,
+      codeHash,
+      purpose: "login_otp",
+      expiresAt,
+    });
+    await sendMail({
+      to: user.email,
+      subject: "Your Bachat login code",
+      text: `Your login code is: ${code}\nIt expires in 10 minutes.`,
+      html: `<p>Your login code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 10 minutes.</p>`,
+    });
+    return res.json(withDevOtp({ message: "If an account exists, a code was sent." }, code));
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/login-otp/verify", async (req, res, next) => {
+  try {
+    const { email, code } = req.body || {};
+    if (!email || !code) {
+      return badRequest(res, "email and code are required");
+    }
+    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    if (!user || !user.emailVerifiedAt) {
+      return res.status(401).json({ error: "Invalid code" });
+    }
+    const otp = await EmailOtp.findOne({
+      user: user._id,
+      purpose: "login_otp",
+      consumedAt: null,
+      expiresAt: { $gt: new Date() },
+    }).sort({ createdAt: -1 });
+    if (!otp) {
+      return res.status(400).json({ error: "No active code — request a new one" });
+    }
+    const ok = await verifyOtp(String(code), otp.codeHash);
+    if (!ok) {
+      return res.status(400).json({ error: "Invalid code" });
+    }
+    otp.consumedAt = new Date();
+    await otp.save();
+    const token = signToken(user);
+    return res.json({ token, user: formatUser(user) });
   } catch (err) {
     return next(err);
   }

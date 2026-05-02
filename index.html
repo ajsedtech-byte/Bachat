@@ -3,310 +3,293 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bachat - Smart Local Marketplace</title>
+  <title>Bachat — Get the best price in your city</title>
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --teal-900: #0f3f3f;
-      --teal-700: #0f766e;
-      --orange-500: #f97316;
-      --orange-600: #ea580c;
-    }
-
-    body { font-family: Mulish, system-ui, sans-serif; }
-    .font-display { font-family: Outfit, Mulish, system-ui, sans-serif; }
-    .glass { backdrop-filter: blur(8px); }
-    .reveal {
-      opacity: 0;
-      transform: translateY(22px);
-      transition: opacity 0.65s ease, transform 0.65s ease;
-    }
-    .reveal.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .elevate {
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-    .elevate:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 30px rgba(2, 6, 23, 0.12);
-    }
-    html.dark body {
-      background: linear-gradient(to bottom, #020617, #0f172a, #111827);
-      color: #e2e8f0;
-    }
-    html.dark header {
-      background: rgba(15, 23, 42, 0.82) !important;
-      border-color: rgba(148, 163, 184, 0.2) !important;
-    }
-    html.dark footer {
-      background: #0f172a !important;
-      border-color: rgba(148, 163, 184, 0.2) !important;
-    }
-    html.dark [class*="bg-white"],
-    html.dark [class*="bg-slate-50"],
-    html.dark [class*="bg-teal-50"],
-    html.dark [class*="bg-orange-50"] {
-      background-color: #0f172a !important;
-    }
-    html.dark [class*="border-slate-200"],
-    html.dark [class*="border-slate-300"],
-    html.dark [class*="border-neutral-200"] {
-      border-color: rgba(148, 163, 184, 0.28) !important;
-    }
-    html.dark [class*="text-slate-900"],
-    html.dark [class*="text-slate-800"],
-    html.dark [class*="text-neutral-900"] {
-      color: #f1f5f9 !important;
-    }
-    html.dark [class*="text-slate-700"],
-    html.dark [class*="text-slate-600"],
-    html.dark [class*="text-slate-500"],
-    html.dark [class*="text-neutral-600"],
-    html.dark [class*="text-neutral-500"] {
-      color: #cbd5e1 !important;
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { bachat: { DEFAULT: "#0056d2", soft: "#e8f1fc", dark: "#0044a8" } },
+        },
+      },
+    };
+  </script>
 </head>
-<body class="bg-gradient-to-b from-teal-50 via-white to-orange-50 text-slate-900">
-  <header class="sticky top-0 z-40 border-b border-white/50 bg-white/80 glass">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="/" class="inline-flex items-baseline font-display font-black tracking-tight" aria-label="Bachat home">
-        <span class="text-teal-900 text-3xl">Bach</span><span class="text-orange-600 text-3xl">at</span>
+<body class="bachat-ui m-0 bg-white text-slate-900 antialiased">
+  <!-- Header -->
+  <header class="sticky top-0 z-50 border-b border-[#e5e7eb] bg-white/95 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 py-2.5 sm:py-3 lg:py-0 lg:h-16 lg:min-h-0 lg:grid lg:grid-cols-[minmax(140px,200px)_1fr_minmax(220px,300px)] lg:flex-nowrap lg:justify-between lg:items-stretch">
+      <a href="/" class="flex items-center shrink-0 gap-2 order-1 lg:justify-self-start lg:self-center" aria-label="Bachat home">
+        <img src="/assets/bachat-logo-light.png" alt="" class="h-9 md:h-10 w-auto max-w-[160px] object-contain object-left" />
       </a>
-      <nav class="hidden md:flex items-center gap-6 text-sm font-bold text-slate-600">
-        <a href="#how" class="hover:text-teal-700">How it works</a>
-        <a href="#features" class="hover:text-teal-700">Features</a>
-        <a href="#trust" class="hover:text-teal-700">Why Bachat</a>
+      <nav class="hidden lg:flex order-2 items-end justify-center gap-x-8 text-sm font-semibold text-slate-600 min-w-0 w-full lg:w-auto lg:col-start-2 lg:row-start-1 lg:h-full" aria-label="Primary">
+        <a href="/" class="text-bachat border-b-2 border-bachat pb-2 leading-none">Home</a>
+        <a href="#how" class="hover:text-bachat transition-colors pb-2 border-b-2 border-transparent leading-none">How It Works</a>
+        <a href="#buyers" class="hover:text-bachat transition-colors pb-2 border-b-2 border-transparent leading-none">For Buyers</a>
+        <a href="#sellers" class="hover:text-bachat transition-colors pb-2 border-b-2 border-transparent leading-none">For Sellers</a>
+        <a href="#faq" class="hover:text-bachat transition-colors pb-2 border-b-2 border-transparent leading-none">FAQs</a>
       </nav>
-      <div class="flex items-center gap-2">
-        <button id="theme-toggle" type="button" class="px-3 py-2 rounded-lg text-xs font-black border border-slate-300 text-slate-700 hover:border-teal-500">
-          Dark
+      <div class="flex items-center justify-end gap-2 sm:gap-3 shrink-0 order-3 lg:justify-self-end lg:col-start-3 lg:self-center">
+        <button type="button" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#e5e7eb] text-sm font-semibold text-slate-700 hover:bg-[#f8f9fa] transition-colors">
+          <svg class="w-4 h-4 text-bachat shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Indore
         </button>
-        <a href="/login.html" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-700 hover:text-orange-600">Log in</a>
-        <a href="/signup.html" class="px-4 py-2 rounded-lg text-sm font-bold bg-orange-500 text-white hover:bg-orange-600 shadow">Sign up</a>
+        <a href="/login.html" class="px-4 py-2 h-10 inline-flex items-center justify-center rounded-xl border-2 border-bachat text-bachat text-sm font-bold hover:bg-bachat-soft transition-colors">Login</a>
+        <a href="/signup.html" class="px-4 py-2 h-10 inline-flex items-center justify-center rounded-xl bg-bachat text-white text-sm font-bold hover:bg-[#0044a8] shadow-sm transition-colors hidden sm:inline-flex">Sign Up</a>
       </div>
     </div>
   </header>
 
-  <main>
-    <section class="relative overflow-hidden reveal">
-      <div class="absolute -top-24 -left-20 w-72 h-72 rounded-full bg-teal-200/45 blur-3xl"></div>
-      <div class="absolute -bottom-20 -right-10 w-72 h-72 rounded-full bg-orange-200/50 blur-3xl"></div>
-      <div class="max-w-7xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <p class="inline-flex items-center rounded-full bg-teal-100 text-teal-800 text-xs font-extrabold px-3 py-1 mb-5 tracking-wide">INDIA-FIRST LOCAL COMMERCE</p>
-          <h1 class="font-display font-black text-4xl md:text-6xl leading-tight text-slate-900">
-            Bachat turns local shopping into a
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-orange-600">deal-winning experience</span>
-          </h1>
-          <p class="mt-5 text-base md:text-lg text-slate-600 leading-relaxed max-w-xl">
-            Customers post what they need. Nearby shopkeepers compete with live quotes. You close faster with better prices, verified sellers, and smooth order flow.
+  <main class="m-0 p-0">
+    <!-- Hero -->
+    <section class="relative overflow-hidden bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 lg:pt-6 pb-8 sm:pb-10 lg:pb-12 grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-8 lg:gap-x-12 xl:gap-x-16 gap-y-8 lg:gap-y-0 items-start">
+        <div class="max-w-xl lg:max-w-none min-w-0">
+          <p class="inline-flex items-center gap-2 rounded-full bg-bachat-soft text-bachat px-4 py-1.5 text-xs font-bold mb-4 tracking-wide">
+            <span class="text-green-600" aria-hidden="true">✓</span> India&apos;s Price Discovery Engine
           </p>
-          <div class="mt-8 flex flex-col sm:flex-row gap-3">
-            <a href="/signup.html" class="px-6 py-3 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-600 shadow-lg shadow-orange-200/80 text-center">
-              Start Free
-            </a>
-            <a href="/login.html" class="px-6 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 font-black hover:border-teal-500 hover:text-teal-700 text-center">
-              Existing Account
-            </a>
-          </div>
-          <div class="mt-7 grid grid-cols-3 gap-3 max-w-md">
-            <div class="rounded-xl bg-white/90 border border-slate-200 p-3 text-center">
-              <p data-count-to="500" data-count-suffix="+" class="font-black text-xl text-teal-700 count-up">0+</p>
-              <p class="text-[11px] font-bold text-slate-500 uppercase">Daily requests</p>
-            </div>
-            <div class="rounded-xl bg-white/90 border border-slate-200 p-3 text-center">
-              <p data-count-to="2.4" data-count-suffix="m" class="font-black text-xl text-teal-700 count-up">0m</p>
-              <p class="text-[11px] font-bold text-slate-500 uppercase">Avg response</p>
-            </div>
-            <div class="rounded-xl bg-white/90 border border-slate-200 p-3 text-center">
-              <p data-count-to="33" data-count-suffix="%" class="font-black text-xl text-teal-700 count-up">0%</p>
-              <p class="text-[11px] font-bold text-slate-500 uppercase">Conversion</p>
-            </div>
-          </div>
+          <h1 class="text-4xl sm:text-5xl lg:text-[3.35rem] xl:text-[3.5rem] font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+            Get the Best Price in Your City.
+          </h1>
+          <p class="mt-4 text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
+            Post what you need. Local sellers compete. You save up to 40%.
+          </p>
+          <ul class="mt-6 flex flex-col gap-3.5 text-sm font-semibold text-slate-700">
+            <li class="flex items-center gap-3"><span class="w-9 h-9 shrink-0 rounded-full bg-bachat-soft flex items-center justify-center text-bachat text-base" aria-hidden="true">⏱</span> Quotes in 2–5 mins</li>
+            <li class="flex items-center gap-3"><span class="w-9 h-9 shrink-0 rounded-full bg-bachat-soft flex items-center justify-center text-bachat text-base" aria-hidden="true">₹</span> Best prices guaranteed</li>
+            <li class="flex items-center gap-3"><span class="w-9 h-9 shrink-0 rounded-full bg-bachat-soft flex items-center justify-center text-bachat text-base" aria-hidden="true">🔒</span> Safe payments on Bachat</li>
+          </ul>
         </div>
-
-        <div class="rounded-3xl border border-slate-200 bg-white/90 shadow-2xl shadow-teal-100/80 p-5 md:p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="font-display font-bold text-lg text-slate-900">Live Bachat Flow</h2>
-            <span class="px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[11px] font-extrabold">LIVE</span>
+        <div class="relative flex flex-col items-center lg:items-end gap-5 self-start w-full">
+          <div class="relative w-full max-w-[min(100%,400px)] lg:max-w-[440px] flex items-start justify-center lg:justify-end">
+            <img src="/assets/bachat-logo-light.png" alt="" class="w-full max-h-[240px] sm:max-h-[280px] lg:max-h-[340px] object-contain object-top drop-shadow-[0_20px_40px_-12px_rgba(0,86,210,0.2)] block leading-none" width="448" height="496" decoding="async" />
           </div>
-          <div class="space-y-3 text-sm">
-            <div class="rounded-xl border border-slate-200 p-3 bg-slate-50">
-              <p class="text-[11px] uppercase text-slate-400 font-bold">Customer Request</p>
-              <p class="font-bold text-slate-800">"iPhone 15 Pro Max - budget Rs 1,20,000"</p>
+          <div class="w-full max-w-md flex flex-wrap items-center justify-center gap-3 sm:gap-4 rounded-2xl bg-[#f8f9fa] border border-[#e5e7eb] shadow-md px-4 py-3 sm:px-5 sm:py-3.5">
+            <div class="flex -space-x-2">
+              <span class="w-9 h-9 rounded-full bg-slate-300 ring-2 ring-white"></span>
+              <span class="w-9 h-9 rounded-full bg-slate-400 ring-2 ring-white"></span>
+              <span class="w-9 h-9 rounded-full bg-slate-500 ring-2 ring-white"></span>
+              <span class="w-9 h-9 rounded-full bg-bachat-soft text-bachat text-xs font-bold flex items-center justify-center ring-2 ring-white">+10K</span>
             </div>
-            <div class="rounded-xl border border-teal-200 p-3 bg-teal-50">
-              <p class="text-[11px] uppercase text-teal-700 font-bold">Quotes in progress</p>
-              <p class="font-bold text-slate-800">3 shopkeepers bidding in real time</p>
-            </div>
-            <div class="rounded-xl border border-orange-200 p-3 bg-orange-50">
-              <p class="text-[11px] uppercase text-orange-700 font-bold">Best quote selected</p>
-              <p class="font-bold text-slate-800">Rs 1,18,000 | Instant fulfillment</p>
+            <div class="text-left">
+              <p class="text-sm font-bold text-slate-900">Trusted by 10,000+ shoppers</p>
+              <p class="text-xs text-slate-500">in Indore · <span class="text-amber-500">★</span> 4.8</p>
             </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <section id="how" class="max-w-7xl mx-auto px-4 py-16 reveal">
-      <h2 class="font-display text-3xl md:text-4xl font-black text-slate-900 text-center">How Bachat works</h2>
-      <p class="text-slate-500 text-center mt-2 max-w-2xl mx-auto">Simple for customers. Powerful for shopkeepers. Reliable for operations.</p>
-      <div class="mt-8 grid md:grid-cols-3 gap-4">
-        <article class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm elevate">
-          <p class="text-xs font-black text-teal-700">01</p>
-          <h3 class="mt-2 font-extrabold text-lg">Post Request</h3>
-          <p class="mt-2 text-slate-600 text-sm">Customer posts requirement with budget, category, and delivery urgency.</p>
-        </article>
-        <article class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm elevate">
-          <p class="text-xs font-black text-teal-700">02</p>
-          <h3 class="mt-2 font-extrabold text-lg">Collect Quotes</h3>
-          <p class="mt-2 text-slate-600 text-sm">Nearby verified sellers send competitive quotes inside one workflow.</p>
-        </article>
-        <article class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm elevate">
-          <p class="text-xs font-black text-teal-700">03</p>
-          <h3 class="mt-2 font-extrabold text-lg">Close Order</h3>
-          <p class="mt-2 text-slate-600 text-sm">Select best quote, finalize instantly, and track fulfillment confidence.</p>
-        </article>
+      <!-- Search card -->
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pb-12 sm:pb-16 lg:pb-20">
+        <div class="rounded-2xl bg-white border border-[#e5e7eb] shadow-xl p-5 sm:p-6 grid md:grid-cols-[1fr_1fr_auto_auto] gap-x-4 gap-y-4 md:gap-x-5 md:gap-y-0 items-end">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">What do you need?</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+              <input type="text" readonly onclick="location.href='/signup.html'" class="w-full pl-10 pr-4 py-3 rounded-xl border border-[#e5e7eb] bg-[#f8f9fa] text-sm cursor-pointer" placeholder="Example: 16GB DDR4 RAM" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Add details (optional)</label>
+            <input type="text" readonly onclick="location.href='/signup.html'" class="w-full px-4 py-3 rounded-xl border border-[#e5e7eb] bg-[#f8f9fa] text-sm cursor-pointer" placeholder="Brand, model, specs…" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Location</label>
+            <select class="w-full md:w-36 px-4 py-3 rounded-xl border border-[#e5e7eb] bg-white text-sm font-semibold">
+              <option>Indore</option>
+            </select>
+          </div>
+          <a href="/signup.html" class="inline-flex justify-center items-center px-6 py-3 rounded-xl bg-bachat text-white font-bold text-sm hover:bg-[#0044a8] whitespace-nowrap shadow-md">Get Quotes Now</a>
+        </div>
+        <p class="text-center text-xs text-slate-500 mt-3">✓ It&apos;s free · No obligation</p>
       </div>
     </section>
 
-    <section id="features" class="bg-teal-950 text-white py-16 reveal">
-      <div class="max-w-7xl mx-auto px-4">
-        <h2 class="font-display text-3xl md:text-4xl font-black text-center">Built for scale, designed for speed</h2>
-        <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
-            <p class="font-extrabold">Live Ops Dashboard</p>
-            <p class="text-sm text-teal-100/80 mt-2">Track request age, SLA, quote ratio, and conversion in one place.</p>
-          </div>
-          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
-            <p class="font-extrabold">Role-based Experience</p>
-            <p class="text-sm text-teal-100/80 mt-2">Customer, shopkeeper, and admin flows tailored to real workflows.</p>
-          </div>
-          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
-            <p class="font-extrabold">Fast Quote Loop</p>
-            <p class="text-sm text-teal-100/80 mt-2">Reduce response time and improve close rate with structured quoting.</p>
-          </div>
-          <div class="rounded-2xl border border-teal-700/60 bg-teal-900/40 p-5">
-            <p class="font-extrabold">India-focused Categories</p>
-            <p class="text-sm text-teal-100/80 mt-2">Built around local market categories and practical buying behavior.</p>
-          </div>
+    <!-- How it works -->
+    <section id="how" class="py-16 lg:py-24 bg-white border-t border-[#e5e7eb]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-center text-slate-900">How Bachat Works</h2>
+        <div class="mt-12 lg:mt-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-8 relative">
+          <div class="hidden lg:block absolute top-12 left-[12%] right-[12%] h-0 border-t-2 border-dashed border-slate-200 -z-0"></div>
+          <article class="relative z-10 text-center">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-bachat-soft flex items-center justify-center text-2xl mb-4">📋</div>
+            <h3 class="font-bold text-slate-900">Post Your Requirement</h3>
+            <p class="mt-2 text-sm text-slate-600">Tell us what you need with details, quantity &amp; location.</p>
+          </article>
+          <article class="relative z-10 text-center">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-bachat-soft flex items-center justify-center text-2xl mb-4 relative">
+              🔔
+              <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">5</span>
+            </div>
+            <h3 class="font-bold text-slate-900">Sellers Send Quotes</h3>
+            <p class="mt-2 text-sm text-slate-600">Multiple local sellers send their best quotes to win your order.</p>
+          </article>
+          <article class="relative z-10 text-center">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-bachat-soft flex items-center justify-center text-2xl mb-4">⚖</div>
+            <h3 class="font-bold text-slate-900">Compare &amp; Choose</h3>
+            <p class="mt-2 text-sm text-slate-600">Compare price, delivery &amp; trust before you decide.</p>
+          </article>
+          <article class="relative z-10 text-center">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-bachat-soft flex items-center justify-center text-2xl mb-4">✓</div>
+            <h3 class="font-bold text-slate-900">Pay &amp; Relax</h3>
+            <p class="mt-2 text-sm text-slate-600">Pay securely on Bachat and track your order.</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <section id="trust" class="max-w-7xl mx-auto px-4 py-16 reveal">
-      <div class="rounded-3xl border border-slate-200 bg-white p-8 md:p-10 shadow-lg">
-        <h2 class="font-display text-3xl md:text-4xl font-black text-slate-900 text-center">The new face of local commerce</h2>
-        <p class="text-slate-600 text-center mt-3 max-w-2xl mx-auto">Bachat gives every local buyer and seller a digital speed advantage without losing neighborhood trust.</p>
-        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a href="/signup.html" class="px-6 py-3 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-600">Create account</a>
-          <a href="/login.html" class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-black hover:border-teal-500 hover:text-teal-700">Log in now</a>
+    <!-- Top categories -->
+    <section class="py-16 bg-[#f8f9fa] border-y border-[#e5e7eb]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-10">
+          <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900">Top Categories</h2>
+          <a href="/signup.html" class="text-sm font-bold text-bachat hover:underline">View all categories →</a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <a href="/signup.html" class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center hover:shadow-lg hover:border-bachat/30 transition-all"><span class="text-3xl block mb-2">💻</span><span class="text-sm font-bold text-slate-800">Computer Hardware</span></a>
+          <a href="/signup.html" class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center hover:shadow-lg hover:border-bachat/30 transition-all"><span class="text-3xl block mb-2">🖱</span><span class="text-sm font-bold text-slate-800">Laptop Accessories</span></a>
+          <a href="/signup.html" class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center hover:shadow-lg hover:border-bachat/30 transition-all"><span class="text-3xl block mb-2">📱</span><span class="text-sm font-bold text-slate-800">Mobile Accessories</span></a>
+          <a href="/signup.html" class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center hover:shadow-lg hover:border-bachat/30 transition-all"><span class="text-3xl block mb-2">🏠</span><span class="text-sm font-bold text-slate-800">Home Appliances</span></a>
+          <a href="/signup.html" class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center hover:shadow-lg hover:border-bachat/30 transition-all"><span class="text-3xl block mb-2">📹</span><span class="text-sm font-bold text-slate-800">CCTV &amp; Security</span></a>
+          <a href="/signup.html" class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center hover:shadow-lg hover:border-bachat/30 transition-all"><span class="text-3xl block mb-2">🔧</span><span class="text-sm font-bold text-slate-800">Installation</span></a>
         </div>
       </div>
     </section>
 
-    <section class="max-w-7xl mx-auto px-4 pb-16 reveal">
-      <h2 class="font-display text-3xl md:text-4xl font-black text-slate-900 text-center">Loved by buyers and shopkeepers</h2>
-      <div class="mt-8 grid md:grid-cols-3 gap-4">
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm elevate">
-          <p class="text-slate-700 font-semibold">"Earlier I had to call many shops. Now I post once and get real quotes in minutes."</p>
-          <p class="mt-4 text-sm font-black text-teal-700">Priya, Buyer</p>
-        </article>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm elevate">
-          <p class="text-slate-700 font-semibold">"Bachat gives me serious leads daily. My conversion is much better now."</p>
-          <p class="mt-4 text-sm font-black text-teal-700">Rohit, Shopkeeper</p>
-        </article>
-        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm elevate">
-          <p class="text-slate-700 font-semibold">"Ops team can track SLA breaches instantly. It feels enterprise-ready."</p>
-          <p class="mt-4 text-sm font-black text-teal-700">Anjali, Operations</p>
-        </article>
+    <!-- Recent requests -->
+    <section class="py-16 lg:py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap justify-between items-end gap-4 mb-10">
+          <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900">Recent Requests</h2>
+          <a href="/signup.html" class="text-sm font-bold text-bachat">View all requests →</a>
+        </div>
+        <div class="space-y-4">
+          <div class="rounded-2xl border border-[#e5e7eb] bg-[#f8f9fa] p-4 md:p-5 flex flex-col lg:flex-row lg:items-center gap-4">
+            <div class="flex gap-4 flex-1 min-w-0">
+              <div class="w-16 h-16 rounded-xl bg-white border border-[#e5e7eb] shrink-0 flex items-center justify-center text-2xl">🧠</div>
+              <div>
+                <p class="font-bold text-slate-900">16GB DDR4 RAM</p>
+                <p class="text-xs text-slate-500 mt-1">Posted 10 mins ago · Vijay Nagar</p>
+                <button type="button" class="mt-2 text-sm font-bold text-bachat">3 quotes received →</button>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap lg:justify-center">
+              <div class="rounded-xl bg-white border border-[#e5e7eb] px-3 py-2 text-xs"><span class="font-bold text-slate-900">₹2,150</span><br/><span class="text-slate-500">Apex · 4.6★</span></div>
+              <div class="rounded-xl bg-white border border-[#e5e7eb] px-3 py-2 text-xs"><span class="font-bold text-slate-900">₹2,280</span><br/><span class="text-slate-500">TechZone · 4.8★</span></div>
+              <div class="rounded-xl bg-white border border-[#e5e7eb] px-3 py-2 text-xs"><span class="font-bold text-slate-900">₹2,099</span><br/><span class="text-slate-500">Best · 4.5★</span></div>
+            </div>
+            <div class="flex flex-col items-start lg:items-end gap-2 shrink-0">
+              <span class="text-xs font-bold uppercase px-3 py-1 rounded-full bg-green-100 text-green-700">Open</span>
+              <a href="/signup.html" class="text-sm font-bold border-2 border-bachat text-bachat rounded-xl px-4 py-2 hover:bg-bachat-soft">View Quotes</a>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-[#e5e7eb] bg-[#f8f9fa] p-4 md:p-5 flex flex-col lg:flex-row lg:items-center gap-4">
+            <div class="flex gap-4 flex-1">
+              <div class="w-16 h-16 rounded-xl bg-white border flex items-center justify-center text-2xl">❄</div>
+              <div>
+                <p class="font-bold text-slate-900">Air Conditioner 1.5 Ton</p>
+                <p class="text-xs text-slate-500 mt-1">Posted 2 hrs ago · Scheme 54</p>
+                <button type="button" class="mt-2 text-sm font-bold text-bachat">5 quotes →</button>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap"><div class="rounded-xl bg-white border px-3 py-2 text-xs font-bold">₹27,250</div><div class="rounded-xl bg-white border px-3 py-2 text-xs font-bold">₹28,100</div></div>
+            <div class="flex flex-col items-start lg:items-end gap-2"><span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800">Quoted</span><a href="/signup.html" class="text-sm font-bold border-2 border-bachat text-bachat rounded-xl px-4 py-2">View Quotes</a></div>
+          </div>
+          <div class="rounded-2xl border border-[#e5e7eb] bg-[#f8f9fa] p-4 md:p-5 flex flex-col lg:flex-row lg:items-center gap-4">
+            <div class="flex gap-4 flex-1">
+              <div class="w-16 h-16 rounded-xl bg-white border flex items-center justify-center text-2xl">📷</div>
+              <div>
+                <p class="font-bold text-slate-900">CP Plus CCTV Kit</p>
+                <p class="text-xs text-slate-500 mt-1">Yesterday · Rau</p>
+              </div>
+            </div>
+            <div class="flex flex-col items-start lg:items-end gap-2"><span class="text-xs font-bold px-3 py-1 rounded-full bg-green-100 text-green-700">Ordered</span><a href="/signup.html" class="text-sm font-bold border-2 border-bachat text-bachat rounded-xl px-4 py-2">View Order</a></div>
+          </div>
+        </div>
+        <div class="text-center mt-10"><a href="/signup.html" class="inline-flex px-8 py-3 rounded-xl border-2 border-slate-300 font-bold text-slate-700 hover:bg-white">View All Requests</a></div>
       </div>
     </section>
 
-    <section class="max-w-7xl mx-auto px-4 pb-16 reveal">
-      <div class="grid md:grid-cols-2 gap-6 items-center rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-lg">
+    <!-- Why -->
+    <section id="buyers" class="py-16 bg-[#f8f9fa] border-y border-[#e5e7eb]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl lg:text-3xl font-extrabold text-center text-slate-900 mb-12">Why Shop on Bachat?</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center"><div class="text-3xl mb-3">📉</div><p class="font-bold text-slate-900">Save up to 40%</p><p class="text-xs text-slate-600 mt-2">Sellers compete for your order.</p></div>
+          <div class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center"><div class="text-3xl mb-3">📍</div><p class="font-bold text-slate-900">Local sellers</p><p class="text-xs text-slate-600 mt-2">Fast delivery &amp; support nearby.</p></div>
+          <div class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center"><div class="text-3xl mb-3">🔐</div><p class="font-bold text-slate-900">Secure payments</p><p class="text-xs text-slate-600 mt-2">Pay safely on Bachat.</p></div>
+          <div class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center"><div class="text-3xl mb-3">✓</div><p class="font-bold text-slate-900">No hidden charges</p><p class="text-xs text-slate-600 mt-2">Transparent quotes.</p></div>
+          <div class="rounded-2xl bg-white border border-[#e5e7eb] p-6 text-center sm:col-span-2 lg:col-span-1"><div class="text-3xl mb-3">😌</div><p class="font-bold text-slate-900">Hassle free</p><p class="text-xs text-slate-600 mt-2">One place to compare &amp; buy.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sellers -->
+    <section id="sellers" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 lg:gap-14 items-center">
         <div>
-          <h3 class="font-display text-2xl md:text-3xl font-black text-slate-900">Looks amazing on mobile too</h3>
-          <p class="mt-3 text-slate-600">From posting requests to comparing quotes and tracking orders, Bachat is optimized for fast action on any screen size.</p>
+          <h2 class="text-3xl font-extrabold text-slate-900">Built for local sellers too</h2>
+          <p class="mt-4 text-slate-600 leading-relaxed">Receive verified buyer requests in your categories. Quote fast, win orders, and grow repeat business.</p>
+          <ul class="mt-6 space-y-3 text-sm font-semibold text-slate-700">
+            <li class="flex gap-2"><span class="text-green-600">✓</span> Ready-to-buy demand from your city</li>
+            <li class="flex gap-2"><span class="text-green-600">✓</span> Structured quoting &amp; order tracking</li>
+            <li class="flex gap-2"><span class="text-green-600">✓</span> Performance insights &amp; ratings</li>
+          </ul>
+          <a href="/signup.html?role=seller" class="inline-flex mt-8 px-6 py-3 rounded-xl bg-bachat text-white font-bold hover:bg-[#0044a8]">Become a Seller →</a>
         </div>
-        <div class="flex justify-center">
-          <div class="w-56 rounded-[2rem] border-8 border-slate-900 bg-slate-900 shadow-2xl overflow-hidden">
-            <div class="h-6 bg-slate-900"></div>
-            <div class="bg-gradient-to-b from-teal-100 to-orange-100 p-4 space-y-2">
-              <div class="rounded-lg bg-white p-2 text-[11px] font-bold text-slate-700">REQ-784 | Need AC 1.5T</div>
-              <div class="rounded-lg bg-teal-600 p-2 text-[11px] font-bold text-white">3 quotes received</div>
-              <div class="rounded-lg bg-white p-2 text-[11px] font-bold text-slate-700">Best quote: Rs 32,999</div>
-              <div class="rounded-lg bg-orange-500 p-2 text-[11px] font-bold text-white text-center">Finalize Order</div>
-            </div>
-          </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="rounded-2xl border border-[#e5e7eb] bg-[#f8f9fa] p-5 shadow-sm"><p class="text-xs font-bold text-bachat uppercase">New requirement</p><p class="font-bold mt-2">Washing Machine 7kg</p><button type="button" class="mt-4 w-full py-2 rounded-xl bg-bachat text-white text-sm font-bold">Send Quote</button></div>
+          <div class="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm"><p class="font-bold text-slate-900">Your Performance</p><div class="mt-4 grid grid-cols-2 gap-3 text-sm"><div><p class="text-slate-500 text-xs">Orders won</p><p class="font-extrabold text-lg">126</p></div><div><p class="text-slate-500 text-xs">Response</p><p class="font-extrabold text-lg">98%</p></div><div><p class="text-slate-500 text-xs">Rating</p><p class="font-extrabold text-lg">4.8</p></div><div><p class="text-slate-500 text-xs">Earnings</p><p class="font-extrabold text-lg text-bachat">₹1.2L</p></div></div></div>
         </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto rounded-3xl bg-gradient-to-r from-bachat to-[#0044a8] px-8 py-12 lg:py-14 flex flex-col lg:flex-row items-center justify-between gap-8 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+        <div class="relative z-10 flex items-center gap-4">
+          <span class="text-4xl">🛍</span>
+          <p class="text-lg lg:text-xl font-bold max-w-xl">Before you buy, check Bachat. Post your requirement and get the best quotes from trusted local sellers.</p>
+        </div>
+        <a href="/signup.html" class="relative z-10 shrink-0 px-8 py-3 rounded-xl bg-white text-bachat font-bold hover:bg-slate-100 shadow-lg">Post a Requirement →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-16 bg-[#f8f9fa] border-t border-[#e5e7eb]">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <h2 class="text-2xl font-extrabold text-slate-900">FAQs</h2>
+        <p class="mt-4 text-slate-600 text-sm">Is it free to post? Yes. Are sellers verified? We onboard trusted local businesses. Payments? Secure checkout on Bachat.</p>
       </div>
     </section>
   </main>
 
-  <footer class="border-t border-slate-200 bg-white">
-    <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-500">
-      <p>© 2026 Bachat. Built for smarter local buying.</p>
-      <p class="font-bold text-slate-600">Fast. Local. Profitable.</p>
+  <footer class="bg-white border-t border-[#e5e7eb] pt-14 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 lg:grid-cols-5 gap-10">
+      <div class="lg:col-span-2">
+        <img src="/assets/bachat-logo-light.png" alt="" class="h-10 w-auto mb-4" />
+        <p class="text-sm text-slate-600 max-w-sm">Demand-first commerce for India. Compare, save &amp; shop smart.</p>
+        <p class="mt-4 text-xs font-bold text-slate-500">Follow us</p>
+        <div class="flex gap-3 mt-2 text-slate-400"><span class="cursor-pointer hover:text-bachat">FB</span><span class="cursor-pointer hover:text-bachat">IG</span><span class="cursor-pointer hover:text-bachat">YT</span><span class="cursor-pointer hover:text-bachat">in</span></div>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">For Buyers</p>
+        <ul class="space-y-2 text-sm font-semibold text-slate-600"><li><a href="#how" class="hover:text-bachat">How it Works</a></li><li><a href="/signup.html" class="hover:text-bachat">Post Requirement</a></li><li><a href="/login.html" class="hover:text-bachat">Login</a></li></ul>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">For Sellers</p>
+        <ul class="space-y-2 text-sm font-semibold text-slate-600"><li><a href="/signup.html?role=seller" class="hover:text-bachat">Sell on Bachat</a></li><li><a href="/login.html?role=seller" class="hover:text-bachat">Seller Login</a></li></ul>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Company</p>
+        <ul class="space-y-2 text-sm font-semibold text-slate-600"><li><a href="#" class="hover:text-bachat">About</a></li><li><a href="/team-login.html" class="hover:text-bachat">Team portal</a></li><li><a href="/admin-analytics.html" class="hover:text-bachat">Ops dashboards</a></li></ul>
+      </div>
     </div>
+    <p class="text-center text-xs text-slate-500 mt-12">© 2026 Bachat. All rights reserved.</p>
   </footer>
-  <script>
-    (function () {
-      const toggle = document.getElementById("theme-toggle");
-      const storedTheme = localStorage.getItem("bachat_theme");
-      const prefersDark = storedTheme
-        ? storedTheme === "dark"
-        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-      function setDark(on) {
-        if (on) {
-          document.documentElement.classList.add("dark");
-          toggle.textContent = "Light";
-        } else {
-          document.documentElement.classList.remove("dark");
-          toggle.textContent = "Dark";
-        }
-      }
-
-      setDark(prefersDark);
-      toggle.addEventListener("click", () => {
-        const darkNow = toggle.textContent === "Light";
-        const next = !darkNow;
-        setDark(next);
-        localStorage.setItem("bachat_theme", next ? "dark" : "light");
-      });
-
-      const revealEls = document.querySelectorAll(".reveal");
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("show");
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.12 });
-      revealEls.forEach((el) => observer.observe(el));
-
-      const counters = document.querySelectorAll(".count-up");
-      counters.forEach((counter) => {
-        const to = Number(counter.dataset.countTo || "0");
-        const suffix = String(counter.dataset.countSuffix || "");
-        const duration = 1200;
-        const start = performance.now();
-        const tick = (now) => {
-          const progress = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const val = to < 10 ? (to * eased).toFixed(1) : Math.floor(to * eased);
-          counter.textContent = `${val}${suffix}`;
-          if (progress < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      });
-    })();
-  </script>
 </body>
 </html>

@@ -9,7 +9,7 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatOrder } = require("../lib/format");
-const { buyerDisplayPrice } = require("../lib/buyerPrice");
+const { buyerDisplayPrice, buyerMaxListedPrice } = require("../lib/buyerPrice");
 const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
 
 const router = express.Router();
@@ -268,6 +268,78 @@ router.get(
         .sort({ createdAt: -1 })
         .lean();
       return res.json(rows.map((o) => formatOrder(o)));
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/**
+ * Paid orders only. Catalog: sum over lines of (max-markup list price − paid unit price) × qty.
+ * Quote: per order max(highest quote on request − paid, budget − paid) when applicable.
+ */
+router.get(
+  "/mine/savings-summary",
+  requireAuth,
+  requireRole("buyer"),
+  async (req, res, next) => {
+    try {
+      const paidOrders = await Order.find({ user: req.user.id, paymentStatus: "paid" }).lean();
+
+      const catOrders = paidOrders.filter((o) => o.orderType === "catalog" && (o.lineItems || []).length);
+      const pids = [...new Set(catOrders.flatMap((o) => o.lineItems.map((li) => li.product)))];
+      const products = pids.length ? await Product.find({ _id: { $in: pids } }).lean() : [];
+      const pmap = Object.fromEntries(products.map((p) => [String(p._id), p]));
+
+      let catalog_savings = 0;
+      for (const o of catOrders) {
+        for (const li of o.lineItems) {
+          const p = pmap[String(li.product)];
+          if (!p) continue;
+          const maxP = buyerMaxListedPrice(p.sellerPrice);
+          const unit = Number(li.unitPrice);
+          const qty = Number(li.quantity) || 1;
+          catalog_savings += Math.max(0, maxP - unit) * qty;
+        }
+      }
+      catalog_savings = Math.round(catalog_savings * 100) / 100;
+
+      const qOrders = paidOrders.filter((o) => o.orderType === "quote" && o.request);
+      let quote_savings = 0;
+      const reqIds = [...new Set(qOrders.map((o) => String(o.request)))];
+      if (reqIds.length) {
+        const [reqDocs, quoteDocs] = await Promise.all([
+          Request.find({ _id: { $in: reqIds } }).lean(),
+          Quote.find({ request: { $in: reqIds } }).lean(),
+        ]);
+        const reqMap = Object.fromEntries(reqDocs.map((r) => [String(r._id), r]));
+        const quotesByReq = {};
+        for (const q of quoteDocs) {
+          const k = String(q.request);
+          if (!quotesByReq[k]) quotesByReq[k] = [];
+          quotesByReq[k].push(Number(q.price));
+        }
+        for (const o of qOrders) {
+          const rid = String(o.request);
+          const prices = quotesByReq[rid] || [];
+          const maxQ = prices.length ? Math.max(...prices) : o.finalPrice;
+          const neg = Math.max(0, maxQ - o.finalPrice);
+          const req = reqMap[rid];
+          const budgetS =
+            req && req.budget != null && Number(req.budget) > o.finalPrice
+              ? Number(req.budget) - o.finalPrice
+              : 0;
+          quote_savings += Math.max(neg, budgetS);
+        }
+      }
+      quote_savings = Math.round(quote_savings * 100) / 100;
+
+      const money_saved = Math.round((catalog_savings + quote_savings) * 100) / 100;
+      return res.json({
+        money_saved,
+        catalog_vs_max_markup: catalog_savings,
+        quote_negotiation_or_budget: quote_savings,
+      });
     } catch (err) {
       return next(err);
     }

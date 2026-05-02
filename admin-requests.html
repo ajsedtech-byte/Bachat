@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Requests — Bachat Ops</title>
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bachat-ui bg-[#f8f9fb] min-h-screen text-slate-900" data-bachat-admin="requests">
+  <div class="flex min-h-screen">
+    <aside data-bachat-sidebar class="w-64 shrink-0 bg-white border-r border-[#e5e7eb] hidden lg:flex flex-col"></aside>
+    <div class="flex-1 flex flex-col min-w-0">
+      <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
+      <main class="flex-1 p-4 lg:p-6 overflow-auto">
+        <h1 class="text-2xl font-extrabold">All requests</h1><p class="text-sm text-slate-500 mt-1">Ops view — connect to your API for live data.</p>
+        <div class="mt-6 rounded-xl bg-white border shadow-sm p-8 text-center text-slate-500 text-sm">Table placeholder — use admin API or Metabase.</div>
+      </main>
+    </div>
+  </div>
+  <script src="/js/bachat-admin-shell.js"></script>
+</body>
+</html>

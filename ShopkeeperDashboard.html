@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bachat — Shopkeeper</title>
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .tab-panel.hidden { display: none; }
+  </style>
+</head>
+<body class="bachat-ui bg-[#f8f9fb] text-slate-900 min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
+      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
+      <nav id="sk-sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
+        <button type="button" data-sk-nav="home" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left bg-[#e8f1fc] text-[#0056d2] border-l-4 border-[#0056d2]"><span>📊</span> Dashboard</button>
+        <button type="button" data-sk-nav="shop" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>🏪</span> My listings</button>
+        <button type="button" data-sk-nav="live" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📡</span> Live requests</button>
+        <button type="button" data-sk-nav="quotes" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>💬</span> My quotes</button>
+        <button type="button" data-sk-nav="orders" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📦</span> Orders</button>
+        <button type="button" data-sk-nav="payouts" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>💳</span> Payouts</button>
+        <button type="button" data-sk-nav="me" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>👤</span> Shop profile</button>
+      </nav>
+      <div class="p-4 border-t border-[#e5e7eb] mt-auto space-y-3">
+        <div id="refer-section-sk" class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-4">
+          <p class="text-xs font-extrabold text-slate-900">Grow on Bachat</p>
+          <p class="text-[11px] text-slate-600 mt-1">Respond fast to win more quotes in your categories.</p>
+          <button type="button" id="refer-tip-sk" class="mt-3 w-full py-2 rounded-lg bg-[#0056d2] text-white text-xs font-bold hover:bg-[#0044a8]">Tips</button>
+        </div>
+        <div class="rounded-xl bg-gradient-to-br from-[#0056d2] to-[#0044a8] text-white p-4">
+          <p class="text-xs font-bold opacity-90">Seller support</p>
+          <p class="text-[11px] mt-1 opacity-85">WhatsApp <a href="https://wa.me/919876543210" class="underline font-semibold">+91 98765 43210</a></p>
+          <a href="/admin-support.html" class="mt-3 block text-center w-full py-2 rounded-lg bg-white text-[#0056d2] text-xs font-bold">Support center</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="sticky top-0 z-30 bg-white border-b border-[#e5e7eb] px-3 sm:px-5 py-2.5 sm:py-3 flex flex-wrap items-center gap-2 sm:gap-3">
+        <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#e8f1fc] text-[#0056d2] text-[10px] font-extrabold uppercase tracking-wide px-2 py-1 border border-[#0056d2]/20 shrink-0">Shopkeeper</span>
+        <button type="button" id="header-city" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e5e7eb] text-sm font-semibold text-slate-700 shrink-0">
+          <svg class="w-4 h-4 text-[#0056d2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span id="header-city-label">Indore</span>
+        </button>
+        <div class="flex flex-1 min-w-[140px] max-w-xl items-center gap-2 order-last sm:order-none w-full sm:w-auto basis-full sm:basis-auto">
+          <input id="search-q" type="search" placeholder="Search your listings…" class="flex-1 rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] bg-[#f8f9fb]" />
+          <button type="button" id="search-btn" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold px-4 py-2.5 text-sm shrink-0">Search</button>
+        </div>
+        <button type="button" id="notif-btn" class="relative p-2 rounded-xl border border-[#e5e7eb] text-slate-600 shrink-0 hover:bg-[#f8f9fa]" title="Notifications" aria-label="Notifications">
+          <span class="text-lg" aria-hidden="true">🔔</span>
+          <span id="notif-badge" class="absolute top-0.5 right-0.5 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+        <div class="relative flex items-center gap-2 shrink-0 ml-auto">
+          <div id="header-avatar" class="w-9 h-9 rounded-full border border-[#e5e7eb] shrink-0 bg-cover bg-center bg-slate-200" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&q=60')"></div>
+          <div class="hidden sm:block min-w-0">
+            <p id="hello-user" class="text-sm font-bold text-slate-900 truncate max-w-[180px]"></p>
+            <p class="text-[11px] text-slate-500">Shopkeeper · <button type="button" id="profile-menu-open" class="font-semibold text-[#0056d2] hover:underline">View profile ▾</button></p>
+          </div>
+          <div id="profile-menu" class="hidden absolute right-0 top-full mt-1 w-52 rounded-xl border border-[#e5e7eb] bg-white shadow-lg py-1 z-50 text-sm">
+            <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="me">Shop profile</button>
+            <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="payouts">Payouts</button>
+            <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="orders">Orders</button>
+            <hr class="border-[#e5e7eb]" />
+            <button type="button" id="logout" class="w-full text-left px-4 py-2.5 font-semibold text-red-600 hover:bg-red-50">Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <nav class="lg:hidden flex gap-2 overflow-x-auto px-3 py-2 bg-white border-b border-[#e5e7eb] text-xs font-bold text-slate-600 shrink-0">
+        <button type="button" data-sk-nav="home" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg bg-[#e8f1fc] text-[#0056d2]">Home</button>
+        <button type="button" data-sk-nav="shop" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Listings</button>
+        <button type="button" data-sk-nav="live" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Live</button>
+        <button type="button" data-sk-nav="quotes" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Quotes</button>
+        <button type="button" data-sk-nav="orders" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Orders</button>
+        <button type="button" data-sk-nav="payouts" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Payouts</button>
+        <button type="button" data-sk-nav="me" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Profile</button>
+      </nav>
+
+      <main class="flex-1 p-4 lg:p-6 overflow-auto space-y-8">
+        <p id="toast" class="hidden rounded-xl border px-4 py-3 text-sm font-semibold"></p>
+
+        <section id="dashboard-home" class="space-y-6 scroll-mt-24">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900">Hello, <span id="dashboard-hello-name">there</span> <span class="inline-block">👋</span></h1>
+              <p id="welcome-tagline" class="text-slate-600 mt-1 max-w-xl text-sm sm:text-base">Manage listings, respond to nearby requests, and grow orders on Bachat.</p>
+            </div>
+            <button type="button" id="cta-add-listing" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0056d2] text-white font-bold text-sm hover:bg-[#0044a8] shadow-md shrink-0 w-full sm:w-auto">+ Add listing</button>
+          </div>
+
+          <div class="rounded-2xl border border-[#0056d2]/15 bg-gradient-to-r from-[#e8f1fc] via-[#eef5fc] to-white p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center gap-6 overflow-hidden shadow-sm">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-[#0056d2] uppercase tracking-wide">Your shop</p>
+              <p class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1"><span id="welcome-shop-name">—</span></p>
+              <p id="welcome-sub" class="text-sm text-slate-600 mt-2 max-w-lg">Buyers post requirements in your categories — quote fast to win the sale.</p>
+              <div class="mt-4 flex flex-wrap items-center gap-3">
+                <button type="button" id="cta-live-requests" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0056d2] text-white font-bold text-sm hover:bg-[#0044a8]">📡 View live requests</button>
+                <span class="text-xs text-slate-600 flex items-center gap-1.5 font-medium"><span aria-hidden="true">⏱</span> Same-day quotes win more orders</span>
+              </div>
+            </div>
+            <img src="/assets/bachat-logo-light.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto object-contain object-right mx-auto lg:ml-auto shrink-0 drop-shadow-lg hidden sm:block" />
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center text-lg shrink-0" aria-hidden="true">🏪</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">Active listings</p>
+                <p id="kpi-listings" class="text-xl sm:text-2xl font-extrabold text-[#0056d2] mt-0.5">0</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Published</p>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg shrink-0" aria-hidden="true">📡</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">Open requests</p>
+                <p id="kpi-open-req" class="text-xl sm:text-2xl font-extrabold text-amber-700 mt-0.5">0</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Near you</p>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-lg shrink-0" aria-hidden="true">💬</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">Quotes sent</p>
+                <p id="kpi-quotes" class="text-xl sm:text-2xl font-extrabold text-green-600 mt-0.5">0</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">All time</p>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white border border-[#e5e7eb] p-4 shadow-sm flex gap-3">
+              <span class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg shrink-0" aria-hidden="true">📦</span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-500">Orders</p>
+                <p id="kpi-orders" class="text-xl sm:text-2xl font-extrabold text-violet-600 mt-0.5">0</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Won on Bachat</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-6">
+            <div class="space-y-6 min-w-0">
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                  <h2 class="font-bold text-slate-900">Open requests</h2>
+                  <button type="button" data-sk-link="live" class="text-xs font-bold text-[#0056d2] hover:underline">View all →</button>
+                </div>
+                <div id="dash-open-requests" class="space-y-2 text-sm"></div>
+              </div>
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm min-h-[140px]">
+                <h2 class="font-bold text-slate-900 mb-4">Recent quotes</h2>
+                <div id="dash-quotes-preview" class="text-sm"></div>
+              </div>
+            </div>
+            <div class="space-y-6 min-w-0">
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm">
+                <h2 class="font-bold text-slate-900 mb-1">Quote pipeline</h2>
+                <p class="text-sm text-slate-500 mb-4">From buyer request to paid order.</p>
+                <div class="relative flex justify-between gap-1 sm:gap-2 pt-2" aria-label="Seller pipeline">
+                  <div class="hidden sm:block absolute left-[12%] right-[12%] top-7 h-0.5 bg-[#e5e7eb] z-0" aria-hidden="true"></div>
+                  <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                    <span class="w-9 h-9 rounded-full bg-[#0056d2] text-white text-xs font-extrabold flex items-center justify-center ring-4 ring-white">1</span>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-800 mt-2 text-center leading-tight">See request</span>
+                  </div>
+                  <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                    <span class="w-9 h-9 rounded-full bg-[#0056d2] text-white text-xs font-extrabold flex items-center justify-center ring-4 ring-white">2</span>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-800 mt-2 text-center leading-tight">Send quote</span>
+                  </div>
+                  <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                    <span class="w-9 h-9 rounded-full bg-slate-200 text-slate-600 text-xs font-extrabold flex items-center justify-center">3</span>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-600 mt-2 text-center leading-tight">Buyer picks</span>
+                  </div>
+                  <div class="relative z-10 flex flex-col items-center flex-1 min-w-0">
+                    <span class="w-9 h-9 rounded-full bg-slate-200 text-slate-600 text-xs font-extrabold flex items-center justify-center">4</span>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-600 mt-2 text-center leading-tight">Fulfill</span>
+                  </div>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white border border-[#e5e7eb] p-5 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                  <h2 class="font-bold text-slate-900">Recent orders</h2>
+                  <button type="button" data-sk-link="orders" class="text-xs font-bold text-[#0056d2] hover:underline">View all →</button>
+                </div>
+                <div id="dash-orders-preview" class="space-y-2 text-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-gradient-to-br from-[#e8f1fc] to-white border border-[#0056d2]/20 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative overflow-hidden">
+            <div class="relative z-10">
+              <p class="text-lg font-extrabold text-slate-900">Stock more, sell more</p>
+              <p class="text-sm text-slate-600 mt-1 max-w-md">Publish clear titles, photos, and prices — buyers compare you instantly.</p>
+            </div>
+            <button type="button" id="cta-bottom-listing" class="relative z-10 inline-flex justify-center px-6 py-3 rounded-xl bg-[#0056d2] text-white font-bold text-sm hover:bg-[#0044a8] shrink-0">Add listing →</button>
+            <span class="absolute bottom-2 right-4 text-6xl opacity-15 pointer-events-none" aria-hidden="true">🏪</span>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center">
+              <div class="text-2xl mb-2" aria-hidden="true">🛡</div>
+              <p class="text-xs font-bold text-slate-900">Verified shop</p>
+              <p class="text-[11px] text-slate-500 mt-1">Your categories &amp; area power matching.</p>
+            </div>
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center">
+              <div class="text-2xl mb-2" aria-hidden="true">⏱</div>
+              <p class="text-xs font-bold text-slate-900">Fast quotes</p>
+              <p class="text-[11px] text-slate-500 mt-1">Speed improves win rate.</p>
+            </div>
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center">
+              <div class="text-2xl mb-2" aria-hidden="true">🔒</div>
+              <p class="text-xs font-bold text-slate-900">Secure payouts</p>
+              <p class="text-[11px] text-slate-500 mt-1">Orders &amp; payments on Bachat.</p>
+            </div>
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 text-center col-span-2 lg:col-span-1">
+              <div class="text-2xl mb-2" aria-hidden="true">🎧</div>
+              <p class="text-xs font-bold text-slate-900">Help &amp; support</p>
+              <p class="text-[11px] text-slate-500 mt-1"><a href="/admin-support.html" class="text-[#0056d2] font-semibold hover:underline">Contact us</a></p>
+            </div>
+          </div>
+        </section>
+
+        <p id="profile-strip" class="rounded-xl bg-white border border-[#e5e7eb] px-4 py-3 text-sm text-slate-600 scroll-mt-28"><span class="font-semibold text-slate-900">Signed in:</span> <span id="profile-email" class="text-[#0056d2] font-medium"></span></p>
+
+        <section id="payouts-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm scroll-mt-28 hidden">
+          <h2 class="text-lg font-extrabold text-slate-900 mb-2">Payouts</h2>
+          <p class="text-sm text-slate-600 mb-4">Paid order totals and unpaid orders on your shop (from live order data). Bank settlement stays per your Bachat agreement.</p>
+          <div id="payouts-summary-body" class="text-sm text-slate-500">Open this tab to load summary.</div>
+        </section>
+
+        <!-- Shop tab -->
+        <section id="panel-shop" class="tab-panel space-y-6 scroll-mt-24">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900">Your listings</h2>
+            <p class="text-slate-600 text-sm mt-1">Only your shop categories (from signup) appear below. Pick one, then add price, details, and photos.</p>
+          </div>
+          <div id="shop-cat-pills" class="flex flex-wrap gap-2"></div>
+          <p id="no-cats-warn" class="hidden text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+            Your account has no shop categories. Complete signup as shopkeeper with categories, or update your profile via the API.
+          </p>
+
+          <div class="rounded-2xl border border-[#0056d2]/25 bg-[#e8f1fc]/50 p-6 shadow-sm">
+            <h3 id="new-item-title" class="text-lg font-extrabold text-[#0056d2] uppercase tracking-wide mb-4">New item</h3>
+            <form id="product-form" class="grid md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Item title</label>
+                <input name="title" required class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0056d2]/30" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Details</label>
+                <textarea name="description" rows="3" class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0056d2]/30" placeholder="Size, brand, condition…"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                <select name="category" id="product-category" required class="w-full rounded-xl border border-slate-200 px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-[#0056d2]/30"></select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Price</label>
+                <div class="flex rounded-xl border border-slate-200 overflow-hidden">
+                  <span class="px-3 py-3 bg-white text-slate-600 font-bold">₹</span>
+                  <input name="price" type="number" min="1" step="1" required class="flex-1 min-w-0 px-3 py-3 outline-none" />
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Photos (up to 4)</label>
+                <input id="product-files" type="file" accept="image/*" multiple class="text-sm" />
+                <p id="file-hint" class="text-xs text-slate-500 mt-1">Small photos or image URLs work best. Very large files may be rejected.</p>
+              </div>
+              <div class="md:col-span-2">
+                <button type="submit" id="publish-btn" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-black px-8 py-3 shadow-md disabled:opacity-50 w-full md:w-auto">
+                  Publish item
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div>
+            <h3 class="font-bold text-slate-800 mb-3">Published listings</h3>
+            <div id="my-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+            <p id="products-empty" class="hidden text-slate-500 text-sm py-6">No items in this category yet.</p>
+          </div>
+        </section>
+
+        <section id="panel-live" class="tab-panel hidden space-y-4 scroll-mt-24">
+          <h2 class="text-xl font-extrabold text-slate-900">Open requests near you</h2>
+          <div id="open-requests" class="space-y-2 text-sm"></div>
+        </section>
+
+        <section id="panel-quotes" class="tab-panel hidden space-y-4 scroll-mt-24">
+          <h2 class="text-xl font-extrabold text-slate-900">Your quotes</h2>
+          <div id="quotes-list" class="space-y-2 text-sm"></div>
+        </section>
+
+        <section id="panel-orders" class="tab-panel hidden space-y-4 scroll-mt-24">
+          <h2 class="text-xl font-extrabold text-slate-900">Your orders</h2>
+          <div id="orders-list" class="space-y-2 text-sm"></div>
+        </section>
+
+        <section id="panel-me" class="tab-panel hidden space-y-4 scroll-mt-24">
+          <h2 class="text-xl font-extrabold text-slate-900">Shop profile</h2>
+          <div id="me-body" class="rounded-xl border border-[#e5e7eb] bg-white p-6 text-sm space-y-2"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("ajs_token");
+    if (!token) location.href = "/login.html";
+
+    let sellerCategories = [];
+    let selectedShopCat = "";
+    let allProducts = [];
+    let cachedMe = null;
+    let currentTab = "home";
+    let openRequestsCache = [];
+    let quotesCache = [];
+    let ordersCache = [];
+
+    function showToast(text, isErr) {
+      const el = document.getElementById("toast");
+      el.textContent = text;
+      el.classList.remove("hidden", "border-blue-200", "bg-blue-50", "text-blue-950", "border-red-200", "bg-red-50", "text-red-800");
+      el.classList.add(isErr ? "border-red-200 bg-red-50 text-red-800" : "border-blue-200 bg-blue-50 text-blue-950");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.add("hidden"), 4500);
+    }
+
+    function listCount(x) {
+      return Array.isArray(x) ? x.length : 0;
+    }
+
+    async function fetchApi(path, init) {
+      const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+      const proto = location.protocol;
+      const host = location.hostname;
+      const isFile = proto === "file:";
+      const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      const portCandidates = new Set();
+      if (location.port) portCandidates.add(location.port);
+      portCandidates.add("3000");
+      portCandidates.add("3001");
+      const attempts = [];
+      if (!isFile) attempts.push({ url: clean, persist: null });
+      if (stored) attempts.push({ url: `${stored}${clean}`, persist: stored });
+      for (const p of portCandidates) {
+        attempts.push({ url: `${proto}//${host}:${p}${clean}`, persist: `${proto}//${host}:${p}` });
+      }
+      const seen = new Set();
+      let lastErr;
+      for (const { url, persist } of attempts) {
+        if (seen.has(url)) continue;
+        seen.add(url);
+        try {
+          const res = await fetch(url, init);
+          if (persist === null) {
+            localStorage.removeItem("bachat_api_base");
+          } else if (persist) {
+            localStorage.setItem("bachat_api_base", persist);
+          }
+          return res;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr;
+    }
+
+    async function loadPayoutsSummary() {
+      const b = document.getElementById("payouts-summary-body");
+      if (!b) return;
+      b.innerHTML = '<p class="text-slate-500">Loading…</p>';
+      try {
+        const d = await api("GET", "/api/seller/payouts-summary");
+        b.innerHTML = `
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-4">
+              <p class="text-xs font-bold text-slate-500 uppercase">Paid orders</p>
+              <p class="text-2xl font-extrabold text-[#0056d2] mt-1">${escapeHtml(String(d.paid_orders_count))}</p>
+              <p class="text-[11px] text-slate-500 mt-1">Gross sales (final price)</p>
+              <p class="text-lg font-black text-slate-900 mt-2">${rupee(d.gross_sales)}</p>
+            </div>
+            <div class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-4">
+              <p class="text-xs font-bold text-slate-500 uppercase">Awaiting payment</p>
+              <p class="text-2xl font-extrabold text-amber-600 mt-1">${escapeHtml(String(d.pending_orders_count))}</p>
+              <p class="text-[11px] text-slate-500 mt-1">Unpaid order value</p>
+              <p class="text-lg font-black text-slate-900 mt-2">${rupee(d.pending_settlement)}</p>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-4">${escapeHtml(d.note || "")}</p>`;
+      } catch (e) {
+        b.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message || "Could not load") + "</p>";
+      }
+    }
+
+    async function api(method, path, body) {
+      const cleanPath = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+      const opts = { method: method || "GET", headers: { Authorization: "Bearer " + token } };
+      if (body != null) {
+        opts.headers["Content-Type"] = "application/json";
+        opts.body = JSON.stringify(body);
+      }
+      const res = await fetchApi(cleanPath, opts);
+      if (res.status === 401) {
+        localStorage.removeItem("ajs_token");
+        location.href = "/login.html";
+        return null;
+      }
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.error) || "Request failed");
+      return data;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s == null ? "" : String(s);
+      return d.innerHTML;
+    }
+
+    function rupee(n) {
+      const x = Number(n);
+      if (!Number.isFinite(x)) return "—";
+      return "₹" + Math.round(x).toLocaleString("en-IN");
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result || ""));
+        r.onerror = () => reject(new Error("Could not read file"));
+        r.readAsDataURL(file);
+      });
+    }
+
+    async function filesToImages(inputEl) {
+      const files = inputEl.files;
+      if (!files || !files.length) return [];
+      const out = [];
+      const max = Math.min(files.length, 4);
+      for (let i = 0; i < max; i++) {
+        const url = await readFileAsDataURL(files[i]);
+        if (url.length > 750000) {
+          throw new Error("Photo too large (try a smaller image): " + files[i].name);
+        }
+        out.push(url);
+      }
+      return out;
+    }
+
+    function paintSidebarNav(active) {
+      document.querySelectorAll(".sk-nav").forEach((btn) => {
+        const on = btn.getAttribute("data-sk-nav") === active;
+        btn.className =
+          "sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left border-l-4 text-sm font-semibold " +
+          (on ? "bg-[#e8f1fc] text-[#0056d2] border-[#0056d2]" : "text-slate-600 hover:bg-[#f8f9fa] border-transparent");
+      });
+      document.querySelectorAll(".sk-nav-m").forEach((btn) => {
+        const on = btn.getAttribute("data-sk-nav") === active;
+        btn.className =
+          "sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold " +
+          (on ? "bg-[#e8f1fc] text-[#0056d2]" : "hover:bg-[#f8f9fa]");
+      });
+    }
+
+    function setTab(name) {
+      currentTab = name;
+      if (name === "home") {
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+        document.getElementById("payouts-section")?.classList.add("hidden");
+        paintSidebarNav("home");
+        document.getElementById("dashboard-home")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      if (name === "payouts") {
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+        const ps = document.getElementById("payouts-section");
+        if (ps) ps.classList.remove("hidden");
+        paintSidebarNav("payouts");
+        ps?.scrollIntoView({ behavior: "smooth" });
+        loadPayoutsSummary();
+        return;
+      }
+      document.getElementById("payouts-section")?.classList.add("hidden");
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+      const panel = document.getElementById("panel-" + name);
+      if (panel) panel.classList.remove("hidden");
+      paintSidebarNav(name);
+      if (name === "live") loadOpenRequests();
+      if (name === "quotes") loadQuotes();
+      if (name === "orders") loadOrders();
+      if (name === "me") renderMe();
+      panel?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function wireNav(btn) {
+      btn.addEventListener("click", () => {
+        const t = btn.getAttribute("data-sk-nav");
+        setTab(t);
+      });
+    }
+    document.querySelectorAll(".sk-nav").forEach(wireNav);
+    document.querySelectorAll(".sk-nav-m").forEach(wireNav);
+
+    document.querySelectorAll("[data-sk-link]").forEach((b) => {
+      b.addEventListener("click", () => setTab(b.getAttribute("data-sk-link")));
+    });
+
+    document.getElementById("cta-add-listing")?.addEventListener("click", () => setTab("shop"));
+    document.getElementById("cta-bottom-listing")?.addEventListener("click", () => setTab("shop"));
+    document.getElementById("cta-live-requests")?.addEventListener("click", () => setTab("live"));
+
+    function fillCategorySelect() {
+      const sel = document.getElementById("product-category");
+      sel.innerHTML = "";
+      sellerCategories.forEach((c) => {
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = c;
+        sel.appendChild(o);
+      });
+      if (selectedShopCat && sellerCategories.includes(selectedShopCat)) sel.value = selectedShopCat;
+    }
+
+    function renderShopPills() {
+      const box = document.getElementById("shop-cat-pills");
+      box.innerHTML = "";
+      const mk = (label, val, active) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = label;
+        b.className =
+          "rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide " +
+          (active ? "bg-[#0056d2] text-white border-[#0056d2]" : "bg-white text-slate-600 border-slate-200 hover:border-[#0056d2]");
+        b.addEventListener("click", () => {
+          selectedShopCat = val;
+          [...box.querySelectorAll("button")].forEach((x) => {
+            const on = x === b;
+            x.className =
+              "rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide " +
+              (on ? "bg-[#0056d2] text-white border-[#0056d2]" : "bg-white text-slate-600 border-slate-200 hover:border-[#0056d2]");
+          });
+          fillCategorySelect();
+          document.getElementById("new-item-title").textContent =
+            "New item in " + (val || sellerCategories[0] || "…").toUpperCase();
+          renderProductGrid();
+        });
+        box.appendChild(b);
+      };
+      sellerCategories.forEach((c, i) => mk(c, c, i === 0));
+      if (sellerCategories.length) {
+        selectedShopCat = sellerCategories[0];
+        document.getElementById("new-item-title").textContent = "New item in " + selectedShopCat.toUpperCase();
+        document.getElementById("no-cats-warn").classList.add("hidden");
+      } else {
+        mk("(No categories)", "", true);
+        document.getElementById("no-cats-warn").classList.remove("hidden");
+        document.getElementById("publish-btn").disabled = true;
+      }
+      fillCategorySelect();
+    }
+
+    function renderProductGrid() {
+      const grid = document.getElementById("my-products");
+      const empty = document.getElementById("products-empty");
+      const q = (document.getElementById("search-q")?.value || "").trim().toLowerCase();
+      grid.innerHTML = "";
+      let filtered = selectedShopCat
+        ? allProducts.filter((p) => p.category === selectedShopCat && p.is_active !== false)
+        : allProducts.filter((p) => p.is_active !== false);
+      if (q) filtered = filtered.filter((p) => String(p.title || "").toLowerCase().includes(q));
+      if (!filtered.length) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+      filtered.forEach((p) => {
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm flex flex-col";
+        const img =
+          p.images && p.images[0]
+            ? `<img src="${String(p.images[0]).replace(/"/g, "&quot;")}" class="h-32 w-full object-cover bg-slate-100" alt="" />`
+            : `<div class="h-32 w-full bg-[#0056d2] flex items-center justify-center font-black text-white">Bachat</div>`;
+        card.innerHTML =
+          img +
+          `<div class="p-3 flex-1 flex flex-col">
+            <p class="font-bold text-sm line-clamp-2">${escapeHtml(p.title)}</p>
+            <p class="text-[#0056d2] font-black mt-1">${rupee(p.price)}</p>
+            <button type="button" data-del="${escapeHtml(p.product_id)}" class="mt-2 text-xs font-bold text-red-600 hover:underline text-left del-p">Remove listing</button>
+          </div>`;
+        grid.appendChild(card);
+      });
+      grid.querySelectorAll(".del-p").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          if (!confirm("Remove this listing?")) return;
+          try {
+            await api("DELETE", "/api/products/" + btn.getAttribute("data-del"));
+            showToast("Listing removed");
+            await loadProducts();
+            await refreshDashboardData();
+          } catch (e) {
+            showToast(e.message, true);
+          }
+        });
+      });
+    }
+
+    async function loadProducts() {
+      try {
+        const data = await api("GET", "/api/products/seller/mine");
+        allProducts = data.items || [];
+        renderProductGrid();
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    }
+
+    async function loadOpenRequests() {
+      const box = document.getElementById("open-requests");
+      box.innerHTML = "<p class=\"text-slate-500\">Loading…</p>";
+      try {
+        const rows = await api("GET", "/api/requests/seller/open");
+        openRequestsCache = Array.isArray(rows) ? rows : [];
+        box.innerHTML = "";
+        if (!listCount(openRequestsCache)) {
+          box.innerHTML = '<p class="text-slate-500">No open requests in your categories and area.</p>';
+          return;
+        }
+        openRequestsCache.forEach((r) => {
+          const d = document.createElement("div");
+          d.className = "rounded-lg border border-[#e5e7eb] bg-white p-4";
+          d.innerHTML = `<p class="font-bold">${escapeHtml(r.product_name)}</p>
+            <p class="text-xs text-slate-500 mt-1">${escapeHtml(r.category)} · ${escapeHtml(r.city || "")}, ${escapeHtml(r.region || "")}</p>
+            <p class="text-sm text-slate-600 mt-2">${escapeHtml(r.specifications || "")}</p>`;
+          box.appendChild(d);
+        });
+      } catch (e) {
+        box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+        openRequestsCache = [];
+      }
+    }
+
+    function paintDashOpenRequests() {
+      const box = document.getElementById("dash-open-requests");
+      if (!box) return;
+      box.innerHTML = "";
+      const rows = openRequestsCache.slice(0, 4);
+      if (!rows.length) {
+        box.innerHTML = '<p class="text-slate-500 text-sm">No open requests right now.</p>';
+        return;
+      }
+      rows.forEach((r) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className =
+          "w-full text-left flex gap-3 p-3 rounded-xl border border-[#e5e7eb] hover:bg-[#f8f9fb] transition-colors";
+        row.innerHTML = `<div class="w-10 h-10 rounded-lg bg-[#f8f9fb] border border-[#e5e7eb] shrink-0 flex items-center justify-center" aria-hidden="true">📋</div>
+          <div class="min-w-0 flex-1"><p class="font-bold text-slate-900 truncate">${escapeHtml(r.product_name)}</p>
+          <p class="text-xs text-slate-500">${escapeHtml(r.category || "")}</p></div>
+          <span class="text-slate-300 shrink-0" aria-hidden="true">›</span>`;
+        row.addEventListener("click", () => setTab("live"));
+        box.appendChild(row);
+      });
+    }
+
+    async function loadQuotes() {
+      const box = document.getElementById("quotes-list");
+      box.innerHTML = "<p class=\"text-slate-500\">Loading…</p>";
+      try {
+        const rows = await api("GET", "/api/quotes/mine/seller");
+        quotesCache = Array.isArray(rows) ? rows : [];
+        box.innerHTML = "";
+        if (!listCount(quotesCache)) {
+          box.innerHTML = '<p class="text-slate-500">No quotes yet.</p>';
+          return;
+        }
+        quotesCache.forEach((q) => {
+          const d = document.createElement("div");
+          d.className = "rounded-lg border border-[#e5e7eb] bg-white p-4 flex justify-between gap-2 flex-wrap";
+          d.innerHTML = `<div>
+              <p class="font-bold">${rupee(q.price)}</p>
+              <p class="text-xs text-slate-500">Request ${escapeHtml(q.request_id || "")}</p>
+              <p class="text-xs text-slate-500 mt-1">${escapeHtml(q.delivery_time || "")} ${escapeHtml(q.notes || "")}</p>
+            </div>
+            <span class="text-xs text-slate-400">${escapeHtml((q.created_at || "").slice(0, 10))}</span>`;
+          box.appendChild(d);
+        });
+      } catch (e) {
+        box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+        quotesCache = [];
+      }
+    }
+
+    function paintDashQuotes() {
+      const box = document.getElementById("dash-quotes-preview");
+      if (!box) return;
+      box.innerHTML = "";
+      const pick = quotesCache.slice(0, 4);
+      if (!pick.length) {
+        box.innerHTML = '<p class="text-slate-500 text-sm">No quotes yet. Send offers from live requests.</p>';
+        return;
+      }
+      pick.forEach((q) => {
+        const row = document.createElement("div");
+        row.className = "flex justify-between gap-2 py-2 border-b border-[#e5e7eb] last:border-0";
+        row.innerHTML = `<div class="min-w-0"><p class="font-bold text-slate-900">${rupee(q.price)}</p><p class="text-xs text-slate-500 truncate">${escapeHtml(q.request_id || "")}</p></div>
+          <span class="text-xs text-slate-400 shrink-0">${escapeHtml((q.created_at || "").slice(0, 10))}</span>`;
+        box.appendChild(row);
+      });
+    }
+
+    async function loadOrders() {
+      const box = document.getElementById("orders-list");
+      box.innerHTML = "<p class=\"text-slate-500\">Loading…</p>";
+      try {
+        const rows = await api("GET", "/api/orders/seller");
+        ordersCache = Array.isArray(rows) ? rows : [];
+        box.innerHTML = "";
+        if (!listCount(ordersCache)) {
+          box.innerHTML = '<p class="text-slate-500">No orders yet.</p>';
+          return;
+        }
+        ordersCache.forEach((o) => {
+          const d = document.createElement("div");
+          d.className = "rounded-lg border border-[#e5e7eb] bg-white p-4";
+          d.innerHTML = `<p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
+            <p class="text-sm text-[#0056d2] font-bold mt-1">${rupee(o.total_amount != null ? o.total_amount : o.final_price)} · ${escapeHtml(o.order_status || "")} · ${escapeHtml(o.payment_status || "")}</p>
+            <p class="text-xs text-slate-400 mt-1">${escapeHtml((o.created_at || "").slice(0, 16))}</p>`;
+          box.appendChild(d);
+        });
+      } catch (e) {
+        box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+        ordersCache = [];
+      }
+    }
+
+    function paintDashOrders() {
+      const box = document.getElementById("dash-orders-preview");
+      if (!box) return;
+      box.innerHTML = "";
+      const rows = ordersCache.slice(0, 4);
+      if (!rows.length) {
+        box.innerHTML = '<p class="text-slate-500 text-sm">No orders yet.</p>';
+        return;
+      }
+      rows.forEach((o) => {
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-3 py-2 border-b border-[#e5e7eb] last:border-0 text-sm";
+        const st = String(o.order_status || "").toLowerCase();
+        const badge = st === "delivered" ? "bg-green-100 text-green-800" : "bg-[#e8f1fc] text-[#0056d2]";
+        row.innerHTML = `<div class="w-9 h-9 rounded-lg bg-[#f8f9fb] border border-[#e5e7eb] shrink-0 flex items-center justify-center text-sm" aria-hidden="true">📦</div>
+          <div class="min-w-0 flex-1"><p class="font-bold text-slate-900 truncate">${escapeHtml(o.summary || "Order")}</p>
+          <p class="text-xs text-slate-500">${escapeHtml((o.created_at || "").slice(0, 10))}</p></div>
+          <div class="text-right shrink-0"><p class="font-extrabold">${rupee(o.total_amount != null ? o.total_amount : o.final_price)}</p>
+          <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${badge}">${escapeHtml(o.order_status || "")}</span></div>`;
+        box.appendChild(row);
+      });
+    }
+
+    async function refreshDashboardData() {
+      try {
+        const rows = await api("GET", "/api/requests/seller/open");
+        openRequestsCache = Array.isArray(rows) ? rows : [];
+      } catch (_) {
+        openRequestsCache = [];
+      }
+      try {
+        quotesCache = await api("GET", "/api/quotes/mine/seller");
+        if (!Array.isArray(quotesCache)) quotesCache = [];
+      } catch (_) {
+        quotesCache = [];
+      }
+      try {
+        ordersCache = await api("GET", "/api/orders/seller");
+        if (!Array.isArray(ordersCache)) ordersCache = [];
+      } catch (_) {
+        ordersCache = [];
+      }
+      const listings = allProducts.filter((p) => p.is_active !== false).length;
+      document.getElementById("kpi-listings").textContent = String(listings);
+      document.getElementById("kpi-open-req").textContent = String(openRequestsCache.length);
+      document.getElementById("kpi-quotes").textContent = String(quotesCache.length);
+      document.getElementById("kpi-orders").textContent = String(ordersCache.length);
+      const nb = document.getElementById("notif-badge");
+      const n = Math.min(99, openRequestsCache.length + (quotesCache.length > 0 ? 1 : 0));
+      if (nb) {
+        if (n < 1) nb.classList.add("hidden");
+        else {
+          nb.classList.remove("hidden");
+          nb.textContent = String(n);
+        }
+      }
+      paintDashOpenRequests();
+      paintDashQuotes();
+      paintDashOrders();
+    }
+
+    function renderMe() {
+      const box = document.getElementById("me-body");
+      if (!cachedMe || !cachedMe.user) {
+        box.innerHTML = "<p class=\"text-slate-500\">Loading…</p>";
+        return;
+      }
+      const s = cachedMe.seller;
+      box.innerHTML = `
+        <p><span class="font-bold text-slate-500">Name:</span> ${escapeHtml(cachedMe.user.name)}</p>
+        <p><span class="font-bold text-slate-500">Email:</span> ${escapeHtml(cachedMe.user.email)}</p>
+        <p><span class="font-bold text-slate-500">Shop:</span> ${escapeHtml(s && s.shop_name)}</p>
+        <p><span class="font-bold text-slate-500">Area:</span> ${escapeHtml(s && s.city)}, ${escapeHtml(s && s.region)}</p>
+        <p><span class="font-bold text-slate-500">Categories:</span> ${escapeHtml((s && s.categories && s.categories.join(", ")) || "")}</p>
+        <p class="text-xs text-slate-500 pt-2">To change categories, use API PATCH /api/auth/seller/categories or contact support.</p>
+      `;
+    }
+
+    document.getElementById("product-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!sellerCategories.length) {
+        showToast("Add shop categories to your account first.", true);
+        return;
+      }
+      const btn = document.getElementById("publish-btn");
+      btn.disabled = true;
+      try {
+        const fd = new FormData(e.target);
+        const images = await filesToImages(document.getElementById("product-files"));
+        const body = {
+          title: String(fd.get("title") || "").trim(),
+          description: String(fd.get("description") || "").trim(),
+          category: String(fd.get("category") || "").trim(),
+          price: Number(fd.get("price")),
+          images,
+        };
+        await api("POST", "/api/products", body);
+        showToast("Item published");
+        e.target.reset();
+        document.getElementById("product-files").value = "";
+        await loadProducts();
+        await refreshDashboardData();
+      } catch (err) {
+        showToast(err.message || "Failed", true);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("logout").addEventListener("click", () => {
+      localStorage.removeItem("ajs_token");
+      localStorage.removeItem("ajs_user");
+      location.href = "/login.html";
+    });
+
+    document.getElementById("search-btn")?.addEventListener("click", () => {
+      if (currentTab !== "shop") setTab("shop");
+      renderProductGrid();
+    });
+    document.getElementById("search-q")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (currentTab !== "shop") setTab("shop");
+        renderProductGrid();
+      }
+    });
+
+    const profileMenu = document.getElementById("profile-menu");
+    const profileMenuOpen = document.getElementById("profile-menu-open");
+    function closeProfileMenu() {
+      if (profileMenu) profileMenu.classList.add("hidden");
+    }
+    if (profileMenuOpen && profileMenu) {
+      profileMenuOpen.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        profileMenu.classList.toggle("hidden");
+      });
+    }
+    document.querySelectorAll(".profile-menu-item").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const act = el.getAttribute("data-action");
+        closeProfileMenu();
+        if (act === "me") setTab("me");
+        if (act === "payouts") setTab("payouts");
+        if (act === "orders") setTab("orders");
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (!profileMenu || profileMenu.classList.contains("hidden")) return;
+      if (profileMenu.contains(e.target) || (profileMenuOpen && profileMenuOpen.contains(e.target))) return;
+      closeProfileMenu();
+    });
+
+    document.getElementById("notif-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showToast("New requests and order updates will appear here.", false);
+    });
+    document.getElementById("refer-tip-sk")?.addEventListener("click", () =>
+      showToast("Respond within minutes and add delivery time to your quotes.", false)
+    );
+
+    (async function boot() {
+      try {
+        const me = await api("GET", "/api/auth/me");
+        if (!me || !me.user) return;
+        cachedMe = me;
+        const role = String(me.user.role || "").toLowerCase();
+        if (role === "buyer") {
+          location.href = "/UserDashboard.html";
+          return;
+        }
+        if (role === "admin") {
+          location.href = "/AdminDashboard.html";
+          return;
+        }
+        if (role !== "seller") {
+          location.href = "/login.html";
+          return;
+        }
+        const nm = (me.user.name || "").trim() || (me.user.email || "there").split("@")[0];
+        document.getElementById("hello-user").textContent = me.user.name || me.user.email || "";
+        document.getElementById("dashboard-hello-name").textContent = nm;
+        document.getElementById("profile-email").textContent = me.user.email || "";
+        const city = (me.user.city || (me.seller && me.seller.city) || "").trim();
+        const hcl = document.getElementById("header-city-label");
+        if (hcl) hcl.textContent = city || "Indore";
+        const sn = document.getElementById("welcome-shop-name");
+        if (sn) sn.textContent = (me.seller && me.seller.shop_name) || me.user.name || "Your shop";
+        const ws = document.getElementById("welcome-sub");
+        if (ws && city) ws.textContent = `Buyers in ${city} post requirements matching your categories — quote fast to win.`;
+        sellerCategories = (me.seller && me.seller.categories) || [];
+        if (!sellerCategories.length && me.seller && me.seller.category) {
+          sellerCategories = [me.seller.category];
+        }
+        renderShopPills();
+        await loadProducts();
+        await refreshDashboardData();
+        setTab("home");
+      } catch (e) {
+        showToast(e.message || "Failed to load", true);
+      }
+    })();
+  </script>
+</body>
+</html>

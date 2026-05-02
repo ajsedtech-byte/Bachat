@@ -59,7 +59,7 @@ async function main() {
   console.log("  Name:    ", doc.name);
   console.log("  Role:    ", doc.role);
   console.log("  user_id: ", String(doc._id));
-  console.log("\nLog in at http://localhost:3000/login.html then open Admin Dashboard.");
+  console.log("\nLog in at http://localhost:3000/login.html then open http://localhost:3000/AdminDashboard.html");
   await mongoose.disconnect();
 }
 

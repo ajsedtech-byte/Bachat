@@ -3,123 +3,302 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Log in - Bachat</title>
+  <title>Login — Bachat</title>
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: Mulish, system-ui, sans-serif; }
-    .font-display { font-family: Outfit, Mulish, system-ui, sans-serif; }
-    html.dark body { background: linear-gradient(to bottom, #020617, #0f172a); color: #e2e8f0; }
-    html.dark header, html.dark .bg-white { background-color: #0f172a !important; }
-    html.dark .border-neutral-200, html.dark .border-neutral-300, html.dark .border-red-100 { border-color: rgba(148, 163, 184, 0.28) !important; }
-    html.dark .text-neutral-900 { color: #f1f5f9 !important; }
-    html.dark .text-neutral-600, html.dark .text-neutral-500 { color: #cbd5e1 !important; }
-    html.dark input { background: #111827 !important; border-color: rgba(148, 163, 184, 0.28) !important; color: #e2e8f0 !important; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-gradient-to-b from-teal-50/80 to-neutral-50">
-  <header class="border-b border-neutral-200 bg-white">
-    <div class="max-w-lg mx-auto px-4 min-h-[3.5rem] py-2.5 flex items-center justify-between gap-4">
-      <a href="/" class="inline-flex flex-col gap-0.5 min-w-0" aria-label="Bachat home">
-        <span class="inline-flex items-baseline font-display font-black tracking-tight leading-none"><span class="text-teal-900 text-xl">Bach</span><span class="text-orange-600 text-xl font-bold">at</span></span>
-        <span class="text-[10px] sm:text-[11px] font-semibold text-teal-800/85 tracking-wide">Local deals, real savings</span>
-      </a>
-      <div class="flex items-center gap-2">
-        <button id="theme-toggle" type="button" class="px-3 py-2 rounded-lg text-xs font-black border border-neutral-300 text-neutral-700">Dark</button>
-        <a href="/signup.html" class="shrink-0 text-sm font-bold text-neutral-600 hover:text-orange-600">Sign up</a>
+<body class="bachat-ui min-h-screen bg-[#f8f9fa] text-slate-900">
+  <div class="min-h-screen grid lg:grid-cols-2 lg:max-w-5xl xl:max-w-6xl lg:mx-auto w-full">
+    <!-- Left: value prop -->
+    <div class="relative hidden lg:flex flex-col min-h-screen p-8 xl:p-10 bg-white border-r border-[#e5e7eb]">
+      <div class="flex-1 min-h-0 flex flex-col">
+        <div class="flex justify-between items-start gap-4">
+          <a href="/" aria-label="Home"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto max-w-[170px] object-contain object-left" /></a>
+          <a href="/signup.html" class="text-sm font-semibold text-[#0056d2] flex items-center gap-1 shrink-0">Need help? <span class="w-6 h-6 rounded-full border border-[#0056d2] flex items-center justify-center text-xs">?</span></a>
+        </div>
+        <p class="inline-flex mt-5 rounded-full bg-[#e8f1fc] text-[#0056d2] text-xs font-bold px-4 py-1.5">Post your requirement. Get the best quotes.</p>
+        <h1 class="mt-4 text-3xl xl:text-4xl font-extrabold text-slate-900 leading-[1.15] max-w-lg">
+          Find the right seller. <span class="text-[#0056d2]">Save time &amp; money.</span>
+        </h1>
+        <p class="mt-3 text-slate-600 max-w-md text-[15px] leading-relaxed">Post requirements and receive quick quotes from trusted sellers in your city.</p>
+        <ul class="mt-6 space-y-3">
+          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">⚡</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Get quotes in 2–5 minutes</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Competitive quotes from nearby sellers.</p></div></li>
+          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">✓</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Compare trusted local sellers</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Ratings, delivery time &amp; price in one view.</p></div></li>
+          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">❤</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Track orders and savings</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Everything stays on Bachat.</p></div></li>
+        </ul>
+        <div class="mt-6 flex justify-center rounded-2xl bg-[#f8f9fa] border border-[#e5e7eb] p-5">
+          <img src="/assets/bachat-logo-light.png" alt="" class="max-h-32 w-auto object-contain opacity-90" />
+        </div>
+      </div>
+      <div class="flex items-center gap-3 pt-5 border-t border-[#e5e7eb] mt-6 shrink-0">
+        <div class="flex -space-x-2">
+          <span class="w-8 h-8 rounded-full bg-slate-300 ring-2 ring-white"></span>
+          <span class="w-8 h-8 rounded-full bg-slate-400 ring-2 ring-white"></span>
+          <span class="w-8 h-8 rounded-full bg-slate-500 ring-2 ring-white"></span>
+          <span class="w-8 h-8 rounded-full bg-[#e8f1fc] text-[10px] font-bold flex items-center justify-center ring-2 ring-white text-[#0056d2]">+10K</span>
+        </div>
+        <p class="text-xs font-semibold text-slate-600">Trusted by 10,000+ customers across India.</p>
       </div>
     </div>
-  </header>
 
-  <main class="max-w-lg mx-auto px-4 py-10">
-    <h1 class="text-2xl font-black text-neutral-900 mb-1">Log in</h1>
-    <p class="text-neutral-500 text-sm mb-4">Choose account type, then log in.</p>
-    <p id="err" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4"></p>
+    <!-- Right: card -->
+    <div class="flex flex-col justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10">
+      <div class="lg:hidden mb-4 flex justify-between items-center">
+        <a href="/"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto" /></a>
+        <a href="/signup.html" class="text-sm font-semibold text-[#0056d2]">Sign up</a>
+      </div>
+      <div class="max-w-md w-full mx-auto bg-white rounded-2xl border border-[#e5e7eb] shadow-xl p-5 sm:p-6 flex flex-col">
+        <div class="flex border-b border-[#e5e7eb] mb-4">
+          <button type="button" id="tab-login" class="flex-1 pb-2.5 text-sm font-extrabold text-[#0056d2] border-b-2 border-[#0056d2]">Login</button>
+          <a href="/signup.html" id="tab-create" class="flex-1 pb-2.5 text-center text-sm font-bold text-slate-500 hover:text-[#0056d2]">Create Account</a>
+        </div>
+        <p class="text-lg font-extrabold text-slate-900">Welcome back! 👋</p>
+        <p class="text-sm text-slate-500 mt-0.5">Login to post requirements and receive the best quotes.</p>
+        <p id="err" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mt-3 leading-snug"></p>
 
-    <form id="login-form" class="space-y-4">
-      <input type="hidden" name="role" id="role" value="buyer">
-      <div class="flex rounded-xl border border-neutral-200 p-1 bg-neutral-50">
-        <button type="button" id="tab-buyer" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors bg-white shadow text-orange-600">Customer</button>
-        <button type="button" id="tab-seller" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors text-neutral-500">Shopkeeper</button>
+        <form id="login-form" class="mt-4 space-y-3">
+          <input type="hidden" name="role" id="role" value="buyer" />
+          <div class="flex rounded-xl border border-[#e5e7eb] p-1 bg-[#f8f9fa]">
+            <button type="button" id="tab-buyer" class="flex-1 rounded-lg py-2 text-xs font-extrabold transition-colors bg-white shadow text-[#0056d2]">Customer</button>
+            <button type="button" id="tab-seller" class="flex-1 rounded-lg py-2 text-xs font-extrabold transition-colors text-slate-500">Shopkeeper</button>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Login with Mobile or Email</label>
+            <input name="email" type="email" autocomplete="username" required class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="Mobile number or Email address" />
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-bold text-slate-500 uppercase">Password</label>
+              <span class="text-xs font-semibold text-[#0056d2] cursor-pointer opacity-70">Forgot password?</span>
+            </div>
+            <input name="password" type="password" autocomplete="current-password" required class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="Enter your password" />
+          </div>
+          <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer pt-0.5">
+            <input type="checkbox" class="rounded border-[#e5e7eb] text-[#0056d2] focus:ring-[#0056d2]" /> Remember me
+          </label>
+          <button id="btn" type="submit" class="w-full rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-extrabold py-3 disabled:opacity-50 shadow-md text-sm">Login</button>
+        </form>
+
+        <div class="relative my-4"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[#e5e7eb]"></div></div><div class="relative flex justify-center text-xs font-bold uppercase text-slate-400"><span class="bg-white px-2">Or</span></div></div>
+
+        <div class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fa] p-3 sm:p-4">
+          <p class="text-sm font-bold text-slate-900">Login with OTP</p>
+          <p class="text-xs text-slate-500 mt-0.5">Uses the <strong>same email</strong> as password login. Code is sent to your verified inbox.</p>
+          <div id="otp-dev-hint" class="hidden mt-2 text-xs font-mono text-[#0056d2] break-all"></div>
+          <div class="mt-2.5">
+            <button type="button" id="otp-send" class="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-[#0056d2] text-[#0056d2] text-xs font-bold hover:bg-[#e8f1fc]">Send code to email</button>
+          </div>
+          <div id="otp-verify-row" class="hidden mt-3 space-y-2">
+            <label class="block text-xs font-bold text-slate-500 uppercase">6-digit code</label>
+            <input type="text" id="otp-code" maxlength="8" inputmode="numeric" autocomplete="one-time-code" class="w-full rounded-xl border border-[#e5e7eb] bg-white px-3 py-2.5 text-sm" placeholder="000000" />
+            <button type="button" id="otp-verify" class="w-full rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white text-xs font-bold py-2.5">Verify &amp; log in</button>
+          </div>
+          <p id="otp-err" class="hidden mt-2 text-xs text-red-600"></p>
+        </div>
+
+        <p class="text-xs text-slate-500 text-center mt-4 pb-0.5">By continuing, you agree to our <span class="text-[#0056d2] font-semibold">Terms</span> and <span class="text-[#0056d2] font-semibold">Privacy Policy</span>.</p>
       </div>
-      <div>
-        <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Email</label>
-        <input name="email" type="email" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+
+      <div class="max-w-md w-full mx-auto mt-5 grid grid-cols-3 gap-2 sm:gap-3 text-center text-[11px] font-semibold text-slate-600">
+        <div class="rounded-xl bg-white border border-[#e5e7eb] py-3"><span class="text-lg block mb-1">🛡</span>100% Secure</div>
+        <div class="rounded-xl bg-white border border-[#e5e7eb] py-3"><span class="text-lg block mb-1">✓</span>Verified sellers</div>
+        <div class="rounded-xl bg-white border border-[#e5e7eb] py-3"><span class="text-lg block mb-1">🎧</span>Live support</div>
       </div>
-      <div>
-        <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Password</label>
-        <input name="password" type="password" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
-      </div>
-      <button id="btn" type="submit" class="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 disabled:opacity-50 shadow-md">Continue</button>
-      <p class="text-sm text-neutral-600 text-center">
-        New here? <a id="signup-link" href="/signup.html" class="text-teal-700 font-bold hover:text-orange-600">Create account</a>
-      </p>
-    </form>
-  </main>
+    </div>
+  </div>
 
   <script>
     function dashboardFor(role) {
-      if (role === "seller") return "/Shopkeeper%20Dashboard.html";
-      if (role === "admin") return "/Admin%20Dashboard.html";
+      if (role === "seller") return "/ShopkeeperDashboard.html";
+      if (role === "admin") return "/AdminDashboard.html";
       return "/UserDashboard.html";
     }
-
     (function () {
-      const toggle = document.getElementById("theme-toggle");
-      const roleIn = document.getElementById("role");
-      const tabBuyer = document.getElementById("tab-buyer");
-      const tabSeller = document.getElementById("tab-seller");
-      const signupLink = document.getElementById("signup-link");
-      const storedTheme = localStorage.getItem("bachat_theme");
-      const prefersDark = storedTheme ? storedTheme === "dark" : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-      function setDark(on) { if (on) { document.documentElement.classList.add("dark"); toggle.textContent = "Light"; } else { document.documentElement.classList.remove("dark"); toggle.textContent = "Dark"; } }
-      setDark(prefersDark);
-      toggle.addEventListener("click", () => { const next = toggle.textContent === "Dark"; setDark(next); localStorage.setItem("bachat_theme", next ? "dark" : "light"); });
-
+      var roleIn = document.getElementById("role");
+      var tabBuyer = document.getElementById("tab-buyer");
+      var tabSeller = document.getElementById("tab-seller");
       function setRole(role) {
         roleIn.value = role;
-        if (signupLink) signupLink.href = role === "seller" ? "/signup.html?role=seller" : "/signup.html";
         if (role === "seller") {
-          tabSeller.classList.add("bg-white", "shadow", "text-orange-600");
-          tabSeller.classList.remove("text-neutral-500");
-          tabBuyer.classList.remove("bg-white", "shadow", "text-orange-600");
-          tabBuyer.classList.add("text-neutral-500");
+          tabSeller.classList.add("bg-white", "shadow", "text-[#0056d2]");
+          tabSeller.classList.remove("text-slate-500");
+          tabBuyer.classList.remove("bg-white", "shadow", "text-[#0056d2]");
+          tabBuyer.classList.add("text-slate-500");
         } else {
-          tabBuyer.classList.add("bg-white", "shadow", "text-orange-600");
-          tabBuyer.classList.remove("text-neutral-500");
-          tabSeller.classList.remove("bg-white", "shadow", "text-orange-600");
-          tabSeller.classList.add("text-neutral-500");
+          tabBuyer.classList.add("bg-white", "shadow", "text-[#0056d2]");
+          tabBuyer.classList.remove("text-slate-500");
+          tabSeller.classList.remove("bg-white", "shadow", "text-[#0056d2]");
+          tabSeller.classList.add("text-slate-500");
         }
       }
-      const params = new URLSearchParams(location.search);
+      var params = new URLSearchParams(location.search);
       setRole(params.get("role") === "seller" ? "seller" : "buyer");
-      tabBuyer.addEventListener("click", () => setRole("buyer"));
-      tabSeller.addEventListener("click", () => setRole("seller"));
+      tabBuyer.addEventListener("click", function () { setRole("buyer"); });
+      tabSeller.addEventListener("click", function () { setRole("seller"); });
     })();
 
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const err = document.getElementById("err");
-      const btn = document.getElementById("btn");
+    async function loginFetch(body) {
+      var proto = location.protocol;
+      var host = location.hostname;
+      var stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      var paths = [];
+      if (proto !== "file:") paths.push("/api/auth/login");
+      if (stored) paths.push(stored + "/api/auth/login");
+      [3000, 3001].forEach(function (p) {
+        paths.push(proto + "//" + host + ":" + p + "/api/auth/login");
+      });
+      var seen = {};
+      var lastErr;
+      for (var i = 0; i < paths.length; i++) {
+        var url = paths[i];
+        if (seen[url]) continue;
+        seen[url] = 1;
+        try {
+          var res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (res.ok) {
+            if (url.indexOf("http") === 0) {
+              try {
+                localStorage.setItem("bachat_api_base", new URL(url).origin);
+              } catch (_) {}
+            } else if (proto !== "file:" && url.indexOf("/api/") === 0) {
+              localStorage.removeItem("bachat_api_base");
+            }
+          }
+          return res;
+        } catch (x) {
+          lastErr = x;
+        }
+      }
+      throw lastErr || new Error("Failed to fetch");
+    }
+
+    async function otpFetch(path, body) {
+      var proto = location.protocol;
+      var host = location.hostname;
+      var stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      var paths = [];
+      if (proto !== "file:") paths.push(path);
+      if (stored) paths.push(stored + path);
+      [3000, 3001].forEach(function (p) {
+        paths.push(proto + "//" + host + ":" + p + path);
+      });
+      var seen = {};
+      var lastErr;
+      for (var i = 0; i < paths.length; i++) {
+        var url = paths[i];
+        if (seen[url]) continue;
+        seen[url] = 1;
+        try {
+          var res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (res.ok && url.indexOf("http") === 0) {
+            try {
+              localStorage.setItem("bachat_api_base", new URL(url).origin);
+            } catch (_) {}
+          } else if (res.ok && proto !== "file:" && url.indexOf("/api/") === 0) {
+            localStorage.removeItem("bachat_api_base");
+          }
+          return res;
+        } catch (x) {
+          lastErr = x;
+        }
+      }
+      throw lastErr || new Error("Failed to fetch");
+    }
+
+    function loginEmail() {
+      var fd = new FormData(document.getElementById("login-form"));
+      return String(fd.get("email") || "").trim().toLowerCase();
+    }
+
+    document.getElementById("otp-send")?.addEventListener("click", async function () {
+      var err = document.getElementById("otp-err");
+      var dev = document.getElementById("otp-dev-hint");
       err.classList.add("hidden");
-      btn.disabled = true;
-      const fd = new FormData(e.target);
-      const selectedRole = String(fd.get("role") || "buyer");
-      const body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || "") };
+      if (dev) {
+        dev.classList.add("hidden");
+        dev.textContent = "";
+      }
+      var email = loginEmail();
+      if (!email) {
+        err.textContent = "Enter your email above first.";
+        err.classList.remove("hidden");
+        return;
+      }
       try {
-        const res = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Login failed");
-        const actualRole = data?.user?.role || "";
-        const roleMismatch =
-          selectedRole !== actualRole &&
-          !(selectedRole === "buyer" && actualRole === "admin");
+        var res = await otpFetch("/api/auth/login-otp/request", { email: email });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(data.error || "Could not send code");
+        if (data.dev_otp && dev) {
+          dev.textContent = "Dev code: " + data.dev_otp;
+          dev.classList.remove("hidden");
+        }
+        document.getElementById("otp-verify-row").classList.remove("hidden");
+      } catch (x) {
+        err.textContent = x.message || "Error";
+        err.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("otp-verify")?.addEventListener("click", async function () {
+      var err = document.getElementById("otp-err");
+      err.classList.add("hidden");
+      var email = loginEmail();
+      var code = String(document.getElementById("otp-code").value || "").trim();
+      if (!email || !code) {
+        err.textContent = "Email and code required.";
+        err.classList.remove("hidden");
+        return;
+      }
+      try {
+        var res = await otpFetch("/api/auth/login-otp/verify", { email: email, code: code });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(data.error || "Invalid code");
+        var selectedRole = String(document.getElementById("role").value || "buyer");
+        var actualRole = (data.user && data.user.role) || "";
+        var roleMismatch = selectedRole !== actualRole && !(selectedRole === "buyer" && actualRole === "admin");
         if (roleMismatch) {
           throw new Error(
             selectedRole === "seller"
-              ? "This account is not a shopkeeper account. Switch to Customer tab."
-              : "This account is a shopkeeper account. Switch to Shopkeeper tab."
+              ? "This account is not a shopkeeper account."
+              : "This account is a shopkeeper account — use Shopkeeper tab."
           );
+        }
+        localStorage.setItem("ajs_token", data.token);
+        localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
+        location.href = dashboardFor(actualRole);
+      } catch (x) {
+        err.textContent = x.message || "Error";
+        err.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var err = document.getElementById("err");
+      var btn = document.getElementById("btn");
+      err.classList.add("hidden");
+      btn.disabled = true;
+      var fd = new FormData(e.target);
+      var selectedRole = String(fd.get("role") || "buyer");
+      var body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || "") };
+      try {
+        var res = await loginFetch(body);
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(data.error || "Login failed");
+        var actualRole = (data.user && data.user.role) || "";
+        var roleMismatch = selectedRole !== actualRole && !(selectedRole === "buyer" && actualRole === "admin");
+        if (roleMismatch) {
+          throw new Error(selectedRole === "seller" ? "This account is not a shopkeeper account." : "This account is a shopkeeper account — use Shopkeeper tab.");
         }
         localStorage.setItem("ajs_token", data.token);
         localStorage.setItem("ajs_user", JSON.stringify(data.user || null));

@@ -9,6 +9,8 @@ const orderRoutes = require("./routes/orders");
 const adminRoutes = require("./routes/admin");
 const productRoutes = require("./routes/products");
 const cartRoutes = require("./routes/cart");
+const savedRoutes = require("./routes/saved");
+const sellerRoutes = require("./routes/seller");
 const { router: paymentRoutes, handleRazorpayWebhook } = require("./routes/payments");
 const { CATEGORIES } = require("./lib/categories");
 
@@ -76,6 +78,8 @@ app.use("/api/requests", requestRoutes);
 app.use("/api/quotes", quoteRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/saved", savedRoutes);
+app.use("/api/seller", sellerRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 /* /api/products mounted above with larger JSON limit for image payloads */

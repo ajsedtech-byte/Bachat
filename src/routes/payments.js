@@ -104,6 +104,45 @@ router.post("/create-order", requireAuth, requireRole("buyer"), async (req, res,
   }
 });
 
+router.get("/mine", requireAuth, requireRole("buyer"), async (req, res, next) => {
+  try {
+    const orders = await Order.find({ user: req.user.id }).select("_id").lean();
+    const ids = orders.map((o) => o._id);
+    if (!ids.length) {
+      return res.json({ items: [] });
+    }
+    const rows = await Payment.find({ order: { $in: ids } })
+      .populate({
+        path: "order",
+        select:
+          "finalPrice totalAmount paymentStatus orderStatus lineItems orderType request quote createdAt user",
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const items = rows
+      .filter((p) => p.order && String(p.order.user) === String(req.user.id))
+      .map((p) => {
+        const fo = formatOrder(p.order);
+        return {
+          payment_id: String(p._id),
+          order_id: fo.order_id,
+          amount: p.amount,
+          status: p.status,
+          provider_order_id: p.providerOrderId || "",
+          provider_payment_id: p.providerPaymentId || "",
+          created_at: p.createdAt,
+          order_summary: fo.summary,
+          order_payment_status: fo.payment_status,
+          order_status: fo.order_status,
+        };
+      });
+    return res.json({ items });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.post("/verify", requireAuth, requireRole("buyer"), async (req, res, next) => {
   try {
     const { order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};

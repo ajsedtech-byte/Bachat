@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema(
       default: "buyer",
     },
     emailVerifiedAt: { type: Date, default: null },
+    /** Buyer wishlist — product ObjectIds */
+    savedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+    /** Unique invite code for Refer & Earn */
+    referralCode: { type: String, default: null, unique: true, sparse: true, trim: true },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true }
 );

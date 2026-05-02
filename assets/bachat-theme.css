@@ -1,0 +1,33 @@
+/* Bachat mock design tokens — primary blue ~#0056D2 */
+:root {
+  --bachat-primary: #0056d2;
+  --bachat-primary-dark: #0044a8;
+  --bachat-primary-soft: #e8f1fc;
+  --bachat-bg: #f8f9fa;
+  --bachat-bg-page: #f8f9fb;
+  --bachat-success: #28a745;
+  --bachat-warning: #fd7e14;
+  --bachat-danger: #dc3545;
+  --bachat-sidebar-dark: #0d1b2a;
+  --bachat-border: #e5e7eb;
+}
+
+.bachat-ui {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.bg-bachat-primary {
+  background-color: var(--bachat-primary);
+}
+
+.text-bachat-primary {
+  color: var(--bachat-primary);
+}
+
+.border-bachat {
+  border-color: var(--bachat-border);
+}
+
+.ring-bachat-active {
+  box-shadow: inset 3px 0 0 var(--bachat-primary);
+}

@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign up — Bachat</title>
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Mulish, system-ui, sans-serif; }
-    .font-display { font-family: Outfit, Mulish, system-ui, sans-serif; }
+    body { font-family: Inter, system-ui, sans-serif; }
+    .font-display { font-family: Inter, system-ui, sans-serif; }
     html.dark body {
       background: linear-gradient(to bottom, #020617, #0f172a);
       color: #e2e8f0;
@@ -37,18 +39,16 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-teal-50/80 to-neutral-50">
+<body class="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50/60">
   <header class="border-b border-neutral-200 bg-white">
     <div class="max-w-lg mx-auto px-4 min-h-[3.5rem] py-2.5 flex items-center justify-between gap-4">
-      <a href="/" class="inline-flex flex-col gap-0.5 min-w-0" aria-label="Bachat home">
-        <span class="inline-flex items-baseline font-display font-black tracking-tight leading-none">
-          <span class="text-teal-900 text-xl">Bach</span><span class="text-orange-600 text-xl font-bold">at</span>
-        </span>
-        <span class="text-[10px] sm:text-[11px] font-semibold text-teal-800/85 tracking-wide">Local deals, real savings</span>
+      <a href="/" class="inline-flex flex-col gap-1 min-w-0" aria-label="Bachat home">
+        <img src="/assets/bachat-logo-light.png" alt="" width="180" height="56" class="h-9 sm:h-10 w-auto max-w-[160px] object-contain object-left" />
+        <span class="text-[10px] sm:text-[11px] font-semibold text-blue-800/85 tracking-wide">Local deals, real savings</span>
       </a>
       <div class="flex items-center gap-2">
         <button id="theme-toggle" type="button" class="px-3 py-2 rounded-lg text-xs font-black border border-neutral-300 text-neutral-700">Dark</button>
-        <a href="/login.html" id="login-link" class="shrink-0 text-sm font-bold text-neutral-600 hover:text-orange-600">Log in</a>
+        <a href="/login.html" id="login-link" class="shrink-0 text-sm font-bold text-neutral-600 hover:text-blue-700">Log in</a>
       </div>
     </div>
   </header>
@@ -59,7 +59,7 @@
 
     <div id="step-form">
       <div class="flex rounded-xl border border-neutral-200 p-1 mb-6 bg-neutral-50">
-        <button type="button" id="tab-buyer" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors bg-white shadow text-orange-600">Customer</button>
+        <button type="button" id="tab-buyer" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors bg-white shadow text-blue-700">Customer</button>
         <button type="button" id="tab-seller" class="flex-1 rounded-lg py-2 text-sm font-black transition-colors text-neutral-500">Shopkeeper</button>
       </div>
       <p id="err" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4"></p>
@@ -68,34 +68,38 @@
         <input type="hidden" name="role" id="role" value="buyer">
         <div>
           <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Email</label>
-          <input name="email" type="email" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+          <input name="email" type="email" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600">
         </div>
         <div>
           <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Password</label>
-          <input name="password" type="password" required minlength="6" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+          <input name="password" type="password" required minlength="6" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600">
         </div>
         <div>
           <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Full name</label>
-          <input name="name" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+          <input name="name" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600">
         </div>
         <div>
           <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Phone (optional)</label>
-          <input name="phone" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="+91">
+          <input name="phone" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="+91">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Referral code (optional)</label>
+          <input name="referral_code" id="referral_code_input" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="Friend's code" maxlength="16" autocomplete="off">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">City</label>
-            <input name="city" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="Indore">
+            <input name="city" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="Indore">
           </div>
           <div>
             <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Region</label>
-            <input name="region" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="MP">
+            <input name="region" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="MP">
           </div>
         </div>
         <div id="seller-fields" class="hidden space-y-4 border-t border-neutral-100 pt-4">
           <div>
             <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Shop name</label>
-            <input name="shop_name" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="Metro Electronics">
+            <input name="shop_name" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="Metro Electronics">
           </div>
           <div>
             <label class="block text-xs font-bold text-neutral-500 uppercase mb-2">Shop categories <span class="text-neutral-400 font-normal normal-case">(select all that apply — India-focused list)</span></label>
@@ -104,15 +108,15 @@
             </div>
           </div>
         </div>
-        <button type="submit" id="btn" class="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 disabled:opacity-50 shadow-md">Continue</button>
+        <button type="submit" id="btn" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 disabled:opacity-50 shadow-md">Continue</button>
       </form>
     </div>
 
     <div id="step-verify" class="hidden">
       <p class="text-neutral-600 text-sm mb-4">Enter the 6-digit code we sent to <strong id="vemail"></strong></p>
       <p id="verr" class="hidden text-sm text-red-600 bg-red-50 border rounded-lg px-3 py-2 mb-4"></p>
-      <input id="vcode" maxlength="6" class="w-full text-center text-2xl font-mono tracking-widest rounded-xl border border-neutral-200 px-4 py-4 mb-4 outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600" placeholder="000000">
-      <button type="button" id="vbtn" class="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 mb-3 shadow-md">Verify & go to app</button>
+      <input id="vcode" maxlength="6" class="w-full text-center text-2xl font-mono tracking-widest rounded-xl border border-neutral-200 px-4 py-4 mb-4 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="000000">
+      <button type="button" id="vbtn" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 mb-3 shadow-md">Verify & go to app</button>
       <button type="button" id="resend" class="w-full text-sm font-bold text-neutral-600 py-2">Resend code</button>
     </div>
   </div>
@@ -172,7 +176,7 @@
             input.type = "checkbox";
             input.name = "shop_categories";
             input.value = c;
-            input.className = "rounded border-neutral-300 text-orange-600 focus:ring-orange-500";
+            input.className = "rounded border-neutral-300 text-blue-700 focus:ring-blue-500";
             label.appendChild(input);
             label.appendChild(document.createTextNode(" " + c));
             box.appendChild(label);
@@ -183,7 +187,12 @@
             '<p class="text-sm text-red-600 px-1">Could not load categories. Start the server (<code class="bg-neutral-100 px-1 rounded text-xs">npm start</code>) and refresh.</p>';
         });
     }
-    document.addEventListener("DOMContentLoaded", fillShopCategories);
+    document.addEventListener("DOMContentLoaded", () => {
+      fillShopCategories();
+      const ref = new URLSearchParams(location.search).get("ref");
+      const inp = document.getElementById("referral_code_input");
+      if (ref && inp) inp.value = String(ref).trim().toUpperCase().slice(0, 16);
+    });
 
     (function () {
       const toggle = document.getElementById("theme-toggle");
@@ -220,16 +229,16 @@
         if (loginLink) loginLink.href = r === "seller" ? "/login.html?role=seller" : "/login.html";
         if (r === "seller") {
           sellerFields.classList.remove("hidden");
-          tabSeller.classList.add("bg-white", "shadow", "text-orange-600");
+          tabSeller.classList.add("bg-white", "shadow", "text-blue-700");
           tabSeller.classList.remove("text-neutral-500");
-          tabBuyer.classList.remove("bg-white", "shadow", "text-orange-600");
+          tabBuyer.classList.remove("bg-white", "shadow", "text-blue-700");
           tabBuyer.classList.add("text-neutral-500");
           sellerFields.querySelector("[name=shop_name]").required = true;
         } else {
           sellerFields.classList.add("hidden");
-          tabBuyer.classList.add("bg-white", "shadow", "text-orange-600");
+          tabBuyer.classList.add("bg-white", "shadow", "text-blue-700");
           tabBuyer.classList.remove("text-neutral-500");
-          tabSeller.classList.remove("bg-white", "shadow", "text-orange-600");
+          tabSeller.classList.remove("bg-white", "shadow", "text-blue-700");
           tabSeller.classList.add("text-neutral-500");
           sellerFields.querySelector("[name=shop_name]").required = false;
         }
@@ -241,7 +250,7 @@
       let regEmail = "";
 
       function dashboardFor(role) {
-        if (role === "seller") return "/Shopkeeper%20Dashboard.html";
+        if (role === "seller") return "/ShopkeeperDashboard.html";
         return "/UserDashboard.html";
       }
 
@@ -260,6 +269,8 @@
           region: String(fd.get("region") || "").trim(),
           role,
         };
+        const refCode = String(fd.get("referral_code") || "").trim();
+        if (refCode) body.referral_code = refCode.toUpperCase();
         if (role === "seller") {
           body.shop_name = String(fd.get("shop_name") || "").trim();
           body.categories = fd.getAll("shop_categories");

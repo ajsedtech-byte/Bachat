@@ -21,4 +21,11 @@ function buyerDisplayPrice(sellerPrice, productId) {
   return Math.ceil(base * (1 + m));
 }
 
-module.exports = { buyerDisplayPrice, markupRateForProduct };
+/** Upper bound buyer list price at max markup (for “savings vs worst-case markup” KPI). */
+function buyerMaxListedPrice(sellerPrice) {
+  const base = Number(sellerPrice);
+  if (!Number.isFinite(base) || base <= 0) return 0;
+  return Math.ceil(base * (1 + MAX_MARKUP));
+}
+
+module.exports = { buyerDisplayPrice, markupRateForProduct, buyerMaxListedPrice };

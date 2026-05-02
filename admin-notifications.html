@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alerts — Bachat</title>
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bachat-ui bg-[#f8f9fb] min-h-screen text-slate-900" data-bachat-admin="notifications">
+  <div class="flex min-h-screen">
+    <aside data-bachat-sidebar class="w-64 shrink-0 bg-white border-r border-[#e5e7eb] hidden lg:flex flex-col"></aside>
+    <div class="flex-1 flex flex-col min-w-0">
+      <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
+      <main class="flex-1 p-4 lg:p-6 overflow-auto">
+        <h1 class="text-2xl font-extrabold">Notifications &amp; Alerts</h1><p class="text-sm text-slate-500 mt-1">System, seller, order &amp; payment alerts.</p>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-6">
+          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">Unread</p><p class="text-2xl font-extrabold">28</p></div>
+          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">High priority</p><p class="text-2xl font-extrabold text-red-600">12</p></div>
+          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">Resolved</p><p class="text-2xl font-extrabold text-green-700">145</p></div>
+          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">System</p><p class="text-2xl font-extrabold">32</p></div>
+        </div>
+        <div class="rounded-xl bg-white border shadow-sm overflow-hidden"><table class="w-full text-sm"><thead class="bg-[#f8f9fb] text-left text-xs uppercase font-bold text-slate-500"><tr><th class="px-5 py-3">Alert</th><th class="px-5 py-3">Message</th><th class="px-5 py-3">Priority</th></tr></thead><tbody class="divide-y"><tr><td class="px-5 py-3">Seller</td><td class="px-5 py-3">KYC document expiring</td><td class="px-5 py-3"><span class="text-red-600 font-bold text-xs">High</span></td></tr></tbody></table></div>
+      </main>
+    </div>
+  </div>
+  <script src="/js/bachat-admin-shell.js"></script>
+</body>
+</html>

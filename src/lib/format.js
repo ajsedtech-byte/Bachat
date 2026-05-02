@@ -9,6 +9,7 @@ const { sellerCategoryList } = require("./categories");
 function formatUser(u) {
   if (!u) return null;
   const o = u.toObject ? u.toObject() : u;
+  const saved = o.savedProducts || [];
   return {
     user_id: idStr(o._id),
     email: o.email,
@@ -19,6 +20,8 @@ function formatUser(u) {
     role: o.role,
     email_verified_at: o.emailVerifiedAt || null,
     created_at: o.createdAt,
+    referral_code: o.referralCode || null,
+    saved_product_count: Array.isArray(saved) ? saved.length : 0,
   };
 }
 
