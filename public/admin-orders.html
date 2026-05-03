@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Orders — Bachat Ops</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,9 +13,102 @@
     <aside data-bachat-sidebar class="w-64 shrink-0 bg-white border-r border-[#e5e7eb] hidden lg:flex flex-col"></aside>
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
-      <main class="flex-1 p-4 lg:p-6"><h1 class="text-2xl font-extrabold">Orders</h1><p class="text-slate-500 text-sm mt-1">Ops order queue — demo.</p><div class="mt-6 rounded-xl bg-white border p-8 text-center text-slate-500 text-sm">Connect order export / support tools.</div></main>
+      <main class="flex-1 p-4 lg:p-6 overflow-auto">
+        <h1 class="text-2xl font-extrabold">Orders</h1>
+        <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/orders</code> (paginated)</p>
+        <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <div class="mt-6 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+          <table class="w-full text-sm text-left min-w-[960px]">
+            <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+              <tr>
+                <th class="px-4 py-3">Order</th>
+                <th class="px-4 py-3">Buyer</th>
+                <th class="px-4 py-3">Shop</th>
+                <th class="px-4 py-3">Amount</th>
+                <th class="px-4 py-3">Payment</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Created</th>
+              </tr>
+            </thead>
+            <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex gap-3">
+          <button type="button" id="prev" class="rounded-xl border border-[#e5e7eb] px-4 py-2 font-bold text-sm disabled:opacity-40">Previous</button>
+          <button type="button" id="next" class="rounded-xl border border-[#e5e7eb] px-4 py-2 font-bold text-sm disabled:opacity-40">Next</button>
+        </div>
+      </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
+  <script src="/js/bachat-admin-runtime.js"></script>
+  <script>
+    (function () {
+      var skip = 0;
+      var limit = 40;
+      function esc(s) {
+        var t = document.createElement("div");
+        t.textContent = s == null ? "" : String(s);
+        return t.innerHTML;
+      }
+      function inr(n) {
+        return "₹" + (Number(n) || 0).toLocaleString("en-IN");
+      }
+      async function load() {
+        var err = document.getElementById("err");
+        err.classList.add("hidden");
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/orders?limit=" + limit + "&skip=" + skip, {
+          headers: BachatAdminRuntime.authHeaders(),
+        });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) {
+          err.textContent = data.error || "Failed";
+          err.classList.remove("hidden");
+          return;
+        }
+        var tb = document.getElementById("tbody");
+        tb.innerHTML = "";
+        (data.items || []).forEach(function (o) {
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-[#f8f9fb]";
+          tr.innerHTML =
+            "<td class=\"px-4 py-3\"><p class=\"font-mono text-xs\">" +
+            esc(o.order_id) +
+            "</p><p class=\"text-xs text-slate-500\">" +
+            esc(o.summary || "") +
+            "</p></td><td class=\"px-4 py-3 text-xs\">" +
+            esc(o.user_name) +
+            "</td><td class=\"px-4 py-3 text-xs\">" +
+            esc(o.shop_name) +
+            "</td><td class=\"px-4 py-3 font-bold\">" +
+            inr(o.total_amount) +
+            "</td><td class=\"px-4 py-3\">" +
+            esc(o.payment_status) +
+            "</td><td class=\"px-4 py-3\">" +
+            esc(o.order_status) +
+            "</td><td class=\"px-4 py-3 text-xs text-slate-500\">" +
+            esc((o.created_at || "").toString().slice(0, 16)) +
+            "</td>";
+          tb.appendChild(tr);
+        });
+        document.getElementById("prev").disabled = skip < 1;
+        document.getElementById("next").disabled = !data.items || data.items.length < limit;
+      }
+      document.getElementById("prev").addEventListener("click", function () {
+        skip = Math.max(0, skip - limit);
+        load();
+      });
+      document.getElementById("next").addEventListener("click", function () {
+        skip += limit;
+        load();
+      });
+      (async function () {
+        if (!(await BachatAdminRuntime.guardAdminPage())) return;
+        load();
+      })();
+    })();
+  </script>
 </body>
 </html>

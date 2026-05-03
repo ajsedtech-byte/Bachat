@@ -8,11 +8,10 @@ const EmailOtp = require("../models/EmailOtp");
 const { sendMail } = require("../services/email");
 const { generateSixDigitCode, hashOtp, verifyOtp } = require("../utils/otp");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { formatUser, formatSeller } = require("../lib/format");
+const { formatUser, formatSeller, maskEmail } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
 const { ensureReferralCode } = require("../lib/referralCode");
 const { normalizePhone10India, maskPhoneIndia } = require("../lib/phone");
-const { sendVerificationSms } = require("../services/sms");
 
 const router = express.Router();
 
@@ -28,11 +27,12 @@ function signToken(user) {
   return jwt.sign({ sub: String(user._id), role: user.role }, secret, { expiresIn: "7d" });
 }
 
+/** Only include OTP in JSON when EXPOSE_DEV_OTP=1 (never in real production). */
 function withDevOtp(payload, code) {
-  if (process.env.NODE_ENV === "production") {
-    return payload;
+  if (process.env.EXPOSE_DEV_OTP === "1") {
+    return { ...payload, dev_otp: code };
   }
-  return { ...payload, dev_otp: code };
+  return payload;
 }
 
 router.post("/register", async (req, res, next) => {
@@ -211,6 +211,77 @@ router.post("/verify-email", async (req, res, next) => {
   }
 });
 
+/** Request password reset code (email). Same generic response whether user exists. */
+router.post("/forgot-password", async (req, res, next) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return badRequest(res, "email is required");
+    }
+    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    if (!user || !user.emailVerifiedAt) {
+      return res.json({ message: "If an account exists, a reset code was sent to its email." });
+    }
+    const code = generateSixDigitCode();
+    const codeHash = await hashOtp(code);
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await EmailOtp.deleteMany({ user: user._id, purpose: "password_reset", consumedAt: null });
+    await EmailOtp.create({
+      user: user._id,
+      codeHash,
+      purpose: "password_reset",
+      expiresAt,
+    });
+    await sendMail({
+      to: user.email,
+      subject: "Reset your Bachat password",
+      text: `Your password reset code is: ${code}\nIt expires in 15 minutes.\nIf you did not ask for this, ignore this email.`,
+      html: `<p>Your password reset code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 15 minutes.</p><p style="color:#64748b;font-size:13px">If you did not request a reset, ignore this email.</p>`,
+    });
+    return res.json({ message: "If an account exists, a reset code was sent to its email." });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/** Set new password using email + code from forgot-password. */
+router.post("/reset-password", async (req, res, next) => {
+  try {
+    const { email, code, new_password } = req.body || {};
+    if (!email || !code || !new_password) {
+      return badRequest(res, "email, code, and new_password are required");
+    }
+    const pw = String(new_password);
+    if (pw.length < 8) {
+      return badRequest(res, "new_password must be at least 8 characters");
+    }
+    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    if (!user || !user.emailVerifiedAt) {
+      return res.status(400).json({ error: "Invalid or expired code" });
+    }
+    const otp = await EmailOtp.findOne({
+      user: user._id,
+      purpose: "password_reset",
+      consumedAt: null,
+      expiresAt: { $gt: new Date() },
+    }).sort({ createdAt: -1 });
+    if (!otp) {
+      return res.status(400).json({ error: "Invalid or expired code" });
+    }
+    const ok = await verifyOtp(String(code), otp.codeHash);
+    if (!ok) {
+      return res.status(400).json({ error: "Invalid or expired code" });
+    }
+    otp.consumedAt = new Date();
+    await otp.save();
+    user.passwordHash = await bcrypt.hash(pw, 10);
+    await user.save();
+    return res.json({ message: "Password updated. You can log in now." });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
@@ -274,29 +345,48 @@ router.post("/resend-verification", async (req, res, next) => {
   }
 });
 
-/** Authenticated: send 6-digit OTP to the user’s registered Indian mobile (SMS if Twilio configured). */
+/**
+ * Authenticated: send 6-digit OTP to the user’s email to confirm the mobile on file (no SMS).
+ * Completing verify still sets `phone_verified_at` after code check.
+ */
 router.post("/phone-otp/request", requireAuth, async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+    const email = String(user.email || "")
+      .trim()
+      .toLowerCase();
+    if (!email) {
+      return badRequest(res, "Your account has no email — add one in your profile");
+    }
     const phone10 = normalizePhone10India(user.phone);
     if (!phone10) {
       return badRequest(res, "Add a valid 10-digit Indian mobile on your profile first");
     }
     if (user.phoneVerifiedAt) {
-      return res.json({ message: "Mobile already verified", phone_masked: maskPhoneIndia(phone10) });
+      return res.json({
+        message: "Mobile already verified",
+        phone_masked: maskPhoneIndia(phone10),
+        email_masked: maskEmail(email),
+      });
     }
 
     const code = generateSixDigitCode();
     const codeHash = await hashOtp(code);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const phoneMasked = maskPhoneIndia(phone10);
 
     try {
-      await sendVerificationSms(phone10, code);
-    } catch (smsErr) {
-      return res.status(502).json({ error: smsErr.message || "Could not send SMS" });
+      await sendMail({
+        to: email,
+        subject: "Confirm your mobile number — Bachat",
+        text: `Your Bachat code to confirm mobile ${phoneMasked} is: ${code}\nIt expires in 10 minutes.\nIf you did not request this, ignore this email.`,
+        html: `<p>Use this code to confirm the mobile <strong>${phoneMasked}</strong> on your Bachat account:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 10 minutes.</p><p style="color:#64748b;font-size:13px">If you did not request this, you can ignore this email.</p>`,
+      });
+    } catch (mailErr) {
+      return res.status(502).json({ error: mailErr.message || "Could not send email" });
     }
 
     await EmailOtp.create({
@@ -307,15 +397,11 @@ router.post("/phone-otp/request", requireAuth, async (req, res, next) => {
       expiresAt,
     });
 
-    return res.json(
-      withDevOtp(
-        {
-          message: "Verification code sent to your mobile",
-          phone_masked: maskPhoneIndia(phone10),
-        },
-        code
-      )
-    );
+    return res.json({
+      message: "Verification code sent to your email",
+      phone_masked: phoneMasked,
+      email_masked: maskEmail(email),
+    });
   } catch (err) {
     return next(err);
   }
@@ -354,7 +440,7 @@ router.post("/phone-otp/verify", requireAuth, async (req, res, next) => {
     }).sort({ createdAt: -1 });
 
     if (!otp) {
-      return res.status(400).json({ error: "No active mobile code — request a new one" });
+      return res.status(400).json({ error: "No active code — request a new one from your email" });
     }
     const ok = await verifyOtp(String(code), otp.codeHash);
     if (!ok) {

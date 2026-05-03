@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Delivery KYC — Bachat</title>
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
@@ -20,7 +20,8 @@
     <h1 class="text-2xl font-black">Verify your identity</h1>
     <p class="text-sm text-slate-600 mt-2">
       We only store the <strong>last 4 digits</strong> of your Aadhaar number — never the full 12-digit UID on this server.
-      Real UIDAI eKYC in production must go through a certified partner (Digilocker / licensed vendor).
+      Government-grade UIDAI “eKYC” (OTP/XML) is <strong>not</strong> implemented here; use DigiLocker (below) plus counsel-approved policy, or integrate a licensed ASP.
+      See <code class="text-[11px] bg-slate-100 px-1 rounded">docs/DELIVERY-KYC.md</code> in the repository for paths and compliance notes.
     </p>
     <p id="status-msg" class="mt-4 text-sm font-semibold text-[#0056d2] hidden"></p>
     <p id="digilocker-ok" class="hidden mt-3 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2"></p>

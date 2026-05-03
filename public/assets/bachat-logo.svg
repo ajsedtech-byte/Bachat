@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288 64" fill="none" role="img" aria-labelledby="lt">
+  <title id="lt">Bachat</title>
+  <defs>
+    <linearGradient id="lbg" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2b7fff"/>
+      <stop offset="1" stop-color="#0056d2"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="4" width="56" height="56" rx="14" fill="url(#lbg)"/>
+  <text x="28" y="42" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="30" font-weight="800" fill="#ffffff">�</text>
+  <text x="68" y="43" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="800" fill="#0a2540" letter-spacing="-0.02em">Bachat</text>
+</svg>

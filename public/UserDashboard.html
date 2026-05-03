@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bachat — Your dashboard</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
   <div id="deliver-to" class="hidden" aria-hidden="true"></div>
   <div class="flex min-h-screen">
     <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
-      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
+      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
       <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
         <a href="#dashboard-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#e8f1fc] text-[#0056d2] border-l-4 border-[#0056d2]"><span>📊</span> Dashboard</a>
         <a href="#requests-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📄</span> My Requests</a>
@@ -44,7 +44,8 @@
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-      <header class="sticky top-0 z-30 bg-white border-b border-[#e5e7eb] px-3 sm:px-5 py-2.5 sm:py-3 flex flex-wrap items-center gap-2 sm:gap-3">
+      <div class="sticky top-0 z-30 shrink-0 bg-white shadow-sm">
+      <header class="bg-white border-b border-[#e5e7eb] px-3 sm:px-5 py-2.5 sm:py-3 flex flex-wrap items-center gap-2 sm:gap-3">
         <button type="button" id="header-city" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e5e7eb] text-sm font-semibold text-slate-700 shrink-0">
           <svg class="w-4 h-4 text-[#0056d2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           <span id="header-city-label">Indore</span>
@@ -73,6 +74,98 @@
         </div>
       </header>
 
+      <nav id="departments-nav" class="bg-[#232f3e] text-white border-t border-white/10 text-sm" aria-label="Shop by category">
+        <div class="flex items-stretch gap-0 px-1 sm:px-2 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/25">
+          <button type="button" id="dept-all" class="shrink-0 px-3 sm:px-4 py-2.5 font-semibold text-white hover:bg-white/10 whitespace-nowrap border-r border-white/10">All</button>
+          <details name="shop-dept" class="relative group shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Electronics &amp; mobiles <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,420px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Electronics" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Electronics</button>
+              <button type="button" data-shop-cat="Computer Parts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Computer parts</button>
+              <button type="button" data-shop-cat="Computers &amp; laptops" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Computers &amp; laptops</button>
+              <button type="button" data-shop-cat="Mobile phones &amp; accessories" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Mobile phones &amp; accessories</button>
+              <button type="button" data-shop-cat="TV &amp; home entertainment" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">TV &amp; home entertainment</button>
+              <button type="button" data-shop-cat="Home Appliances" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Home appliances</button>
+              <button type="button" data-shop-cat="Cameras &amp; accessories" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Cameras &amp; accessories</button>
+              <button type="button" data-shop-cat="Smart wearables &amp; gadgets" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Smart wearables &amp; gadgets</button>
+              <button type="button" data-shop-cat="Mobile Services" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Mobile services</button>
+            </div>
+          </details>
+          <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Groceries &amp; food <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,420px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Groceries" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Groceries</button>
+              <button type="button" data-shop-cat="Food" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Food</button>
+              <button type="button" data-shop-cat="Vegetables" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Vegetables</button>
+              <button type="button" data-shop-cat="Fruits" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Fruits</button>
+              <button type="button" data-shop-cat="Atta, rice, dal &amp; oil" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Atta, rice, dal &amp; oil</button>
+              <button type="button" data-shop-cat="Dairy &amp; eggs" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Dairy &amp; eggs</button>
+              <button type="button" data-shop-cat="Snacks &amp; namkeen" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Snacks &amp; namkeen</button>
+              <button type="button" data-shop-cat="Tea, coffee &amp; beverages" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Tea, coffee &amp; beverages</button>
+              <button type="button" data-shop-cat="Meat, fish &amp; poultry" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Meat, fish &amp; poultry</button>
+              <button type="button" data-shop-cat="Bakery &amp; cakes" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Bakery &amp; cakes</button>
+              <button type="button" data-shop-cat="Spices &amp; masalas" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Spices &amp; masalas</button>
+              <button type="button" data-shop-cat="Sweets &amp; mithai" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Sweets &amp; mithai</button>
+              <button type="button" data-shop-cat="Organic &amp; health foods" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Organic &amp; health foods</button>
+            </div>
+          </details>
+          <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Fashion <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Fashion" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Fashion</button>
+              <button type="button" data-shop-cat="Men's clothing" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Men&apos;s clothing</button>
+              <button type="button" data-shop-cat="Women's clothing" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Women&apos;s clothing</button>
+              <button type="button" data-shop-cat="Ethnic wear, sarees &amp; kurtis" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Ethnic wear, sarees &amp; kurtis</button>
+              <button type="button" data-shop-cat="Footwear" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Footwear</button>
+              <button type="button" data-shop-cat="Bags &amp; luggage" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Bags &amp; luggage</button>
+              <button type="button" data-shop-cat="Jewellery &amp; watches" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Jewellery &amp; watches</button>
+              <button type="button" data-shop-cat="Kids &amp; baby clothing" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Kids &amp; baby clothing</button>
+              <button type="button" data-shop-cat="Innerwear &amp; sleepwear" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Innerwear &amp; sleepwear</button>
+              <button type="button" data-shop-cat="Eyewear" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Eyewear</button>
+            </div>
+          </details>
+          <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Home &amp; kitchen <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Home &amp; daily" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Home &amp; daily</button>
+              <button type="button" data-shop-cat="Home decor" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Home decor</button>
+              <button type="button" data-shop-cat="Kitchen &amp; dining" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Kitchen &amp; dining</button>
+              <button type="button" data-shop-cat="Kitchenware &amp; cookware" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Kitchenware &amp; cookware</button>
+              <button type="button" data-shop-cat="Cleaning &amp; household" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Cleaning &amp; household</button>
+              <button type="button" data-shop-cat="Furniture" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Furniture</button>
+              <button type="button" data-shop-cat="Hardware, paint &amp; electrical" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Hardware, paint &amp; electrical</button>
+              <button type="button" data-shop-cat="Home furnishings &amp; linen" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Home furnishings &amp; linen</button>
+              <button type="button" data-shop-cat="Tools &amp; DIY" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Tools &amp; DIY</button>
+            </div>
+          </details>
+          <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Beauty &amp; health <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,320px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Beauty &amp; personal care" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Beauty &amp; personal care</button>
+              <button type="button" data-shop-cat="Health &amp; wellness" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Health &amp; wellness</button>
+              <button type="button" data-shop-cat="Pharmacy &amp; OTC" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Pharmacy &amp; OTC</button>
+              <button type="button" data-shop-cat="Baby care" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Baby care</button>
+              <button type="button" data-shop-cat="Mom &amp; maternity" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Mom &amp; maternity</button>
+            </div>
+          </details>
+          <details name="shop-dept" class="relative shrink-0 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">More <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <div class="absolute right-0 sm:left-0 left-auto top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Books &amp; media" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Books &amp; media</button>
+              <button type="button" data-shop-cat="Sports, toys &amp; fitness" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Sports, toys &amp; fitness</button>
+              <button type="button" data-shop-cat="Automotive" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Automotive</button>
+              <button type="button" data-shop-cat="Pet supplies" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Pet supplies</button>
+              <button type="button" data-shop-cat="Stationery &amp; office supplies" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Stationery &amp; office supplies</button>
+              <button type="button" data-shop-cat="Puja, festive &amp; gifts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Puja, festive &amp; gifts</button>
+              <button type="button" data-shop-cat="Two wheelers &amp; parts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Two wheelers &amp; parts</button>
+              <button type="button" data-shop-cat="Agriculture &amp; gardening" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Agriculture &amp; gardening</button>
+              <button type="button" data-shop-cat="Services — repairs &amp; more" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Services — repairs &amp; more</button>
+              <button type="button" data-shop-cat="General items" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">General items</button>
+            </div>
+          </details>
+        </div>
+      </nav>
+
       <nav class="lg:hidden flex gap-2 overflow-x-auto px-3 py-2 bg-white border-b border-[#e5e7eb] text-xs font-bold text-slate-600 shrink-0">
         <a href="#dashboard-home" class="whitespace-nowrap px-3 py-1.5 rounded-lg bg-[#e8f1fc] text-[#0056d2]">Dashboard</a>
         <a href="#requests-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Requests</a>
@@ -84,6 +177,7 @@
         <a href="#saved-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Saved</a>
         <a href="#address-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Address</a>
       </nav>
+      </div>
 
       <main class="flex-1 p-4 lg:p-6 overflow-auto space-y-8">
         <p id="toast" class="hidden rounded-xl border border-[#e8f1fc] bg-[#e8f1fc] text-[#0044a8] text-sm font-semibold px-4 py-3"></p>
@@ -108,7 +202,9 @@
                 <span class="text-xs text-slate-600 flex items-center gap-1.5 font-medium"><span aria-hidden="true">⏱</span> Get quotes in 2–5 mins</span>
               </div>
             </div>
-            <img src="/assets/bachat-logo-light.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto object-contain object-right mx-auto lg:ml-auto shrink-0 drop-shadow-lg hidden sm:block" />
+            <div class="hidden sm:block shrink-0 rounded-2xl overflow-hidden shadow-md ring-1 ring-slate-200/90 bg-white mx-auto lg:ml-auto">
+              <img src="/assets/bachat-logo-hero.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto max-w-[220px] object-contain object-center" width="1024" height="1536" />
+            </div>
           </div>
 
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -260,18 +356,22 @@
         </section>
 
         <section id="saved-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm scroll-mt-28">
-          <h2 class="text-lg font-extrabold text-slate-900 mb-2">Saved items</h2>
-          <p class="text-sm text-slate-600 mb-4">Items you saved from the catalog. Open Shop to add more.</p>
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Saved items</h2>
+              <p class="text-sm text-slate-600 mt-1">Synced with your account (same list on any device). Save or remove from <a href="#browse-section" class="text-[#0056d2] font-bold hover:underline">Shop near you</a>.</p>
+            </div>
+          </div>
           <div id="saved-list" class="space-y-2 text-sm"></div>
         </section>
 
     <!-- Browse -->
-    <section id="browse-section">
+    <section id="browse-section" class="scroll-mt-36">
       <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
         <div>
           <p class="text-xs font-black uppercase tracking-wider text-blue-600">Near you</p>
           <h1 class="font-display text-2xl md:text-3xl font-black text-slate-900">Shop near you</h1>
-          <p class="text-slate-600 text-sm mt-1 max-w-xl">Browse items from local shopkeepers in your city — or post a custom request for quotes.</p>
+          <p class="text-slate-600 text-sm mt-1 max-w-xl">Use <span class="font-semibold text-slate-800">Shop by category</span> above (electronics, groceries, fashion…), then browse local listings — or post a custom request for quotes.</p>
         </div>
         <span class="rounded-full bg-blue-900 text-white text-xs font-black px-4 py-2 uppercase tracking-wide">Local stores</span>
       </div>
@@ -421,6 +521,7 @@
 
     let meUser = null;
     let selectedCategory = "";
+    let nearbyCategoriesCache = [];
     let lastRequests = [];
     let selectedRequestId = null;
     let ordersByRequestId = {};
@@ -498,13 +599,28 @@
           div.innerHTML =
             `<div class="min-w-0">
             <p class="font-bold">${escapeHtml(p.title)}</p>
-            <p class="text-xs text-slate-500">${escapeHtml(p.shop_name || "")}</p>
+            <p class="text-xs text-slate-500">${escapeHtml(p.shop_name || "")} · ${escapeHtml(p.city || "")}</p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <span class="font-extrabold text-[#0056d2]">${rupee(p.price)}</span>
+            <button type="button" class="text-xs font-bold text-[#0056d2] hover:underline sk-saved-browse" data-search="${encodeURIComponent(p.title || "")}">Find in shop</button>
             <button type="button" class="text-xs font-bold text-red-600 hover:underline rm-saved" data-pid="${escapeHtml(p.product_id)}">Remove</button>
           </div>`;
           box.appendChild(div);
+        });
+        box.querySelectorAll(".sk-saved-browse").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            let q = "";
+            try {
+              q = decodeURIComponent(btn.getAttribute("data-search") || "");
+            } catch (_) {}
+            const inp = document.getElementById("search-q");
+            if (inp) inp.value = q;
+            selectedCategory = "";
+            await loadNearbyCategoryPills();
+            loadCatalog();
+            document.getElementById("browse-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
         });
         box.querySelectorAll(".rm-saved").forEach((btn) => {
           btn.addEventListener("click", async () => {
@@ -589,10 +705,12 @@
       });
     }
 
-    async function loadNearbyCategoryPills() {
+    function paintCategoryPills() {
       const box = document.getElementById("category-pills");
+      if (!box) return;
       box.innerHTML = "";
-      const addPill = (label, value, active) => {
+      const addPill = (label, value) => {
+        const active = value === "" ? !selectedCategory : selectedCategory === value;
         const b = document.createElement("button");
         b.type = "button";
         b.textContent = label;
@@ -603,24 +721,44 @@
             : "bg-white text-slate-600 border-slate-200 hover:border-[#0056d2]");
         b.addEventListener("click", () => {
           selectedCategory = value;
-          [...box.querySelectorAll("button")].forEach((x, i) => {
-            const on = (value === "" && i === 0) || x === b;
-            x.className =
-              "rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide transition-colors " +
-              (on
-                ? "bg-[#0056d2] text-white border-[#0056d2]"
-                : "bg-white text-slate-600 border-slate-200 hover:border-[#0056d2]");
-          });
+          paintCategoryPills();
           loadCatalog();
         });
         box.appendChild(b);
       };
-      addPill("All", "", true);
+      addPill("All", "");
+      nearbyCategoriesCache.forEach((c) => addPill(c, c));
+    }
+
+    async function loadNearbyCategoryPills() {
+      let nearby = [];
       try {
         const data = await api("GET", "/api/products/catalog/nearby-shop-categories");
-        (data.categories || []).forEach((c) => addPill(c, c, false));
+        nearby = [...(data.categories || [])];
       } catch (e) {
         showToast(e.message || "Categories unavailable", true);
+      }
+      if (selectedCategory && !nearby.includes(selectedCategory)) {
+        nearby.push(selectedCategory);
+      }
+      nearbyCategoriesCache = nearby;
+      paintCategoryPills();
+    }
+
+    function selectShopCategory(cat) {
+      selectedCategory = cat || "";
+      if (selectedCategory && !nearbyCategoriesCache.includes(selectedCategory)) {
+        nearbyCategoriesCache = [...nearbyCategoriesCache, selectedCategory];
+      }
+      paintCategoryPills();
+      loadCatalog();
+      document.querySelectorAll('#departments-nav details[name="shop-dept"]').forEach((d) => d.removeAttribute("open"));
+      const browse = document.getElementById("browse-section");
+      if (browse) browse.scrollIntoView({ behavior: "smooth", block: "start" });
+      const rc = document.getElementById("req-category");
+      if (rc && selectedCategory) {
+        const opt = [...rc.options].find((o) => o.value === selectedCategory);
+        if (opt) rc.value = selectedCategory;
       }
     }
 
@@ -1223,6 +1361,14 @@
         e.preventDefault();
         loadCatalog();
       }
+    });
+
+    document.getElementById("dept-all")?.addEventListener("click", () => selectShopCategory(""));
+    document.getElementById("departments-nav")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".shop-cat-link[data-shop-cat]");
+      if (!btn) return;
+      e.preventDefault();
+      selectShopCategory(btn.getAttribute("data-shop-cat") || "");
     });
 
     document.getElementById("logout").addEventListener("click", () => {

@@ -6,10 +6,21 @@ const Request = require("../models/Request");
 const Quote = require("../models/Quote");
 const Order = require("../models/Order");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const { formatRequest, formatOrder } = require("../lib/format");
 
 const router = express.Router();
 
 router.use(requireAuth, requireRole("admin"));
+
+function qsInt(v, def, min, max) {
+  const n = parseInt(String(v), 10);
+  if (!Number.isFinite(n)) return def;
+  return Math.min(max, Math.max(min, n));
+}
+
+function escapeRegExp(s) {
+  return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 /** KPIs + recent requests for the ops dashboard */
 router.get("/overview", async (_req, res, next) => {
@@ -171,25 +182,246 @@ router.patch("/delivery-kyc/:userId", async (req, res, next) => {
   }
 });
 
-router.get("/orders", async (_req, res, next) => {
+router.get("/orders", async (req, res, next) => {
   try {
-    const rows = await Order.find()
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .populate("user", "name email")
-      .lean();
-    const out = rows.map((o) => ({
-      order_id: String(o._id),
+    const limit = qsInt(req.query.limit, 40, 1, 100);
+    const skip = qsInt(req.query.skip, 0, 0, 50000);
+    const [total, rows] = await Promise.all([
+      Order.countDocuments(),
+      Order.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("user", "name email")
+        .populate("seller", "shopName")
+        .lean(),
+    ]);
+    const items = rows.map((o) => ({
+      ...formatOrder(o),
       user_name: (o.user && o.user.name) || "—",
-      amount: o.totalAmount,
-      payment_status: o.paymentStatus,
-      order_status: o.orderStatus,
-      created_at: o.createdAt,
+      user_email: (o.user && o.user.email) || "",
+      shop_name: (o.seller && o.seller.shopName) || "—",
     }));
-    return res.json(out);
+    return res.json({ total, items });
   } catch (err) {
     return next(err);
   }
+});
+
+router.get("/users", async (req, res, next) => {
+  try {
+    const limit = qsInt(req.query.limit, 30, 1, 100);
+    const skip = qsInt(req.query.skip, 0, 0, 50000);
+    const q = String(req.query.q || "").trim();
+    const filter = {};
+    if (req.query.role) {
+      filter.role = String(req.query.role);
+    }
+    if (q) {
+      const rx = new RegExp(escapeRegExp(q), "i");
+      filter.$or = [{ email: rx }, { name: rx }, { phone: rx }];
+    }
+    const [total, rows] = await Promise.all([
+      User.countDocuments(filter),
+      User.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select("email name role phone city region emailVerifiedAt phoneVerifiedAt createdAt referralCode")
+        .lean(),
+    ]);
+    return res.json({
+      total,
+      items: rows.map((u) => ({
+        user_id: String(u._id),
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        phone: u.phone || "",
+        city: u.city,
+        region: u.region,
+        email_verified_at: u.emailVerifiedAt || null,
+        phone_verified_at: u.phoneVerifiedAt || null,
+        referral_code: u.referralCode || null,
+        created_at: u.createdAt,
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/sellers", async (req, res, next) => {
+  try {
+    const limit = qsInt(req.query.limit, 30, 1, 100);
+    const skip = qsInt(req.query.skip, 0, 0, 50000);
+    const [total, rows] = await Promise.all([
+      Seller.countDocuments(),
+      Seller.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("user", "email name phone")
+        .lean(),
+    ]);
+    return res.json({
+      total,
+      items: rows.map((s) => ({
+        seller_id: String(s._id),
+        user_id: String(s.user && s.user._id),
+        owner_email: (s.user && s.user.email) || "",
+        owner_name: (s.user && s.user.name) || "",
+        shop_name: s.shopName,
+        categories: s.categories || [],
+        city: s.city,
+        region: s.region,
+        is_verified: !!s.isVerified,
+        created_at: s.createdAt,
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/requests", async (req, res, next) => {
+  try {
+    const limit = qsInt(req.query.limit, 40, 1, 100);
+    const skip = qsInt(req.query.skip, 0, 0, 50000);
+    const filter = {};
+    if (req.query.status) {
+      filter.status = String(req.query.status);
+    }
+    const [total, rows] = await Promise.all([
+      Request.countDocuments(filter),
+      Request.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("user", "name email")
+        .lean(),
+    ]);
+    return res.json({
+      total,
+      items: rows.map((r) => ({
+        ...formatRequest(r),
+        buyer_name: (r.user && r.user.name) || "—",
+        buyer_email: (r.user && r.user.email) || "",
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/finance-summary", async (_req, res, next) => {
+  try {
+    const [paidAgg, byPayment, byOrder] = await Promise.all([
+      Order.aggregate([
+        { $match: { paymentStatus: "paid" } },
+        { $group: { _id: null, sum: { $sum: "$totalAmount" }, n: { $sum: 1 } } },
+      ]),
+      Order.aggregate([{ $group: { _id: "$paymentStatus", n: { $sum: 1 } } }]),
+      Order.aggregate([{ $group: { _id: "$orderStatus", n: { $sum: 1 } } }]),
+    ]);
+    const paid = paidAgg[0] || { sum: 0, n: 0 };
+    return res.json({
+      paid_revenue_inr: paid.sum || 0,
+      paid_orders: paid.n || 0,
+      payment_breakdown: Object.fromEntries(byPayment.map((x) => [x._id, x.n])),
+      order_status_breakdown: Object.fromEntries(byOrder.map((x) => [x._id, x.n])),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/marketing-summary", async (_req, res, next) => {
+  try {
+    const [withRef, buyers] = await Promise.all([
+      User.countDocuments({ referredBy: { $ne: null } }),
+      User.countDocuments({ role: "buyer" }),
+    ]);
+    return res.json({
+      buyers_total: buyers,
+      signups_with_referrer: withRef,
+      note: "Referral attribution when referredBy is set at signup.",
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/notifications-summary", async (_req, res, next) => {
+  try {
+    const [kycPending, openReq] = await Promise.all([
+      User.countDocuments({ role: "delivery", "deliveryKyc.status": "submitted" }),
+      Request.countDocuments({ status: "open" }),
+    ]);
+    return res.json({
+      delivery_kyc_pending_review: kycPending,
+      open_buyer_requests: openReq,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/** Orders that may need ops attention (not a full dispute model). */
+router.get("/dispute-signals", async (_req, res, next) => {
+  try {
+    const rows = await Order.find({
+      $or: [{ paymentStatus: { $in: ["failed", "refunded"] } }, { orderStatus: "cancelled" }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(40)
+      .populate("user", "name email")
+      .lean();
+    return res.json({
+      items: rows.map((o) => ({
+        ...formatOrder(o),
+        user_name: (o.user && o.user.name) || "—",
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/sales-pipeline", async (_req, res, next) => {
+  try {
+    const [sellers, verified, buyers] = await Promise.all([
+      Seller.countDocuments(),
+      Seller.countDocuments({ isVerified: true }),
+      User.countDocuments({ role: "buyer" }),
+    ]);
+    return res.json({
+      sellers_total: sellers,
+      sellers_verified: verified,
+      sellers_pending_verify: sellers - verified,
+      buyers_total: buyers,
+      note: "Lightweight pipeline counts; extend with visits/leads when you add that data.",
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/platform-modules", (_req, res) => {
+  return res.json({
+    modules: [
+      { id: "core_marketplace", label: "Buyer · seller · quotes · orders", status: "live" },
+      { id: "catalog_cart", label: "Catalog, cart, saved", status: "live" },
+      { id: "payments", label: "Razorpay checkout + webhook", status: "partial", detail: "API present; polish buyer/seller payment UX." },
+      { id: "delivery", label: "Delivery pool, KYC, DigiLocker", status: "partial", detail: "See /api/delivery, admin-delivery, delivery-kyc.html" },
+      { id: "disputes", label: "Disputes / chargebacks", status: "planned", detail: "Use dispute-signals until a Dispute model exists." },
+      { id: "city_ops", label: "City coverage & heatmaps", status: "planned" },
+      { id: "field_sales", label: "Field sales CRM", status: "planned" },
+      { id: "notifications", label: "Notification centre & rules", status: "partial", detail: "Admin summary endpoint only." },
+      { id: "analytics", label: "Warehouse analytics", status: "planned" },
+      { id: "team_2fa", label: "Team portal + 2FA", status: "planned" },
+    ],
+  });
 });
 
 module.exports = router;

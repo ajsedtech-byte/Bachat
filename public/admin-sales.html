@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Field Sales — Bachat</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <title>Field sales — Bachat Ops</title>
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -15,18 +14,42 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <div class="flex flex-wrap justify-between gap-4"><h1 class="text-2xl font-extrabold">Bachat Sales — Field</h1><button type="button" class="px-4 py-2 rounded-xl bg-[#0056d2] text-white text-sm font-bold">+ Add shopkeeper</button></div>
-        <p class="text-sm text-slate-500 mt-1">Leads, visits, KYC — demo pipeline.</p>
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-6">
-          <div class="rounded-xl bg-white border p-3 shadow-sm text-center"><p class="text-xs text-slate-500">Leads today</p><p class="text-xl font-extrabold">28</p></div>
-          <div class="rounded-xl bg-white border p-3 shadow-sm text-center"><p class="text-xs text-slate-500">Visits</p><p class="text-xl font-extrabold">12</p></div>
-          <div class="rounded-xl bg-white border p-3 shadow-sm text-center"><p class="text-xs text-slate-500">KYC pending</p><p class="text-xl font-extrabold text-amber-600">17</p></div>
-          <div class="rounded-xl bg-white border p-3 shadow-sm text-center"><p class="text-xs text-slate-500">Onboarded</p><p class="text-xl font-extrabold text-green-700">9</p></div>
-          <div class="rounded-xl bg-white border p-3 shadow-sm text-center col-span-2 lg:col-span-1"><p class="text-xs text-slate-500">Conversion</p><p class="text-xl font-extrabold">24.6%</p></div>
-        </div>
+        <h1 class="text-2xl font-extrabold">Field sales pipeline</h1>
+        <p class="text-slate-500 text-sm mt-1">Lightweight counts — <code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/sales-pipeline</code>. Extend when you store visits and leads.</p>
+        <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <div id="box" class="hidden mt-6 rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm max-w-lg space-y-2 text-sm"></div>
       </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
+  <script src="/js/bachat-admin-runtime.js"></script>
+  <script>
+    (async function () {
+      if (!(await BachatAdminRuntime.guardAdminPage())) return;
+      var err = document.getElementById("err");
+      var res = await BachatAdminRuntime.adminFetch("/api/admin/sales-pipeline", { headers: BachatAdminRuntime.authHeaders() });
+      var d = await res.json().catch(function () {
+        return {};
+      });
+      if (!res.ok) {
+        err.textContent = d.error || "Failed";
+        err.classList.remove("hidden");
+        return;
+      }
+      document.getElementById("box").innerHTML =
+        "<p><strong>Sellers:</strong> " +
+        d.sellers_total +
+        " (verified " +
+        d.sellers_verified +
+        ", pending " +
+        d.sellers_pending_verify +
+        ")</p><p><strong>Buyers:</strong> " +
+        d.buyers_total +
+        "</p><p class=\"text-xs text-slate-500 pt-2\">" +
+        (d.note || "") +
+        "</p>";
+      document.getElementById("box").classList.remove("hidden");
+    })();
+  </script>
 </body>
 </html>

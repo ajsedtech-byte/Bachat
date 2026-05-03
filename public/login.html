@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — Bachat</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
     <div class="relative hidden lg:flex flex-col min-h-screen p-8 xl:p-10 bg-white border-r border-[#e5e7eb]">
       <div class="flex-1 min-h-0 flex flex-col">
         <div class="flex justify-between items-start gap-4">
-          <a href="/" aria-label="Home"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto max-w-[170px] object-contain object-left" /></a>
+          <a href="/" aria-label="Home"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[170px] object-contain object-left" /></a>
           <a href="/signup.html" class="text-sm font-semibold text-[#0056d2] flex items-center gap-1 shrink-0">Need help? <span class="w-6 h-6 rounded-full border border-[#0056d2] flex items-center justify-center text-xs">?</span></a>
         </div>
         <p class="inline-flex mt-5 rounded-full bg-[#e8f1fc] text-[#0056d2] text-xs font-bold px-4 py-1.5">Post your requirement. Get the best quotes.</p>
@@ -29,7 +29,7 @@
           <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">❤</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Track orders and savings</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Everything stays on Bachat.</p></div></li>
         </ul>
         <div class="mt-6 flex justify-center rounded-2xl bg-[#f8f9fa] border border-[#e5e7eb] p-5">
-          <img src="/assets/bachat-logo-light.png" alt="" class="max-h-32 w-auto object-contain opacity-90" />
+          <img src="/assets/bachat-logo-hero.png" alt="" class="max-h-32 w-auto max-w-full object-contain rounded-lg" width="1024" height="1536" />
         </div>
       </div>
       <div class="flex items-center gap-3 pt-5 border-t border-[#e5e7eb] mt-6 shrink-0">
@@ -46,7 +46,7 @@
     <!-- Right: card -->
     <div class="flex flex-col justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10">
       <div class="lg:hidden mb-4 flex justify-between items-center">
-        <a href="/"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto" /></a>
+        <a href="/"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto" /></a>
         <a href="/signup.html" class="text-sm font-semibold text-[#0056d2]">Sign up</a>
       </div>
       <div class="max-w-md w-full mx-auto bg-white rounded-2xl border border-[#e5e7eb] shadow-xl p-5 sm:p-6 flex flex-col">
@@ -71,7 +71,7 @@
           <div>
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-bold text-slate-500 uppercase">Password</label>
-              <span class="text-xs font-semibold text-[#0056d2] cursor-pointer opacity-70">Forgot password?</span>
+              <a href="/forgot-password.html" class="text-xs font-semibold text-[#0056d2] hover:underline">Forgot password?</a>
             </div>
             <input name="password" type="password" autocomplete="current-password" required class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="Enter your password" />
           </div>
@@ -92,8 +92,8 @@
 
         <div class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fa] p-3 sm:p-4">
           <p class="text-sm font-bold text-slate-900">Login with OTP</p>
-          <p class="text-xs text-slate-500 mt-0.5">Uses the <strong>same email</strong> as password login. Code is sent to your verified inbox.</p>
-          <div id="otp-dev-hint" class="hidden mt-2 text-xs font-mono text-[#0056d2] break-all"></div>
+          <p class="text-xs text-slate-500 mt-0.5">Uses the <strong>same email</strong> as password login. We email a 6-digit code to your verified inbox.</p>
+          <p id="otp-dev-hint" class="hidden mt-2 text-xs font-mono text-[#0056d2] break-all"></p>
           <div class="mt-2.5">
             <button type="button" id="otp-send" class="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-[#0056d2] text-[#0056d2] text-xs font-bold hover:bg-[#e8f1fc]">Send code to email</button>
           </div>
@@ -247,7 +247,7 @@
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Could not send code");
         if (data.dev_otp && dev) {
-          dev.textContent = "Dev code: " + data.dev_otp;
+          dev.textContent = "Dev only (set EXPOSE_DEV_OTP=1 on server): " + data.dev_otp;
           dev.classList.remove("hidden");
         }
         document.getElementById("otp-verify-row").classList.remove("hidden");

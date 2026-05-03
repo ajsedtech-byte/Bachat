@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Sellers — Bachat Ops</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,9 +13,128 @@
     <aside data-bachat-sidebar class="w-64 shrink-0 bg-white border-r border-[#e5e7eb] hidden lg:flex flex-col"></aside>
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
-      <main class="flex-1 p-4 lg:p-6"><h1 class="text-2xl font-extrabold">Sellers</h1><p class="text-slate-500 text-sm mt-1">KYC, ratings, GMV — demo.</p><div class="mt-6 rounded-xl bg-white border p-8 text-center text-slate-500">Seller registry placeholder.</div></main>
+      <main class="flex-1 p-4 lg:p-6 overflow-auto">
+        <h1 class="text-2xl font-extrabold">Sellers</h1>
+        <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/sellers</code> · verify via <code class="text-xs bg-slate-100 px-1 rounded">PATCH /api/admin/sellers/:id/verify</code></p>
+        <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <p id="ok" class="hidden mt-4 text-sm text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3"></p>
+        <div class="mt-6 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+          <table class="w-full text-sm text-left min-w-[900px]">
+            <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+              <tr>
+                <th class="px-4 py-3">Shop</th>
+                <th class="px-4 py-3">Owner</th>
+                <th class="px-4 py-3">Area</th>
+                <th class="px-4 py-3">Verified</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex gap-3">
+          <button type="button" id="prev" class="rounded-xl border border-[#e5e7eb] px-4 py-2 font-bold text-sm disabled:opacity-40">Previous</button>
+          <button type="button" id="next" class="rounded-xl border border-[#e5e7eb] px-4 py-2 font-bold text-sm disabled:opacity-40">Next</button>
+        </div>
+      </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
+  <script src="/js/bachat-admin-runtime.js"></script>
+  <script>
+    (function () {
+      var skip = 0;
+      var limit = 25;
+      function esc(s) {
+        var t = document.createElement("div");
+        t.textContent = s == null ? "" : String(s);
+        return t.innerHTML;
+      }
+      async function setVerify(sellerId, isVerified) {
+        var err = document.getElementById("err");
+        var ok = document.getElementById("ok");
+        err.classList.add("hidden");
+        ok.classList.add("hidden");
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/sellers/" + sellerId + "/verify", {
+          method: "PATCH",
+          headers: BachatAdminRuntime.authHeaders(),
+          body: JSON.stringify({ is_verified: isVerified }),
+        });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) {
+          err.textContent = data.error || "Update failed";
+          err.classList.remove("hidden");
+          return;
+        }
+        ok.textContent = "Updated seller " + sellerId;
+        ok.classList.remove("hidden");
+        load();
+      }
+      async function load() {
+        var err = document.getElementById("err");
+        err.classList.add("hidden");
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/sellers?limit=" + limit + "&skip=" + skip, {
+          headers: BachatAdminRuntime.authHeaders(),
+        });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) {
+          err.textContent = data.error || "Failed";
+          err.classList.remove("hidden");
+          return;
+        }
+        var tb = document.getElementById("tbody");
+        tb.innerHTML = "";
+        (data.items || []).forEach(function (s) {
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-[#f8f9fb]";
+          var cats = (s.categories || []).join(", ");
+          tr.innerHTML =
+            "<td class=\"px-4 py-3\"><p class=\"font-bold\">" +
+            esc(s.shop_name) +
+            "</p><p class=\"text-xs text-slate-500 mt-0.5\">" +
+            esc(cats) +
+            "</p></td><td class=\"px-4 py-3 text-xs\">" +
+            esc(s.owner_email) +
+            "</td><td class=\"px-4 py-3\">" +
+            esc(s.city) +
+            ", " +
+            esc(s.region) +
+            "</td><td class=\"px-4 py-3\">" +
+            (s.is_verified ? "<span class=\"text-green-700 font-bold\">Yes</span>" : "<span class=\"text-amber-700 font-bold\">No</span>") +
+            "</td><td class=\"px-4 py-3 text-right whitespace-nowrap\">" +
+            "<button type=\"button\" data-v=\"1\" data-sid=\"" +
+            esc(s.seller_id) +
+            "\" class=\"mr-2 text-xs font-bold text-green-700 hover:underline\">Verify</button>" +
+            "<button type=\"button\" data-v=\"0\" data-sid=\"" +
+            esc(s.seller_id) +
+            "\" class=\"text-xs font-bold text-slate-600 hover:underline\">Unverify</button></td>";
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll("button[data-sid]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            setVerify(b.getAttribute("data-sid"), b.getAttribute("data-v") === "1");
+          });
+        });
+        document.getElementById("prev").disabled = skip < 1;
+        document.getElementById("next").disabled = !data.items || data.items.length < limit;
+      }
+      document.getElementById("prev").addEventListener("click", function () {
+        skip = Math.max(0, skip - limit);
+        load();
+      });
+      document.getElementById("next").addEventListener("click", function () {
+        skip += limit;
+        load();
+      });
+      (async function () {
+        if (!(await BachatAdminRuntime.guardAdminPage())) return;
+        load();
+      })();
+    })();
+  </script>
 </body>
 </html>

@@ -24,7 +24,7 @@ router.get("/", requireAuth, requireRole("buyer"), async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
     const items = (user.savedProducts || [])
-      .filter(Boolean)
+      .filter((p) => p && p._id && p.isActive !== false && p.title)
       .map((p) => {
         const seller = p.seller;
         return {

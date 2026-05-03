@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — Bachat Ops</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,21 +16,81 @@
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
         <h1 class="text-2xl font-extrabold text-slate-900">Operations Dashboard</h1>
-        <p class="text-sm text-slate-500 mt-1">Overview — connect data sources for live numbers.</p>
-        <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
-          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Open requests</p><p class="text-3xl font-extrabold mt-2 text-[#0056d2]">128</p><p class="text-xs text-green-600 mt-1">+12% vs yesterday</p></div>
-          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Quotes today</p><p class="text-3xl font-extrabold mt-2">342</p><p class="text-xs text-green-600 mt-1">+8%</p></div>
-          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Orders today</p><p class="text-3xl font-extrabold mt-2">89</p><p class="text-xs text-green-600 mt-1">+15%</p></div>
-          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">SLA at risk</p><p class="text-3xl font-extrabold mt-2 text-amber-600">8</p><p class="text-xs text-slate-500 mt-1">Needs attention</p></div>
+        <p class="text-sm text-slate-500 mt-1">Live counts from <code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/overview</code></p>
+        <p id="dash-err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <div id="dash-grid" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Users</p><p id="k-users" class="text-3xl font-extrabold mt-2 text-[#0056d2]">—</p></div>
+          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Sellers</p><p id="k-sellers" class="text-3xl font-extrabold mt-2">—</p></div>
+          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Open requests</p><p id="k-open-req" class="text-3xl font-extrabold mt-2 text-amber-600">—</p></div>
+          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Orders</p><p id="k-orders" class="text-3xl font-extrabold mt-2">—</p></div>
+        </div>
+        <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
+          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Quotes (total)</p><p id="k-quotes" class="text-2xl font-extrabold mt-2">—</p></div>
+          <div class="rounded-xl bg-white border border-[#e5e7eb] p-5 shadow-sm"><p class="text-xs font-semibold text-slate-500">Paid revenue (INR)</p><p id="k-rev" class="text-2xl font-extrabold mt-2 text-green-700">—</p></div>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          <a href="/admin-analytics.html" class="rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2]/40 transition-colors"><p class="font-bold text-slate-900">Analytics</p><p class="text-sm text-slate-500 mt-2">GMV, funnel, cohorts</p></a>
+          <a href="/admin-analytics.html" class="rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2]/40 transition-colors"><p class="font-bold text-slate-900">Analytics</p><p class="text-sm text-slate-500 mt-2">DB-backed headline stats + roadmap modules</p></a>
           <a href="/admin-support.html" class="rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2]/40 transition-colors"><p class="font-bold text-slate-900">Support</p><p class="text-sm text-slate-500 mt-2">Tickets &amp; SLAs</p></a>
-          <a href="/admin-finance.html" class="rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2]/40 transition-colors"><p class="font-bold text-slate-900">Finance</p><p class="text-sm text-slate-500 mt-2">Payouts &amp; settlements</p></a>
+          <a href="/admin-finance.html" class="rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2]/40 transition-colors"><p class="font-bold text-slate-900">Finance</p><p class="text-sm text-slate-500 mt-2">Payment aggregates</p></a>
+        </div>
+        <div class="mt-8 rounded-xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-3 border-b border-[#e5e7eb] font-bold text-slate-900">Recent requests</div>
+          <div id="recent-wrap" class="divide-y divide-[#e5e7eb] text-sm max-h-80 overflow-y-auto"></div>
         </div>
       </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
+  <script src="/js/bachat-admin-runtime.js"></script>
+  <script>
+    (function () {
+      function esc(s) {
+        var t = document.createElement("div");
+        t.textContent = s == null ? "" : String(s);
+        return t.innerHTML;
+      }
+      function inr(n) {
+        return "₹" + (Number(n) || 0).toLocaleString("en-IN");
+      }
+      (async function () {
+        if (!(await BachatAdminRuntime.guardAdminPage())) return;
+        var err = document.getElementById("dash-err");
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/overview", { headers: BachatAdminRuntime.authHeaders() });
+        var d = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) {
+          err.textContent = d.error || "Could not load overview";
+          err.classList.remove("hidden");
+          return;
+        }
+        document.getElementById("k-users").textContent = String(d.users_total != null ? d.users_total : "0");
+        document.getElementById("k-sellers").textContent = String(d.sellers_total != null ? d.sellers_total : "0");
+        document.getElementById("k-open-req").textContent = String(d.requests_open != null ? d.requests_open : "0");
+        document.getElementById("k-orders").textContent = String(d.orders_total != null ? d.orders_total : "0");
+        document.getElementById("k-quotes").textContent = String(d.quotes_total != null ? d.quotes_total : "0");
+        document.getElementById("k-rev").textContent = inr(d.revenue_paid_inr);
+        var rw = document.getElementById("recent-wrap");
+        rw.innerHTML = "";
+        (d.recent_requests || []).forEach(function (r) {
+          var div = document.createElement("div");
+          div.className = "px-5 py-3 flex flex-wrap justify-between gap-2";
+          div.innerHTML =
+            "<div><p class=\"font-semibold text-slate-900\">" +
+            esc(r.product_name) +
+            "</p><p class=\"text-xs text-slate-500\">" +
+            esc(r.buyer_name) +
+            " · " +
+            esc(r.city) +
+            "</p></div><div class=\"text-right text-xs text-slate-500\"><span class=\"font-bold text-slate-700\">" +
+            esc(r.status) +
+            "</span><br/>quotes " +
+            (r.quote_count != null ? r.quote_count : 0) +
+            "</div>";
+          rw.appendChild(div);
+        });
+      })();
+    })();
+  </script>
 </body>
 </html>

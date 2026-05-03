@@ -34,7 +34,7 @@
     var navHtml =
       '<div class="flex flex-col h-full">' +
       '<a href="/" class="flex flex-col items-start gap-1 px-4 py-5 border-b border-slate-100">' +
-      '<img src="/assets/bachat-logo-light.png" alt="" class="h-10 w-auto max-w-[140px] object-contain object-left" />' +
+      '<img src="/assets/bachat-logo.svg" alt="" class="h-10 w-auto max-w-[140px] object-contain object-left" />' +
       "</a>" +
       '<nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold text-slate-600">';
     items.forEach(function (it) {

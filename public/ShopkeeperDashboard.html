@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bachat — Shopkeeper</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
 <body class="bachat-ui bg-[#f8f9fb] text-slate-900 min-h-screen">
   <div class="flex min-h-screen">
     <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
-      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
+      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
       <nav id="sk-sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
         <button type="button" data-sk-nav="home" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left bg-[#e8f1fc] text-[#0056d2] border-l-4 border-[#0056d2]"><span>📊</span> Dashboard</button>
         <button type="button" data-sk-nav="shop" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>🏪</span> My listings</button>
@@ -102,7 +102,9 @@
                 <span class="text-xs text-slate-600 flex items-center gap-1.5 font-medium"><span aria-hidden="true">⏱</span> Same-day quotes win more orders</span>
               </div>
             </div>
-            <img src="/assets/bachat-logo-light.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto object-contain object-right mx-auto lg:ml-auto shrink-0 drop-shadow-lg hidden sm:block" />
+            <div class="hidden sm:block shrink-0 rounded-2xl overflow-hidden shadow-md ring-1 ring-slate-200/90 bg-white mx-auto lg:ml-auto">
+              <img src="/assets/bachat-logo-hero.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto max-w-[220px] object-contain object-center" width="1024" height="1536" />
+            </div>
           </div>
 
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -628,10 +630,56 @@
         }
         openRequestsCache.forEach((r) => {
           const d = document.createElement("div");
-          d.className = "rounded-lg border border-[#e5e7eb] bg-white p-4";
-          d.innerHTML = `<p class="font-bold">${escapeHtml(r.product_name)}</p>
+          d.className = "rounded-xl border border-[#e5e7eb] bg-white p-4 space-y-3";
+          d.innerHTML = `<div>
+            <p class="font-bold text-slate-900">${escapeHtml(r.product_name)}</p>
             <p class="text-xs text-slate-500 mt-1">${escapeHtml(r.category)} · ${escapeHtml(r.city || "")}, ${escapeHtml(r.region || "")}</p>
-            <p class="text-sm text-slate-600 mt-2">${escapeHtml(r.specifications || "")}</p>`;
+            <p class="text-sm text-slate-600 mt-2">${escapeHtml(r.specifications || "—")}</p>
+            ${r.budget != null && r.budget > 0 ? `<p class="text-xs font-bold text-[#0056d2] mt-1">Buyer budget: ${rupee(r.budget)}</p>` : ""}
+          </div>`;
+          const form = document.createElement("form");
+          form.className = "grid sm:grid-cols-2 lg:grid-cols-4 gap-2 items-end border-t border-[#e5e7eb] pt-3";
+          form.innerHTML = `
+            <div class="sm:col-span-1">
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Your price ₹</label>
+              <input name="price" type="number" min="1" step="1" required class="w-full rounded-lg border border-[#e5e7eb] px-2 py-2 text-sm" placeholder="499" />
+            </div>
+            <div class="sm:col-span-1">
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Delivery time</label>
+              <input name="delivery_time" type="text" class="w-full rounded-lg border border-[#e5e7eb] px-2 py-2 text-sm" placeholder="Same day" maxlength="120" />
+            </div>
+            <div class="sm:col-span-2 lg:col-span-2">
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Notes (optional)</label>
+              <input name="notes" type="text" class="w-full rounded-lg border border-[#e5e7eb] px-2 py-2 text-sm" placeholder="Warranty, pickup…" maxlength="2000" />
+            </div>
+            <div class="sm:col-span-2 lg:col-span-4">
+              <button type="submit" class="w-full sm:w-auto rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold py-2.5 px-6 text-sm">Send quote on this request</button>
+            </div>`;
+          form.addEventListener("submit", async (ev) => {
+            ev.preventDefault();
+            const fd = new FormData(form);
+            const price = Number(fd.get("price"));
+            if (!Number.isFinite(price) || price < 1) {
+              showToast("Enter a valid price (₹1 or more).", true);
+              return;
+            }
+            try {
+              await api("POST", "/api/quotes", {
+                request_id: r.request_id,
+                price,
+                delivery_time: String(fd.get("delivery_time") || "").trim(),
+                notes: String(fd.get("notes") || "").trim(),
+              });
+              showToast("Quote sent");
+              form.reset();
+              await loadOpenRequests();
+              await loadQuotes();
+              await refreshDashboardData();
+            } catch (err) {
+              showToast(err.message || "Could not send quote", true);
+            }
+          });
+          d.appendChild(form);
           box.appendChild(d);
         });
       } catch (e) {

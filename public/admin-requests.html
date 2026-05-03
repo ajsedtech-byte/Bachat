@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Requests — Bachat Ops</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -15,11 +14,112 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <h1 class="text-2xl font-extrabold">All requests</h1><p class="text-sm text-slate-500 mt-1">Ops view — connect to your API for live data.</p>
-        <div class="mt-6 rounded-xl bg-white border shadow-sm p-8 text-center text-slate-500 text-sm">Table placeholder — use admin API or Metabase.</div>
+        <h1 class="text-2xl font-extrabold">Buyer requests</h1>
+        <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/requests</code></p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <select id="status" class="rounded-xl border border-[#e5e7eb] px-3 py-2 text-sm">
+            <option value="">All statuses</option>
+            <option value="open">open</option>
+            <option value="quoted">quoted</option>
+            <option value="closed">closed</option>
+            <option value="expired">expired</option>
+          </select>
+          <button type="button" id="go" class="rounded-xl bg-[#0056d2] text-white font-bold px-4 py-2 text-sm">Apply</button>
+        </div>
+        <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <div class="mt-6 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+          <table class="w-full text-sm text-left min-w-[960px]">
+            <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+              <tr>
+                <th class="px-4 py-3">Request</th>
+                <th class="px-4 py-3">Buyer</th>
+                <th class="px-4 py-3">Area</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">When</th>
+              </tr>
+            </thead>
+            <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex gap-3">
+          <button type="button" id="prev" class="rounded-xl border border-[#e5e7eb] px-4 py-2 font-bold text-sm disabled:opacity-40">Previous</button>
+          <button type="button" id="next" class="rounded-xl border border-[#e5e7eb] px-4 py-2 font-bold text-sm disabled:opacity-40">Next</button>
+        </div>
       </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
+  <script src="/js/bachat-admin-runtime.js"></script>
+  <script>
+    (function () {
+      var skip = 0;
+      var limit = 30;
+      function esc(s) {
+        var t = document.createElement("div");
+        t.textContent = s == null ? "" : String(s);
+        return t.innerHTML;
+      }
+      async function load() {
+        var err = document.getElementById("err");
+        err.classList.add("hidden");
+        var st = document.getElementById("status").value;
+        var qs = "?limit=" + limit + "&skip=" + skip + (st ? "&status=" + encodeURIComponent(st) : "");
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/requests" + qs, { headers: BachatAdminRuntime.authHeaders() });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) {
+          err.textContent = data.error || "Failed";
+          err.classList.remove("hidden");
+          return;
+        }
+        var tb = document.getElementById("tbody");
+        tb.innerHTML = "";
+        (data.items || []).forEach(function (r) {
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-[#f8f9fb]";
+          tr.innerHTML =
+            "<td class=\"px-4 py-3\"><p class=\"font-bold\">" +
+            esc(r.product_name) +
+            "</p><p class=\"text-xs text-slate-500 font-mono mt-0.5\">" +
+            esc(r.request_id) +
+            "</p><p class=\"text-xs text-slate-500 mt-1\">" +
+            esc(r.category) +
+            "</p></td><td class=\"px-4 py-3 text-xs\">" +
+            esc(r.buyer_name) +
+            "<br/>" +
+            esc(r.buyer_email) +
+            "</td><td class=\"px-4 py-3\">" +
+            esc(r.city) +
+            ", " +
+            esc(r.region) +
+            "</td><td class=\"px-4 py-3 font-semibold\">" +
+            esc(r.status) +
+            "</td><td class=\"px-4 py-3 text-xs text-slate-500\">" +
+            esc((r.created_at || "").toString().slice(0, 16)) +
+            "</td>";
+          tb.appendChild(tr);
+        });
+        document.getElementById("prev").disabled = skip < 1;
+        document.getElementById("next").disabled = !data.items || data.items.length < limit;
+      }
+      document.getElementById("go").addEventListener("click", function () {
+        skip = 0;
+        load();
+      });
+      document.getElementById("prev").addEventListener("click", function () {
+        skip = Math.max(0, skip - limit);
+        load();
+      });
+      document.getElementById("next").addEventListener("click", function () {
+        skip += limit;
+        load();
+      });
+      (async function () {
+        if (!(await BachatAdminRuntime.guardAdminPage())) return;
+        load();
+      })();
+    })();
+  </script>
 </body>
 </html>

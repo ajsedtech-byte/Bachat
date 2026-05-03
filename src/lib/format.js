@@ -72,9 +72,10 @@ function formatSeller(s) {
 
 function formatRequest(r) {
   const o = r.toObject ? r.toObject() : r;
+  const uid = o.user && typeof o.user === "object" && o.user._id != null ? o.user._id : o.user;
   return {
     request_id: idStr(o._id),
-    user_id: idStr(o.user),
+    user_id: idStr(uid),
     category: o.category,
     product_name: o.productName,
     specifications: o.specifications ?? null,
@@ -187,13 +188,15 @@ function formatOrder(doc) {
   } else if (orderType === "quote") {
     summary = "Custom request";
   }
+  const uid = x.user && typeof x.user === "object" && x.user._id != null ? x.user._id : x.user;
+  const sid = x.seller && typeof x.seller === "object" && x.seller._id != null ? x.seller._id : x.seller;
   return {
     order_id: idStr(x._id),
     order_type: orderType,
     request_id: x.request ? idStr(x.request) : null,
     quote_id: x.quote ? idStr(x.quote) : null,
-    user_id: idStr(x.user),
-    seller_id: idStr(x.seller),
+    user_id: idStr(uid),
+    seller_id: idStr(sid),
     final_price: x.finalPrice,
     platform_fee: x.platformFee,
     total_amount: x.totalAmount,
@@ -206,6 +209,19 @@ function formatOrder(doc) {
   };
 }
 
+/** Mask account email for UI, e.g. `ab***@gmail.com`. */
+function maskEmail(email) {
+  const e = String(email || "").trim().toLowerCase();
+  const at = e.indexOf("@");
+  if (at < 1) return "";
+  const local = e.slice(0, at);
+  const domain = e.slice(at + 1);
+  if (!domain) return "";
+  const head = local.slice(0, Math.min(2, local.length));
+  const mid = local.length > 2 ? "***" : "";
+  return `${head}${mid}@${domain}`;
+}
+
 module.exports = {
   formatUser,
   formatSeller,
@@ -215,4 +231,5 @@ module.exports = {
   formatDeliveryPublic,
   formatDeliveryPrivate,
   idStr,
+  maskEmail,
 };

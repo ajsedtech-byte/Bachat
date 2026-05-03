@@ -6,31 +6,24 @@ Design mocks show a **full platform** (buyer, shopkeeper, sales, city ops, deliv
 
 | Capability | Notes |
 |------------|--------|
-| Auth | Email + password, JWT, roles `buyer`, `seller`, `admin`; email OTP verify (SMTP optional, dev logs OTP). |
+| Auth | Email + password, JWT, roles `buyer`, `seller`, `admin`, `delivery`; email verify; **forgot/reset password** (`POST /api/auth/forgot-password`, `reset-password`); **email OTP login**; phone on profile confirmed via **email code** (not SMS by default). |
 | Buyer | Local **catalog** (city/region), **cart**, **post request**, **list requests**, **view quotes per request**, **place order from quote** (`POST /api/orders` with `quote_id`). |
-| Shopkeeper | **Products CRUD**, **open requests** in area/categories, **quotes**, **orders** tab; listings UI. |
+| Shopkeeper | **Products CRUD**, **open requests** in area/categories, **inline quote form** on live requests, **quotes** list, **orders** tab. |
 | Static marketing | `public/index.html` — landing; **blue UI** aligned to mocks. |
 | Deploy | Express + `api/index.js` for Vercel; env via `.env.example` / `npm run setup`. |
 
 ## Phase 2 (near-term, still “marketplace core”)
 
 - **Payments UX** after quote-order: Razorpay checkout + webhook already in API — wire buttons + status in dashboards.
-- **Buyer “saved” / profile** — mocks show sidebar items; needs endpoints or local-only MVP.
-- **Shopkeeper quote composer** inline from Live tab (form → `POST /api/quotes`).
-- **Forgot password** + optional **OTP login** (new endpoints + UI).
+- **Buyer saved list** — `GET/POST/DELETE /api/saved` + dashboard UI (prune inactive listings, “Find in shop” search).
+- **Shopkeeper inline quotes** — done on live requests tab (`POST /api/quotes`).
+- **Forgot / reset password** + **OTP login** — API + `forgot-password.html` / `reset-password.html`; OTP codes only returned in JSON if `EXPOSE_DEV_OTP=1`.
 
-## Phase 3 (ops / enterprise from mocks — not in DB yet)
+## Phase 3 (ops / enterprise — see `docs/PHASE3-STATUS.md`)
 
-Each needs **data model + APIs + pages** (do not pretend exists today):
+Partial implementations and placeholders include admin list pages (`/api/admin/users`, `sellers`, `requests`, `orders`, summaries), **dispute signals** (no full dispute model), delivery KYC (see `docs/DELIVERY-KYC.md`), and **`GET /api/admin/platform-modules`** for a live vs planned checklist in the admin UI.
 
-- Delivery / partners / RTO / maps
-- Disputes & refunds workflow
-- City manager / localities / coverage heatmaps
-- Field sales pipeline & incentives
-- Quality & compliance (KYC states, document review)
-- Notifications centre + alert rules
-- Analytics warehouse (GMV, funnel, cohorts)
-- Team portal (Sales/Ops roles, 2FA)
+Still largely **planned** as full products: city heatmaps, CRM visits/leads, analytics warehouse export, native team SSO/2FA.
 
 ## UI north star
 

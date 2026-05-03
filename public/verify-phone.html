@@ -3,27 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify mobile — Bachat</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <title>Confirm mobile — Bachat</title>
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="bachat-ui min-h-screen bg-[#f8f9fa] text-slate-900 flex flex-col items-center justify-center px-4 py-10">
   <div class="max-w-md w-full bg-white rounded-2xl border border-[#e5e7eb] shadow-xl p-6 sm:p-8">
-    <a href="/" class="inline-block mb-4"><img src="/assets/bachat-logo-light.png" alt="Bachat" class="h-9 w-auto" /></a>
-    <h1 class="text-xl font-extrabold text-slate-900">Verify your mobile</h1>
-    <p class="text-sm text-slate-600 mt-2" id="intro">We send a 6-digit code by SMS to the number on your account.</p>
-    <p id="masked" class="text-sm font-mono font-semibold text-[#0056d2] mt-2 hidden"></p>
+    <a href="/" class="inline-block mb-4"><img src="/assets/bachat-logo.svg" alt="Bachat" class="h-9 w-auto" /></a>
+    <h1 class="text-xl font-extrabold text-slate-900">Confirm your mobile number</h1>
+    <p class="text-sm text-slate-600 mt-2" id="intro">We email a 6-digit code to your account address to confirm the mobile on your profile (no SMS).</p>
+    <p id="masked-phone" class="text-sm font-mono font-semibold text-[#0056d2] mt-2 hidden"></p>
+    <p id="masked-email" class="text-sm font-mono font-semibold text-[#0056d2] mt-1 hidden"></p>
     <p id="err" class="hidden mt-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
-    <div id="dev-otp" class="hidden mt-2 text-xs font-mono text-[#0056d2] break-all"></div>
 
     <div id="panel" class="mt-5 space-y-3">
-      <button type="button" id="send" class="w-full rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-extrabold py-3 text-sm disabled:opacity-50">Send SMS code</button>
+      <button type="button" id="send" class="w-full rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-extrabold py-3 text-sm disabled:opacity-50">Send code by email</button>
       <label class="block text-xs font-bold text-slate-500 uppercase">6-digit code</label>
       <input id="code" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full text-center text-2xl font-mono tracking-widest rounded-xl border border-[#e5e7eb] px-4 py-3 outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="000000" />
       <button type="button" id="verify" class="w-full rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-extrabold py-3 text-sm disabled:opacity-50">Verify &amp; continue</button>
-      <button type="button" id="resend" class="w-full text-sm font-semibold text-slate-600 py-2">Resend SMS</button>
+      <button type="button" id="resend" class="w-full text-sm font-semibold text-slate-600 py-2">Resend email</button>
     </div>
 
     <p class="text-xs text-slate-500 mt-6 text-center">
@@ -79,7 +79,7 @@
       location.href = n;
     }
 
-    /** @returns {Promise<boolean>} true if SMS step is needed */
+    /** @returns {Promise<boolean>} true if phone confirmation step is needed */
     async function boot() {
       var token = localStorage.getItem("ajs_token");
       if (!token) {
@@ -108,10 +108,7 @@
 
     async function sendCode() {
       var err = document.getElementById("err");
-      var dev = document.getElementById("dev-otp");
       err.classList.add("hidden");
-      dev.classList.add("hidden");
-      dev.textContent = "";
       var btn = document.getElementById("send");
       btn.disabled = true;
       try {
@@ -123,14 +120,14 @@
         var data = await res.json().catch(function () {
           return {};
         });
-        if (!res.ok) throw new Error(data.error || "Could not send SMS");
+        if (!res.ok) throw new Error(data.error || "Could not send email");
         if (data.phone_masked) {
-          document.getElementById("masked").textContent = data.phone_masked;
-          document.getElementById("masked").classList.remove("hidden");
+          document.getElementById("masked-phone").textContent = "Mobile on file: " + data.phone_masked;
+          document.getElementById("masked-phone").classList.remove("hidden");
         }
-        if (data.dev_otp) {
-          dev.textContent = "Dev / no SMS: " + data.dev_otp;
-          dev.classList.remove("hidden");
+        if (data.email_masked) {
+          document.getElementById("masked-email").textContent = "Code sent to: " + data.email_masked;
+          document.getElementById("masked-email").classList.remove("hidden");
         }
       } catch (x) {
         err.textContent = x.message || "Error";

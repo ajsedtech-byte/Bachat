@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alerts — Bachat</title>
-  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <title>Alerts — Bachat Ops</title>
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -15,17 +14,37 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <h1 class="text-2xl font-extrabold">Notifications &amp; Alerts</h1><p class="text-sm text-slate-500 mt-1">System, seller, order &amp; payment alerts.</p>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-6">
-          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">Unread</p><p class="text-2xl font-extrabold">28</p></div>
-          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">High priority</p><p class="text-2xl font-extrabold text-red-600">12</p></div>
-          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">Resolved</p><p class="text-2xl font-extrabold text-green-700">145</p></div>
-          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">System</p><p class="text-2xl font-extrabold">32</p></div>
-        </div>
-        <div class="rounded-xl bg-white border shadow-sm overflow-hidden"><table class="w-full text-sm"><thead class="bg-[#f8f9fb] text-left text-xs uppercase font-bold text-slate-500"><tr><th class="px-5 py-3">Alert</th><th class="px-5 py-3">Message</th><th class="px-5 py-3">Priority</th></tr></thead><tbody class="divide-y"><tr><td class="px-5 py-3">Seller</td><td class="px-5 py-3">KYC document expiring</td><td class="px-5 py-3"><span class="text-red-600 font-bold text-xs">High</span></td></tr></tbody></table></div>
+        <h1 class="text-2xl font-extrabold">Ops alerts</h1>
+        <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/notifications-summary</code> — expand with rules engine later.</p>
+        <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <div id="box" class="hidden mt-6 grid sm:grid-cols-2 gap-4 max-w-2xl"></div>
+        <p class="mt-6 text-sm"><a href="/admin-delivery.html" class="text-[#0056d2] font-bold hover:underline">Open delivery KYC queue →</a></p>
       </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
+  <script src="/js/bachat-admin-runtime.js"></script>
+  <script>
+    (async function () {
+      if (!(await BachatAdminRuntime.guardAdminPage())) return;
+      var err = document.getElementById("err");
+      var res = await BachatAdminRuntime.adminFetch("/api/admin/notifications-summary", { headers: BachatAdminRuntime.authHeaders() });
+      var d = await res.json().catch(function () {
+        return {};
+      });
+      if (!res.ok) {
+        err.textContent = d.error || "Failed";
+        err.classList.remove("hidden");
+        return;
+      }
+      document.getElementById("box").innerHTML =
+        '<div class="rounded-xl bg-amber-50 border border-amber-200 p-5"><p class="text-xs font-bold text-amber-900 uppercase">Delivery KYC pending</p><p class="text-3xl font-extrabold mt-2 text-amber-950">' +
+        d.delivery_kyc_pending_review +
+        '</p></div><div class="rounded-xl bg-[#e8f1fc] border border-[#0056d2]/20 p-5"><p class="text-xs font-bold text-[#0056d2] uppercase">Open buyer requests</p><p class="text-3xl font-extrabold mt-2 text-slate-900">' +
+        d.open_buyer_requests +
+        "</p></div>";
+      document.getElementById("box").classList.remove("hidden");
+    })();
+  </script>
 </body>
 </html>
