@@ -872,6 +872,24 @@
       });
     }
 
+    function deliveryStatusHelp(status) {
+      const s = String(status || "none");
+      const labels = {
+        none: "Not requested",
+        pending_details: "Add drop-off address",
+        expired_unclaimed: "Unclaimed — request again",
+        delivery_requested: "Offered to delivery pool",
+        delivery_assigned: "Driver assigned",
+        driver_en_route_pickup: "Driver en route to pickup",
+        picked_up: "Picked up from seller",
+        en_route_dropoff: "En route to you",
+        delivered: "Delivered",
+        cancelled: "Cancelled",
+        failed: "Failed",
+      };
+      return labels[s] || s;
+    }
+
     async function loadOrders() {
       const box = document.getElementById("orders-list");
       const dash = document.getElementById("orders-list-dash");
@@ -887,17 +905,90 @@
         }
         rows.forEach((o) => {
           if (o.request_id) ordersByRequestId[o.request_id] = o;
-          const row = document.createElement("div");
-          row.className =
-            "rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 flex flex-wrap justify-between gap-2";
+          const wrap = document.createElement("div");
+          wrap.className = "rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3";
+          const top = document.createElement("div");
+          top.className = "flex flex-wrap justify-between gap-2";
           const pay = escapeHtml(o.payment_status || "");
           const st = escapeHtml(o.order_status || "");
-          row.innerHTML = `<div>
+          top.innerHTML = `<div>
             <p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
             <p class="text-xs text-slate-500">${rupee(o.final_price)} total · ${pay} · ${st}</p>
           </div>
           <span class="text-xs font-semibold text-slate-400">${escapeHtml((o.created_at || "").slice(0, 10))}</span>`;
-          box.appendChild(row);
+          wrap.appendChild(top);
+
+          const del = o.delivery || {};
+          const dStatus = String(del.status || "none");
+          const payOk = String(o.payment_status || "").toLowerCase() === "paid";
+          const canRequest = payOk && ["none", "pending_details", "expired_unclaimed"].includes(dStatus);
+
+          const delRow = document.createElement("div");
+          delRow.className = "border-t border-slate-200 pt-3 text-xs space-y-2";
+
+          if (!payOk) {
+            delRow.innerHTML =
+              '<p class="text-slate-600"><span class="font-semibold text-slate-800">Delivery:</span> Pay for this order to request doorstep delivery.</p>';
+          } else if (canRequest) {
+            delRow.innerHTML = `
+              <p class="font-semibold text-slate-800">Request delivery (pool)</p>
+              <p class="text-slate-600">Pickup defaults to the seller&apos;s store. Drivers in the area can claim the job.</p>
+              <label class="block"><span class="text-slate-500">Drop-off address</span>
+                <textarea class="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm" rows="2" data-del-addr placeholder="House, street, area, pincode"></textarea>
+              </label>
+              <label class="block text-slate-500">Landmark
+                <input type="text" class="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1" data-del-land placeholder="Optional" />
+              </label>
+              <button type="button" data-del-req class="rounded-lg bg-[#0056d2] text-white font-bold px-3 py-1.5 text-xs">Request delivery</button>`;
+          } else {
+            const help = escapeHtml(deliveryStatusHelp(dStatus));
+            const trackable = !["none", "delivered", "cancelled", "failed"].includes(dStatus);
+            delRow.innerHTML =
+              `<p class="text-slate-700"><span class="font-semibold text-slate-900">Delivery:</span> ${help}</p>` +
+              (trackable
+                ? '<button type="button" class="del-track-btn rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-2 py-1">Refresh delivery status</button>'
+                : "");
+          }
+          wrap.appendChild(delRow);
+
+          if (canRequest) {
+            const btn = delRow.querySelector("[data-del-req]");
+            if (btn) {
+              btn.addEventListener("click", async () => {
+                const addr = String(delRow.querySelector("[data-del-addr]")?.value || "").trim();
+                const land = String(delRow.querySelector("[data-del-land]")?.value || "").trim();
+                if (!addr) {
+                  showToast("Enter a drop-off address.", true);
+                  return;
+                }
+                try {
+                  await api("POST", "/api/orders/" + encodeURIComponent(o.order_id) + "/delivery-request", {
+                    dropoff: { address: addr, landmark: land || undefined },
+                  });
+                  showToast("Delivery requested — partners can claim this job.");
+                  await loadOrders();
+                } catch (e) {
+                  showToast(e.message || "Request failed", true);
+                }
+              });
+            }
+          } else if (payOk) {
+            const trb = delRow.querySelector(".del-track-btn");
+            if (trb) {
+              trb.addEventListener("click", async () => {
+                try {
+                  const t = await api("GET", "/api/delivery/track/" + encodeURIComponent(o.order_id));
+                  const ds = (t.delivery && t.delivery.status) || "";
+                  showToast("Delivery: " + deliveryStatusHelp(ds));
+                  await loadOrders();
+                } catch (e) {
+                  showToast(e.message || "Track failed", true);
+                }
+              });
+            }
+          }
+
+          box.appendChild(wrap);
         });
         if (dash) {
           rows.slice(0, 5).forEach((o) => {
@@ -909,7 +1000,12 @@
                 ? "bg-green-100 text-green-800"
                 : "bg-[#e8f1fc] text-[#0056d2]";
             const dateLine = escapeHtml((o.created_at || "").slice(0, 10));
-            row.innerHTML = `<div class="w-11 h-11 rounded-lg bg-[#f8f9fb] border border-[#e5e7eb] shrink-0 flex items-center justify-center text-base" aria-hidden="true">📦</div><div class="min-w-0 flex-1"><p class="font-bold text-slate-900 truncate">${escapeHtml(o.summary || "Order")}</p><p class="text-xs text-slate-500">${dateLine}</p></div><div class="text-right shrink-0 flex items-center gap-2"><div><p class="font-extrabold text-slate-900">${rupee(o.final_price)}</p><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${badge}">${escapeHtml(o.order_status || "")}</span></div><span class="text-slate-300" aria-hidden="true">›</span></div>`;
+            const dSt = String((o.delivery && o.delivery.status) || "none");
+            const delLine =
+              String(o.payment_status || "").toLowerCase() === "paid"
+                ? `<p class="text-[10px] text-slate-500 truncate mt-0.5">Delivery: ${escapeHtml(deliveryStatusHelp(dSt))}</p>`
+                : "";
+            row.innerHTML = `<div class="w-11 h-11 rounded-lg bg-[#f8f9fb] border border-[#e5e7eb] shrink-0 flex items-center justify-center text-base" aria-hidden="true">📦</div><div class="min-w-0 flex-1"><p class="font-bold text-slate-900 truncate">${escapeHtml(o.summary || "Order")}</p><p class="text-xs text-slate-500">${dateLine}</p>${delLine}</div><div class="text-right shrink-0 flex items-center gap-2"><div><p class="font-extrabold text-slate-900">${rupee(o.final_price)}</p><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${badge}">${escapeHtml(o.order_status || "")}</span></div><span class="text-slate-300" aria-hidden="true">›</span></div>`;
             dash.appendChild(row);
           });
         }

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery dashboard — Bachat</title>
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="border-b border-slate-200 bg-white sticky top-0 z-10">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Delivery partner</p>
+        <p id="hello" class="text-lg font-black text-slate-900">…</p>
+        <p id="area" class="text-xs text-slate-600"></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" id="refresh" class="text-sm font-semibold text-[#0056d2] px-3 py-1.5 rounded-lg border border-[#0056d2]/30">Refresh</button>
+        <button type="button" id="logout" class="text-sm text-slate-600 px-3 py-1.5">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <div id="banner-kyc" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+    <p id="flash" class="hidden rounded-xl border px-3 py-2 text-sm"></p>
+
+    <section id="sec-assign" class="hidden">
+      <h2 class="text-sm font-black uppercase tracking-wide text-slate-500 mb-3">My active deliveries</h2>
+      <div id="assignments" class="space-y-4"></div>
+    </section>
+
+    <section id="sec-pool" class="hidden">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-black uppercase tracking-wide text-slate-500">Open jobs (your area)</h2>
+        <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+          <input type="checkbox" id="strict" class="rounded border-slate-300" />
+          Strict city/region match
+        </label>
+      </div>
+      <p class="text-xs text-slate-500 mb-2">Pool listings show masked phone numbers until you claim the job.</p>
+      <div id="jobs" class="space-y-3"></div>
+      <p id="jobs-empty" class="hidden text-sm text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-xl">No open jobs right now. Pull to refresh in a bit.</p>
+    </section>
+  </div>
+
+  <script>
+    async function apiFetch(path, options) {
+      const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+      const proto = location.protocol;
+      const host = location.hostname;
+      const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      const ports = new Set([location.port, "3000", "3001"].filter(Boolean));
+      const attempts = [];
+      if (proto !== "file:") attempts.push(clean);
+      if (stored) attempts.push(stored + clean);
+      for (const p of ports) attempts.push(proto + "//" + host + ":" + p + clean);
+      const seen = new Set();
+      let lastErr;
+      for (const url of attempts) {
+        if (seen.has(url)) continue;
+        seen.add(url);
+        try {
+          const res = await fetch(url, options);
+          if (res.ok && url.startsWith("http")) localStorage.setItem("bachat_api_base", new URL(url).origin);
+          return res;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr;
+    }
+
+    function authHeaders() {
+      const t = localStorage.getItem("ajs_token");
+      return { "Content-Type": "application/json", Authorization: "Bearer " + (t || "") };
+    }
+
+    function showFlash(msg, kind) {
+      const el = document.getElementById("flash");
+      el.textContent = msg;
+      el.className =
+        "rounded-xl border px-3 py-2 text-sm " +
+        (kind === "err"
+          ? "text-red-800 bg-red-50 border-red-200"
+          : "text-emerald-800 bg-emerald-50 border-emerald-200");
+      el.classList.remove("hidden");
+      clearTimeout(showFlash._t);
+      showFlash._t = setTimeout(() => el.classList.add("hidden"), 6000);
+    }
+
+    let me = null;
+    let onboarding = null;
+    let kycVerified = false;
+    let locWatch = null;
+    let locInterval = null;
+
+    function stopLocationShare() {
+      if (locWatch != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(locWatch);
+        locWatch = null;
+      }
+      if (locInterval) {
+        clearInterval(locInterval);
+        locInterval = null;
+      }
+    }
+
+    async function postLocation(orderId, lat, lng) {
+      await apiFetch("/api/delivery/jobs/" + orderId + "/location", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ lat, lng }),
+      });
+    }
+
+    function startLocationShare(orderId) {
+      stopLocationShare();
+      if (!navigator.geolocation) {
+        showFlash("Geolocation not supported in this browser.", "err");
+        return;
+      }
+      let lastPost = 0;
+      const tick = (lat, lng) => {
+        const now = Date.now();
+        if (now - lastPost < 20000) return;
+        lastPost = now;
+        postLocation(orderId, lat, lng).catch(() => {});
+      };
+      locWatch = navigator.geolocation.watchPosition(
+        (pos) => tick(pos.coords.latitude, pos.coords.longitude),
+        () => showFlash("Location permission denied or unavailable.", "err"),
+        { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 }
+      );
+    }
+
+    function fmtTime(iso) {
+      if (!iso) return "—";
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
+      } catch {
+        return iso;
+      }
+    }
+
+    function humanStatus(s) {
+      const m = {
+        delivery_requested: "In pool",
+        delivery_assigned: "Assigned to you",
+        driver_en_route_pickup: "En route to pickup",
+        picked_up: "Picked up",
+        en_route_dropoff: "En route to customer",
+        delivered: "Delivered",
+        cancelled: "Cancelled",
+        failed: "Failed",
+      };
+      return m[s] || s || "—";
+    }
+
+    function renderBanner() {
+      const box = document.getElementById("banner-kyc");
+      const st = onboarding && onboarding.kyc_status;
+      if (!st || st === "verified") {
+        box.classList.add("hidden");
+        return;
+      }
+      box.classList.remove("hidden");
+      if (st === "submitted") {
+        box.className =
+          "rounded-2xl border px-4 py-3 text-sm border-amber-200 bg-amber-50 text-amber-950";
+        box.innerHTML =
+          "<strong>Verification pending.</strong> An admin will review your details. You can browse this page but <strong>job claiming stays locked</strong> until you are approved.";
+        return;
+      }
+      if (st === "rejected") {
+        const r = onboarding.rejected_reason ? ` Reason: ${escapeHtml(onboarding.rejected_reason)}` : "";
+        box.className =
+          "rounded-2xl border px-4 py-3 text-sm border-red-200 bg-red-50 text-red-950";
+        box.innerHTML =
+          "<strong>Verification needs a new submission.</strong>" +
+          r +
+          ' <a class="font-bold underline text-[#0056d2]" href="/delivery-kyc.html">Update KYC</a>';
+        return;
+      }
+      box.className =
+        "rounded-2xl border px-4 py-3 text-sm border-slate-200 bg-white text-slate-800";
+      box.innerHTML =
+        '<strong>Finish signup.</strong> Submit the last 4 digits of your Aadhaar (and consent) on the <a class="font-bold underline text-[#0056d2]" href="/delivery-kyc.html">KYC page</a>.';
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function patchStatus(orderId, status) {
+      const res = await apiFetch("/api/delivery/jobs/" + orderId + "/status", {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Update failed");
+      return data;
+    }
+
+    async function claimJob(orderId) {
+      const res = await apiFetch("/api/delivery/jobs/" + orderId + "/claim", {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Claim failed");
+      return data;
+    }
+
+    function renderAssignments(items) {
+      const root = document.getElementById("assignments");
+      root.innerHTML = "";
+      if (!items.length) {
+        document.getElementById("sec-assign").classList.add("hidden");
+        return;
+      }
+      document.getElementById("sec-assign").classList.remove("hidden");
+      for (const row of items) {
+        const o = row.order;
+        const d = row.delivery;
+        const oid = o.order_id;
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3";
+        const pickup = d.pickup || {};
+        const drop = d.dropoff || {};
+        const ready = Boolean(d.ready_for_pickup_at);
+        let actions = "";
+        if (d.status === "delivery_assigned") {
+          actions +=
+            '<button type="button" data-act="enroute-pu" data-oid="' +
+            oid +
+            '" class="rounded-xl bg-[#0056d2] text-white text-sm font-bold px-4 py-2">En route to pickup</button>';
+        }
+        if (d.status === "driver_en_route_pickup") {
+          const dis = ready ? "" : " disabled opacity-50 ";
+          actions +=
+            '<button type="button" data-act="picked" data-oid="' +
+            oid +
+            '" class="rounded-xl bg-slate-900 text-white text-sm font-bold px-4 py-2' +
+            dis +
+            '">Mark picked up</button>';
+          if (!ready) {
+            actions +=
+              '<p class="text-xs text-amber-700">Shopkeeper must mark <strong>ready for pickup</strong> first.</p>';
+          }
+        }
+        if (d.status === "picked_up") {
+          actions +=
+            '<button type="button" data-act="enroute-do" data-oid="' +
+            oid +
+            '" class="rounded-xl bg-[#0056d2] text-white text-sm font-bold px-4 py-2">En route to dropoff</button>';
+        }
+        if (d.status === "en_route_dropoff") {
+          actions +=
+            '<button type="button" data-act="done" data-oid="' +
+            oid +
+            '" class="rounded-xl bg-emerald-600 text-white text-sm font-bold px-4 py-2">Mark delivered</button>';
+        }
+        card.innerHTML =
+          "<div class=\"flex justify-between gap-2\">" +
+          "<div><p class=\"text-xs font-bold text-slate-500 uppercase\">Order</p>" +
+          "<p class=\"font-mono text-sm\">" +
+          escapeHtml(oid.slice(-8)) +
+          "</p>" +
+          "<p class=\"text-sm text-slate-700 mt-1\">" +
+          escapeHtml(o.summary || "") +
+          "</p></div>" +
+          "<div class=\"text-right\"><p class=\"text-xs font-bold text-slate-500\">Status</p>" +
+          "<p class=\"text-sm font-semibold text-[#0056d2]\">" +
+          escapeHtml(humanStatus(d.status)) +
+          "</p>" +
+          "<p class=\"text-xs text-slate-500 mt-1\">Fee ₹" +
+          Number(d.fee || 0) +
+          "</p></div></div>" +
+          "<div class=\"grid sm:grid-cols-2 gap-3 text-xs border-t border-slate-100 pt-3\">" +
+          "<div><p class=\"font-bold text-slate-500 uppercase mb-1\">Pickup</p>" +
+          "<p class=\"text-slate-800\">" +
+          escapeHtml(pickup.address || "") +
+          "</p>" +
+          (pickup.contact_phone
+            ? "<p class=\"mt-1 font-mono\">" + escapeHtml(pickup.contact_phone) + "</p>"
+            : pickup.contact_phone_masked
+              ? "<p class=\"mt-1 font-mono\">" + escapeHtml(pickup.contact_phone_masked) + "</p>"
+              : "") +
+          "</div>" +
+          "<div><p class=\"font-bold text-slate-500 uppercase mb-1\">Dropoff</p>" +
+          "<p class=\"text-slate-800\">" +
+          escapeHtml(drop.address || "") +
+          "</p>" +
+          (drop.contact_phone
+            ? "<p class=\"mt-1 font-mono\">" + escapeHtml(drop.contact_phone) + "</p>"
+            : drop.contact_phone_masked
+              ? "<p class=\"mt-1 font-mono\">" + escapeHtml(drop.contact_phone_masked) + "</p>"
+              : "") +
+          "</div></div>" +
+          "<p class=\"text-xs text-slate-500\">Ready for pickup: " +
+          (ready ? fmtTime(d.ready_for_pickup_at) : "Not yet") +
+          "</p>" +
+          "<div class=\"flex flex-wrap gap-2 items-center\">" +
+          actions +
+          '<label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer ml-auto">' +
+          '<input type="checkbox" data-locshare data-oid="' +
+          oid +
+          '" class="rounded border-slate-300" /> Share GPS</label></div>';
+        root.appendChild(card);
+      }
+
+      root.querySelectorAll("button[data-act]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const oid = btn.getAttribute("data-oid");
+          const act = btn.getAttribute("data-act");
+          btn.disabled = true;
+          try {
+            if (act === "enroute-pu") await patchStatus(oid, "driver_en_route_pickup");
+            if (act === "picked") await patchStatus(oid, "picked_up");
+            if (act === "enroute-do") await patchStatus(oid, "en_route_dropoff");
+            if (act === "done") await patchStatus(oid, "delivered");
+            showFlash("Status updated.", "ok");
+            await loadAll();
+          } catch (e) {
+            showFlash(e.message || "Error", "err");
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+
+      root.querySelectorAll("input[data-locshare]").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const oid = cb.getAttribute("data-oid");
+          if (cb.checked) startLocationShare(oid);
+          else stopLocationShare();
+        });
+      });
+    }
+
+    function renderJobs(items) {
+      const root = document.getElementById("jobs");
+      const empty = document.getElementById("jobs-empty");
+      root.innerHTML = "";
+      if (!items.length) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+      for (const row of items) {
+        const o = row.order;
+        const d = row.delivery;
+        const oid = o.order_id;
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+        const drop = d.dropoff || {};
+        const poolPhone = drop.contact_phone_masked || "";
+        card.innerHTML =
+          "<div>" +
+          "<p class=\"text-xs font-bold text-slate-500 uppercase\">Open job</p>" +
+          "<p class=\"font-semibold text-slate-900\">" +
+          escapeHtml(o.summary || "Order") +
+          "</p>" +
+          "<p class=\"text-xs text-slate-600 mt-1\">" +
+          escapeHtml(d.dropoff_city || "") +
+          (d.dropoff_region ? ", " + escapeHtml(d.dropoff_region) : "") +
+          "</p>" +
+          "<p class=\"text-xs text-slate-500 mt-1\">Claim by " +
+          fmtTime(d.claim_expires_at) +
+          "</p>" +
+          (poolPhone
+            ? "<p class=\"text-xs mt-1\">Contact (masked): " + escapeHtml(poolPhone) + "</p>"
+            : "") +
+          "</div>" +
+          "<div class=\"flex flex-col items-stretch sm:items-end gap-1\">" +
+          "<p class=\"text-sm font-bold text-slate-900\">₹" +
+          Number(d.fee || 0) +
+          " fee</p>" +
+          '<button type="button" data-claim="' +
+          oid +
+          "\" class=\"rounded-xl bg-[#0056d2] text-white text-sm font-bold px-4 py-2\">Claim</button></div>";
+        root.appendChild(card);
+      }
+      root.querySelectorAll("button[data-claim]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const oid = btn.getAttribute("data-claim");
+          btn.disabled = true;
+          try {
+            await claimJob(oid);
+            showFlash("Job claimed. Head to pickup.", "ok");
+            await loadAll();
+          } catch (e) {
+            showFlash(e.message || "Claim failed", "err");
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    async function loadAll() {
+      const strict = document.getElementById("strict").checked ? "1" : "0";
+      if (!kycVerified) {
+        document.getElementById("sec-pool").classList.add("hidden");
+        document.getElementById("sec-assign").classList.add("hidden");
+        return;
+      }
+      const [ja, jb] = await Promise.all([
+        apiFetch("/api/delivery/assignments", { headers: authHeaders() }),
+        apiFetch("/api/delivery/jobs?strict=" + strict, { headers: authHeaders() }),
+      ]);
+      const aj = await ja.json().catch(() => ({}));
+      const bj = await jb.json().catch(() => ({}));
+      if (!ja.ok) {
+        if (ja.status === 403 && aj.kyc_status) {
+          kycVerified = false;
+          onboarding = onboarding || {};
+          onboarding.kyc_status = aj.kyc_status;
+          renderBanner();
+          document.getElementById("sec-pool").classList.add("hidden");
+          return;
+        }
+        throw new Error(aj.error || "Could not load assignments");
+      }
+      if (!jb.ok) throw new Error(bj.error || "Could not load jobs");
+      renderAssignments(aj.items || []);
+      renderJobs(bj.items || []);
+      document.getElementById("sec-pool").classList.remove("hidden");
+    }
+
+    async function boot() {
+      const token = localStorage.getItem("ajs_token");
+      if (!token) {
+        location.href = "/delivery-login.html";
+        return;
+      }
+      const mr = await apiFetch("/api/auth/me", { headers: authHeaders() });
+      const md = await mr.json().catch(() => ({}));
+      if (!mr.ok) {
+        location.href = "/delivery-login.html";
+        return;
+      }
+      me = md.user;
+      if (!me || me.role !== "delivery") {
+        location.href = "/login.html";
+        return;
+      }
+      document.getElementById("hello").textContent = me.name || me.email || "Partner";
+      const city = me.city || "";
+      const region = me.region || "";
+      document.getElementById("area").textContent =
+        city || region ? "Working area: " + [city, region].filter(Boolean).join(", ") : "Add city/region on your profile for better job matching.";
+
+      const ob = await apiFetch("/api/delivery/onboarding-status", { headers: authHeaders() });
+      onboarding = await ob.json().catch(() => ({}));
+      if (!ob.ok) {
+        showFlash(onboarding.error || "Could not load status", "err");
+        return;
+      }
+      kycVerified = onboarding.kyc_status === "verified";
+      renderBanner();
+      if (kycVerified) {
+        try {
+          await loadAll();
+        } catch (e) {
+          showFlash(e.message || "Error", "err");
+        }
+      } else {
+        document.getElementById("sec-pool").classList.add("hidden");
+        document.getElementById("sec-assign").classList.add("hidden");
+      }
+    }
+
+    document.getElementById("logout").addEventListener("click", () => {
+      stopLocationShare();
+      localStorage.removeItem("ajs_token");
+      localStorage.removeItem("ajs_user");
+      location.href = "/delivery-login.html";
+    });
+
+    document.getElementById("refresh").addEventListener("click", () => boot());
+
+    document.getElementById("strict").addEventListener("change", () => {
+      if (kycVerified) loadAll().catch((e) => showFlash(e.message, "err"));
+    });
+
+    boot();
+  </script>
+</body>
+</html>

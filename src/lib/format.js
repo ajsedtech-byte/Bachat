@@ -5,12 +5,13 @@ function idStr(x) {
 }
 
 const { sellerCategoryList } = require("./categories");
+const { maskPhone } = require("./delivery");
 
 function formatUser(u) {
   if (!u) return null;
   const o = u.toObject ? u.toObject() : u;
   const saved = o.savedProducts || [];
-  return {
+  const base = {
     user_id: idStr(o._id),
     email: o.email,
     name: o.name,
@@ -19,10 +20,36 @@ function formatUser(u) {
     region: o.region,
     role: o.role,
     email_verified_at: o.emailVerifiedAt || null,
+    phone_verified_at: o.phoneVerifiedAt || null,
     created_at: o.createdAt,
     referral_code: o.referralCode || null,
     saved_product_count: Array.isArray(saved) ? saved.length : 0,
   };
+  if (o.role === "delivery") {
+    const k = o.deliveryKyc || {};
+    base.delivery_kyc = {
+      status: k.status || "not_started",
+      submitted_at: k.submittedAt || null,
+      verified_at: k.verifiedAt || null,
+    };
+    if (k.status === "rejected" && k.rejectedReason) {
+      base.delivery_kyc.rejection_reason = k.rejectedReason;
+    }
+    if (k.digilockerLinkedAt) {
+      base.delivery_kyc.digilocker_linked_at = k.digilockerLinkedAt;
+    }
+    if (k.digilockerIssuedSyncedAt) {
+      base.delivery_kyc.digilocker_issued_synced_at = k.digilockerIssuedSyncedAt;
+    }
+    const issued = k.digilockerIssuedItems;
+    if (Array.isArray(issued) && issued.length) {
+      base.delivery_kyc.digilocker_issued_docs = issued.map((row) => {
+        const { uri: _omit, ...rest } = row || {};
+        return rest;
+      });
+    }
+  }
+  return base;
 }
 
 function formatSeller(s) {
@@ -80,6 +107,71 @@ function formatQuote(q, sellerDoc = null) {
   return base;
 }
 
+function formatDeliveryPublic(d) {
+  if (!d || !d.status || d.status === "none") {
+    return {
+      status: d?.status || "none",
+      fee: d?.fee ?? 0,
+      driver_id: d?.driver ? idStr(d.driver) : null,
+      claim_expires_at: d?.claimExpiresAt || null,
+      ready_for_pickup_at: d?.readyForPickupAt || null,
+      picked_up_at: d?.pickedUpAt || null,
+      delivered_at: d?.deliveredAt || null,
+      driver_last_lat: d?.driverLastLat ?? null,
+      driver_last_lng: d?.driverLastLng ?? null,
+      driver_location_at: d?.driverLocationAt || null,
+      dropoff_city: d?.dropoffCity != null ? d.dropoffCity : "",
+      dropoff_region: d?.dropoffRegion != null ? d.dropoffRegion : "",
+    };
+  }
+  const dropPhone = d.dropoff?.contactPhone ? maskPhone(d.dropoff.contactPhone) : "";
+  const pickupPhone = d.pickup?.contactPhone ? maskPhone(d.pickup.contactPhone) : "";
+  return {
+    status: d.status,
+    fee: d.fee ?? 0,
+    driver_id: d.driver ? idStr(d.driver) : null,
+    claim_expires_at: d.claimExpiresAt || null,
+    ready_for_pickup_at: d.readyForPickupAt || null,
+    picked_up_at: d.pickedUpAt || null,
+    delivered_at: d.deliveredAt || null,
+    driver_last_lat: d.driverLastLat ?? null,
+    driver_last_lng: d.driverLastLng ?? null,
+    driver_location_at: d.driverLocationAt || null,
+    pickup: {
+      address: d.pickup?.address || "",
+      landmark: d.pickup?.landmark || "",
+      lat: d.pickup?.lat ?? null,
+      lng: d.pickup?.lng ?? null,
+      contact_phone_masked: pickupPhone,
+    },
+    dropoff: {
+      address: d.dropoff?.address || "",
+      landmark: d.dropoff?.landmark || "",
+      lat: d.dropoff?.lat ?? null,
+      lng: d.dropoff?.lng ?? null,
+      contact_phone_masked: dropPhone,
+    },
+    dropoff_city: d.dropoffCity || "",
+    dropoff_region: d.dropoffRegion || "",
+  };
+}
+
+function formatDeliveryPrivate(d) {
+  const pub = formatDeliveryPublic(d);
+  if (!d || d.status === "none") return pub;
+  return {
+    ...pub,
+    pickup: {
+      ...pub.pickup,
+      contact_phone: d.pickup?.contactPhone || "",
+    },
+    dropoff: {
+      ...pub.dropoff,
+      contact_phone: d.dropoff?.contactPhone || "",
+    },
+  };
+}
+
 function formatOrder(doc) {
   const x = doc.toObject ? doc.toObject() : doc;
   const orderType = x.orderType || "quote";
@@ -110,7 +202,17 @@ function formatOrder(doc) {
     line_items: lineItems,
     summary,
     created_at: x.createdAt,
+    delivery: formatDeliveryPublic(x.delivery),
   };
 }
 
-module.exports = { formatUser, formatSeller, formatRequest, formatQuote, formatOrder, idStr };
+module.exports = {
+  formatUser,
+  formatSeller,
+  formatRequest,
+  formatQuote,
+  formatOrder,
+  formatDeliveryPublic,
+  formatDeliveryPrivate,
+  idStr,
+};

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Delivery — Bachat</title>
+  <title>Delivery — Bachat Ops</title>
   <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,17 +14,291 @@
     <aside data-bachat-sidebar class="w-64 shrink-0 bg-white border-r border-[#e5e7eb] hidden lg:flex flex-col"></aside>
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
-      <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <h1 class="text-2xl font-extrabold">Delivery / Fulfillment</h1><p class="text-sm text-slate-500 mt-1">Shipments, partners, on-time rate — demo.</p>
-        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">To deliver</p><p class="text-2xl font-extrabold">298</p></div>
-          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">In transit</p><p class="text-2xl font-extrabold text-amber-600">126</p></div>
-          <div class="rounded-xl bg-white border p-4 shadow-sm"><p class="text-xs text-slate-500">On-time rate</p><p class="text-2xl font-extrabold text-green-700">92.6%</p></div>
+      <main class="flex-1 p-4 lg:px-6 lg:py-6 overflow-auto">
+        <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-2xl font-extrabold text-slate-900">Delivery partners</h1>
+            <p class="text-sm text-slate-500 mt-1">Review pending KYC submissions (production when <code class="text-xs bg-slate-100 px-1 rounded">DELIVERY_KYC_AUTO_VERIFY</code> is off).</p>
+          </div>
+          <button type="button" id="btn-refresh" class="rounded-xl border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-bold text-[#0056d2] hover:bg-[#e8f1fc]">Refresh queue</button>
         </div>
-        <div class="mt-6 rounded-xl bg-white border border-[#e5e7eb] h-64 flex items-center justify-center text-slate-400 text-sm font-semibold">Map / route visualization placeholder</div>
+
+        <div id="gate" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
+          <p class="font-bold">Admin sign-in required</p>
+          <p class="mt-2 text-amber-900/90">Use an account with role <strong>admin</strong> on the main <a class="underline font-semibold text-[#0056d2]" href="/login.html">login page</a>, then open this page again. The same session token (<code class="text-xs">ajs_token</code>) is used for API calls.</p>
+        </div>
+
+        <p id="err" class="hidden mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+        <p id="ok" class="hidden mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"></p>
+
+        <section class="rounded-2xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-[#e5e7eb] flex flex-wrap items-center justify-between gap-2">
+            <h2 class="font-bold text-slate-900">Pending partner KYC</h2>
+            <span id="pending-count" class="text-xs font-bold uppercase tracking-wide text-slate-500">—</span>
+          </div>
+          <div id="loading" class="px-5 py-12 text-center text-sm text-slate-500">Loading…</div>
+          <div id="empty" class="hidden px-5 py-12 text-center text-sm text-slate-500">No submissions in the queue.</div>
+          <div class="overflow-x-auto">
+            <table id="tbl" class="hidden w-full text-sm text-left min-w-[720px]">
+              <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+                <tr>
+                  <th class="px-4 py-3">Partner</th>
+                  <th class="px-4 py-3">Area</th>
+                  <th class="px-4 py-3">Aadhaar ×4</th>
+                  <th class="px-4 py-3">PAN ×4</th>
+                  <th class="px-4 py-3">Submitted</th>
+                  <th class="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <p class="text-xs text-slate-400 mt-6">Approving sets KYC to <strong>verified</strong> so the partner can claim jobs. Rejecting stores a reason shown to the partner on the KYC page.</p>
       </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
+  <script>
+    (function () {
+      async function apiFetch(path, options) {
+        var clean = String(path || "").indexOf("/") === 0 ? String(path) : "/" + path;
+        var proto = location.protocol;
+        var host = location.hostname;
+        var stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+        var ports = {};
+        if (location.port) ports[location.port] = 1;
+        ports["3000"] = 1;
+        ports["3001"] = 1;
+        var attempts = [];
+        if (proto !== "file:") attempts.push(clean);
+        if (stored) attempts.push(stored + clean);
+        Object.keys(ports).forEach(function (p) {
+          attempts.push(proto + "//" + host + ":" + p + clean);
+        });
+        var seen = {};
+        var lastErr;
+        for (var i = 0; i < attempts.length; i++) {
+          var url = attempts[i];
+          if (seen[url]) continue;
+          seen[url] = 1;
+          try {
+            var res = await fetch(url, options);
+            if (res.ok && url.indexOf("http") === 0) localStorage.setItem("bachat_api_base", new URL(url).origin);
+            return res;
+          } catch (e) {
+            lastErr = e;
+          }
+        }
+        throw lastErr;
+      }
+
+      function authHeaders() {
+        var t = localStorage.getItem("ajs_token");
+        return { "Content-Type": "application/json", Authorization: "Bearer " + (t || "") };
+      }
+
+      function showErr(msg) {
+        var el = document.getElementById("err");
+        el.textContent = msg;
+        el.classList.remove("hidden");
+        document.getElementById("ok").classList.add("hidden");
+      }
+      function showOk(msg) {
+        var el = document.getElementById("ok");
+        el.textContent = msg;
+        el.classList.remove("hidden");
+        document.getElementById("err").classList.add("hidden");
+      }
+      function clearMsgs() {
+        document.getElementById("err").classList.add("hidden");
+        document.getElementById("ok").classList.add("hidden");
+      }
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function fmtIso(iso) {
+        if (!iso) return "—";
+        try {
+          return new Date(iso).toLocaleString();
+        } catch (e) {
+          return iso;
+        }
+      }
+
+      async function loadQueue() {
+        clearMsgs();
+        document.getElementById("loading").classList.remove("hidden");
+        document.getElementById("empty").classList.add("hidden");
+        document.getElementById("tbl").classList.add("hidden");
+        var res = await apiFetch("/api/admin/delivery-kyc/pending", { headers: authHeaders() });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        document.getElementById("loading").classList.add("hidden");
+        if (res.status === 401 || res.status === 403) {
+          showErr(data.error || (res.status === 401 ? "Not logged in." : "Forbidden — admin role required."));
+          document.getElementById("pending-count").textContent = "";
+          return;
+        }
+        if (!res.ok) {
+          showErr(data.error || "Failed to load queue");
+          document.getElementById("pending-count").textContent = "";
+          return;
+        }
+        var items = data.items || [];
+        document.getElementById("pending-count").textContent = items.length + " pending";
+        if (!items.length) {
+          document.getElementById("empty").classList.remove("hidden");
+          return;
+        }
+        document.getElementById("tbl").classList.remove("hidden");
+        var tb = document.getElementById("tbody");
+        tb.innerHTML = "";
+        items.forEach(function (row) {
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50/80";
+          var phone = row.phone ? '<div class="text-xs text-slate-500 font-mono">' + esc(row.phone) + "</div>" : "";
+          tr.innerHTML =
+            '<td class="px-4 py-3 align-top">' +
+            "<div class=\"font-semibold text-slate-900\">" +
+            esc(row.name) +
+            "</div>" +
+            '<div class="text-xs text-slate-500 mt-0.5">' +
+            esc(row.email) +
+            "</div>" +
+            phone +
+            '<div class="text-[10px] text-slate-400 font-mono mt-1">' +
+            esc(row.user_id) +
+            "</div></td>" +
+            '<td class="px-4 py-3 align-top text-slate-700">' +
+            esc(row.city || "—") +
+            ", " +
+            esc(row.region || "—") +
+            "</td>" +
+            '<td class="px-4 py-3 align-top font-mono text-slate-800">' +
+            (row.aadhar_last4 ? "****" + esc(row.aadhar_last4) : "—") +
+            "</td>" +
+            '<td class="px-4 py-3 align-top font-mono text-slate-600">' +
+            esc(row.pan_last4 || "—") +
+            "</td>" +
+            '<td class="px-4 py-3 align-top text-slate-600 whitespace-nowrap">' +
+            fmtIso(row.submitted_at) +
+            "</td>" +
+            '<td class="px-4 py-3 align-top text-right whitespace-nowrap">' +
+            '<button type="button" class="approve inline-flex items-center justify-center rounded-lg bg-emerald-600 text-white text-xs font-bold px-3 py-2 hover:bg-emerald-700" data-user="' +
+            esc(row.user_id) +
+            '">Approve</button> ' +
+            '<button type="button" class="reject ml-1 inline-flex items-center justify-center rounded-lg border border-red-300 text-red-700 text-xs font-bold px-3 py-2 hover:bg-red-50" data-user="' +
+            esc(row.user_id) +
+            '">Reject</button></td>';
+          tb.appendChild(tr);
+        });
+
+        tb.querySelectorAll("button.approve").forEach(function (btn) {
+          btn.addEventListener("click", async function () {
+            var uid = btn.getAttribute("data-user");
+            if (!confirm("Approve this delivery partner? They will be able to claim jobs.")) return;
+            btn.disabled = true;
+            clearMsgs();
+            try {
+              var r = await apiFetch("/api/admin/delivery-kyc/" + uid, {
+                method: "PATCH",
+                headers: authHeaders(),
+                body: JSON.stringify({ status: "verified" }),
+              });
+              var d = await r.json().catch(function () {
+                return {};
+              });
+              if (!r.ok) throw new Error(d.error || "Approve failed");
+              showOk("Partner approved.");
+              await loadQueue();
+            } catch (e) {
+              showErr(e.message || "Error");
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        });
+
+        tb.querySelectorAll("button.reject").forEach(function (btn) {
+          btn.addEventListener("click", async function () {
+            var uid = btn.getAttribute("data-user");
+            var reason = window.prompt("Rejection reason (shown to the partner):", "");
+            if (reason === null) return;
+            reason = String(reason).trim();
+            if (!reason) {
+              showErr("Rejection reason is required.");
+              return;
+            }
+            btn.disabled = true;
+            clearMsgs();
+            try {
+              var r = await apiFetch("/api/admin/delivery-kyc/" + uid, {
+                method: "PATCH",
+                headers: authHeaders(),
+                body: JSON.stringify({ status: "rejected", rejection_reason: reason }),
+              });
+              var d = await r.json().catch(function () {
+                return {};
+              });
+              if (!r.ok) throw new Error(d.error || "Reject failed");
+              showOk("Partner rejected.");
+              await loadQueue();
+            } catch (e) {
+              showErr(e.message || "Error");
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        });
+      }
+
+      async function boot() {
+        var token = localStorage.getItem("ajs_token");
+        document.getElementById("gate").classList.add("hidden");
+        if (!token) {
+          document.getElementById("gate").classList.remove("hidden");
+          document.getElementById("loading").classList.add("hidden");
+          document.getElementById("pending-count").textContent = "";
+          return;
+        }
+        var mr = await apiFetch("/api/auth/me", { headers: authHeaders() });
+        var md = await mr.json().catch(function () {
+          return {};
+        });
+        if (!mr.ok || !md.user) {
+          document.getElementById("gate").classList.remove("hidden");
+          document.getElementById("loading").classList.add("hidden");
+          document.getElementById("pending-count").textContent = "";
+          return;
+        }
+        if (md.user.role !== "admin") {
+          document.getElementById("gate").classList.remove("hidden");
+          document.getElementById("loading").classList.add("hidden");
+          document.getElementById("pending-count").textContent = "";
+          return;
+        }
+        try {
+          await loadQueue();
+        } catch (e) {
+          document.getElementById("loading").classList.add("hidden");
+          showErr(e.message || "Network error");
+        }
+      }
+
+      document.getElementById("btn-refresh").addEventListener("click", function () {
+        boot();
+      });
+      boot();
+    })();
+  </script>
 </body>
 </html>

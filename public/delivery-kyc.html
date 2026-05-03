@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery KYC — Bachat</title>
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="border-b border-slate-200 bg-white">
+    <div class="max-w-lg mx-auto px-4 py-3 flex justify-between">
+      <a href="/delivery-login.html" class="text-sm font-bold text-[#0056d2]">← Log out / back</a>
+      <button type="button" id="logout" class="text-sm text-slate-600">Log out</button>
+    </div>
+  </header>
+
+  <div class="max-w-lg mx-auto px-4 py-8">
+    <h1 class="text-2xl font-black">Verify your identity</h1>
+    <p class="text-sm text-slate-600 mt-2">
+      We only store the <strong>last 4 digits</strong> of your Aadhaar number — never the full 12-digit UID on this server.
+      Real UIDAI eKYC in production must go through a certified partner (Digilocker / licensed vendor).
+    </p>
+    <p id="status-msg" class="mt-4 text-sm font-semibold text-[#0056d2] hidden"></p>
+    <p id="digilocker-ok" class="hidden mt-3 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2"></p>
+    <p id="err" class="hidden mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></p>
+
+    <div id="digilocker-box" class="hidden mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p class="text-sm font-bold text-slate-900">DigiLocker (optional)</p>
+      <p class="text-xs text-slate-600 mt-1">
+        Going live requires registering as a DigiLocker / Meri Pehchaan partner (e.g. <a href="https://dlpartners.meripehchaan.gov.in/" class="text-[#0056d2] underline font-semibold" target="_blank" rel="noopener noreferrer">partner portal</a>), HTTPS redirect URIs, and portal review — not just <code class="text-[11px] bg-slate-100 px-1 rounded">.env</code> keys.
+      </p>
+      <p class="text-xs text-slate-600 mt-2">
+        After login we sync <strong>metadata</strong> for issued documents (titles, issuers). Full PDF/XML download stays off on the server unless your legal team enables it. This is <strong>not</strong> a substitute for UIDAI eKYC or your counsel-approved KYC policy — you still complete last-4 Aadhaar below unless ops changes that.
+      </p>
+      <button type="button" id="digilocker-btn" class="mt-3 w-full rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-bold py-2.5 text-sm">Continue with DigiLocker</button>
+    </div>
+
+    <details class="mt-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-950">
+      <summary class="font-bold cursor-pointer text-sm text-amber-950">Legal &amp; data use (DigiLocker + this form)</summary>
+      <ul class="mt-2 list-disc pl-4 space-y-1.5 text-amber-900/95">
+        <li><strong>Purpose limitation:</strong> Bachat uses identity signals only to onboard and audit delivery partners, unless we publish a different notice and consent.</li>
+        <li><strong>Not legal advice:</strong> Whether DigiLocker metadata or last-4 Aadhaar satisfies KYC law for your entity must be confirmed by qualified counsel.</li>
+        <li><strong>Retention:</strong> Document URIs and metadata are stored server-side for your account to support optional downloads and audits; define your own retention and deletion policy before production.</li>
+        <li><strong>Sensitive payloads:</strong> Some issued PDFs or XML certificates can include masked Aadhaar or PAN — treat downloads as highly confidential and disable server file fetch until policies and <code class="bg-amber-100/80 px-1 rounded">DIGILOCKER_ALLOW_FILE_FETCH</code> are approved.</li>
+      </ul>
+    </details>
+
+    <form id="kyc" class="mt-6 space-y-4 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Aadhaar — last 4 digits only</label>
+        <input id="aadhar_last4" maxlength="4" inputmode="numeric" pattern="[0-9]*" required class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-lg tracking-widest font-mono" placeholder="••••" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">PAN — last 4 characters (optional)</label>
+        <input id="pan_last4" maxlength="4" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm uppercase" placeholder="e.g. 1A2B" />
+      </div>
+      <label class="flex items-start gap-2 text-sm text-slate-700 cursor-pointer">
+        <input type="checkbox" id="consent" class="mt-1 rounded border-slate-300 text-[#0056d2]" required />
+        <span>I confirm the details are accurate. I consent to Bachat and its partners verifying my identity for delivery services, and I understand this MVP may use manual review.</span>
+      </label>
+      <button type="submit" id="btn" class="w-full rounded-xl bg-[#0056d2] text-white font-bold py-3 disabled:opacity-50">Submit for verification</button>
+    </form>
+  </div>
+
+  <script>
+    async function apiFetch(path, options) {
+      const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+      const proto = location.protocol;
+      const host = location.hostname;
+      const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      const ports = new Set([location.port, "3000", "3001"].filter(Boolean));
+      const attempts = [];
+      if (proto !== "file:") attempts.push(clean);
+      if (stored) attempts.push(stored + clean);
+      for (const p of ports) attempts.push(proto + "//" + host + ":" + p + clean);
+      const seen = new Set();
+      let lastErr;
+      for (const url of attempts) {
+        if (seen.has(url)) continue;
+        seen.add(url);
+        try {
+          const res = await fetch(url, options);
+          if (res.ok && url.startsWith("http")) localStorage.setItem("bachat_api_base", new URL(url).origin);
+          return res;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr;
+    }
+
+    function authHeaders() {
+      const t = localStorage.getItem("ajs_token");
+      return { "Content-Type": "application/json", Authorization: "Bearer " + (t || "") };
+    }
+
+    document.getElementById("logout").addEventListener("click", () => {
+      localStorage.removeItem("ajs_token");
+      localStorage.removeItem("ajs_user");
+      location.href = "/delivery-login.html";
+    });
+
+    async function boot() {
+      const token = localStorage.getItem("ajs_token");
+      if (!token) {
+        location.href = "/delivery-signup.html";
+        return;
+      }
+      const res = await apiFetch("/api/auth/me", { headers: authHeaders() });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        location.href = "/delivery-login.html";
+        return;
+      }
+      if (data.user && data.user.role !== "delivery") {
+        location.href = "/login.html";
+        return;
+      }
+      if (data.user && data.user.phone && !data.user.phone_verified_at) {
+        sessionStorage.setItem("bachat_post_phone_next", "/delivery-kyc.html");
+        location.href = "/verify-phone.html";
+        return;
+      }
+
+      const qs = new URLSearchParams(location.search || "");
+      if (qs.get("digilocker") === "1") {
+        history.replaceState({}, "", "/delivery-kyc.html");
+        const ok = document.getElementById("digilocker-ok");
+        ok.textContent = "DigiLocker linked. Syncing issued-document metadata…";
+        ok.classList.remove("hidden");
+        try {
+          const pr = await apiFetch("/api/digilocker/pull-issued-meta", { method: "POST", headers: authHeaders() });
+          const pj = await pr.json().catch(() => ({}));
+          if (pr.ok) {
+            ok.textContent =
+              "DigiLocker linked. Imported metadata for " +
+              String(pj.count ?? 0) +
+              " issued document(s). Complete last-4 Aadhaar below if your policy still requires it.";
+          } else {
+            ok.textContent =
+              "DigiLocker linked. " +
+              (pj.error ||
+                "Could not sync issued documents (try “Continue with DigiLocker” again within a few minutes).");
+          }
+        } catch (e) {
+          ok.textContent = "DigiLocker linked. Sync error: " + (e && e.message ? e.message : "network");
+        }
+      } else if (data.user.delivery_kyc && data.user.delivery_kyc.digilocker_linked_at) {
+        const ok = document.getElementById("digilocker-ok");
+        ok.textContent = "DigiLocker is linked on your account.";
+        ok.classList.remove("hidden");
+      }
+
+      const st = (data.user && data.user.delivery_kyc && data.user.delivery_kyc.status) || "not_started";
+      if (st === "verified") {
+        location.href = "/DeliveryDashboard.html";
+        return;
+      }
+      if (st === "submitted") {
+        document.getElementById("kyc").classList.add("hidden");
+        const m = document.getElementById("status-msg");
+        m.textContent = "Your documents are under review. You will be able to accept jobs after approval.";
+        m.classList.remove("hidden");
+        return;
+      }
+      if (st === "rejected" && data.user.delivery_kyc.rejection_reason) {
+        document.getElementById("status-msg").textContent =
+          "Previous submission was rejected: " + data.user.delivery_kyc.rejection_reason + " — you can submit again.";
+        document.getElementById("status-msg").classList.remove("hidden");
+      }
+
+      try {
+        const stRes = await apiFetch("/api/digilocker/status");
+        const stJson = await stRes.json().catch(() => ({}));
+        if (stRes.ok && stJson.enabled) {
+          document.getElementById("digilocker-box").classList.remove("hidden");
+        }
+      } catch (_) {
+        /* ignore */
+      }
+    }
+
+    document.getElementById("digilocker-btn").addEventListener("click", async () => {
+      const err = document.getElementById("err");
+      err.classList.add("hidden");
+      try {
+        const res = await apiFetch("/api/digilocker/authorize-url", { method: "POST", headers: authHeaders() });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Could not start DigiLocker");
+        if (data.authorize_url) location.href = data.authorize_url;
+      } catch (x) {
+        err.textContent = x.message || "DigiLocker error";
+        err.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("kyc").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const err = document.getElementById("err");
+      err.classList.add("hidden");
+      const a4 = String(document.getElementById("aadhar_last4").value || "").replace(/\D/g, "");
+      if (a4.length !== 4) {
+        err.textContent = "Enter exactly 4 digits (last 4 of Aadhaar).";
+        err.classList.remove("hidden");
+        return;
+      }
+      if (!document.getElementById("consent").checked) {
+        err.textContent = "Please accept the consent checkbox.";
+        err.classList.remove("hidden");
+        return;
+      }
+      const btn = document.getElementById("btn");
+      btn.disabled = true;
+      try {
+        const res = await apiFetch("/api/auth/delivery/kyc-submit", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            aadhar_last4: a4,
+            pan_last4: String(document.getElementById("pan_last4").value || "").trim(),
+            consent_aadhar_kyc: true,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Submit failed");
+        if (data.token) localStorage.setItem("ajs_token", data.token);
+        if (data.user) localStorage.setItem("ajs_user", JSON.stringify(data.user));
+        location.href = "/DeliveryDashboard.html";
+      } catch (x) {
+        err.textContent = x.message || "Error";
+        err.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    boot();
+  </script>
+</body>
+</html>

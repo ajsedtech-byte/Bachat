@@ -11,6 +11,8 @@ const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatUser, formatSeller } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
 const { ensureReferralCode } = require("../lib/referralCode");
+const { normalizePhone10India, maskPhoneIndia } = require("../lib/phone");
+const { sendVerificationSms } = require("../services/sms");
 
 const router = express.Router();
 
@@ -56,6 +58,11 @@ router.post("/register", async (req, res, next) => {
       return badRequest(res, "role must be buyer or seller");
     }
 
+    const phone10 = normalizePhone10India(phone);
+    if (!phone10) {
+      return badRequest(res, "Valid 10-digit Indian mobile number is required");
+    }
+
     let sellerCategories = [];
     if (role === "seller") {
       sellerCategories = normalizeSellerCategories(
@@ -91,7 +98,8 @@ router.post("/register", async (req, res, next) => {
               email: String(email).toLowerCase().trim(),
               passwordHash,
               name,
-              phone: phone || "",
+              phone: phone10,
+              phoneVerifiedAt: null,
               city,
               region,
               role,
@@ -191,6 +199,10 @@ router.post("/verify-email", async (req, res, next) => {
     await user.save();
     await ensureReferralCode(User, user);
 
+    if (user.role === "delivery") {
+      await User.updateOne({ _id: user._id }, { $set: { "deliveryKyc.status": "awaiting_submit" } });
+    }
+
     const fresh = await User.findById(user._id).lean();
     const token = signToken(fresh);
     return res.json({ token, user: formatUser(fresh) });
@@ -262,6 +274,105 @@ router.post("/resend-verification", async (req, res, next) => {
   }
 });
 
+/** Authenticated: send 6-digit OTP to the user’s registered Indian mobile (SMS if Twilio configured). */
+router.post("/phone-otp/request", requireAuth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const phone10 = normalizePhone10India(user.phone);
+    if (!phone10) {
+      return badRequest(res, "Add a valid 10-digit Indian mobile on your profile first");
+    }
+    if (user.phoneVerifiedAt) {
+      return res.json({ message: "Mobile already verified", phone_masked: maskPhoneIndia(phone10) });
+    }
+
+    const code = generateSixDigitCode();
+    const codeHash = await hashOtp(code);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    try {
+      await sendVerificationSms(phone10, code);
+    } catch (smsErr) {
+      return res.status(502).json({ error: smsErr.message || "Could not send SMS" });
+    }
+
+    await EmailOtp.create({
+      user: user._id,
+      codeHash,
+      purpose: "phone_verify",
+      phone: phone10,
+      expiresAt,
+    });
+
+    return res.json(
+      withDevOtp(
+        {
+          message: "Verification code sent to your mobile",
+          phone_masked: maskPhoneIndia(phone10),
+        },
+        code
+      )
+    );
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/** Authenticated: confirm mobile OTP and set phone_verified_at. */
+router.post("/phone-otp/verify", requireAuth, async (req, res, next) => {
+  try {
+    const { code } = req.body || {};
+    if (!code) {
+      return badRequest(res, "code is required");
+    }
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const phone10 = normalizePhone10India(user.phone);
+    if (!phone10) {
+      return badRequest(res, "No valid mobile on file");
+    }
+    if (user.phoneVerifiedAt) {
+      const fresh = await User.findById(user._id).lean();
+      return res.json({
+        message: "Already verified",
+        token: signToken(fresh),
+        user: formatUser(fresh),
+      });
+    }
+
+    const otp = await EmailOtp.findOne({
+      user: user._id,
+      purpose: "phone_verify",
+      phone: phone10,
+      consumedAt: null,
+      expiresAt: { $gt: new Date() },
+    }).sort({ createdAt: -1 });
+
+    if (!otp) {
+      return res.status(400).json({ error: "No active mobile code — request a new one" });
+    }
+    const ok = await verifyOtp(String(code), otp.codeHash);
+    if (!ok) {
+      return res.status(400).json({ error: "Invalid code" });
+    }
+    otp.consumedAt = new Date();
+    await otp.save();
+    user.phoneVerifiedAt = new Date();
+    await user.save();
+    await ensureReferralCode(User, user);
+
+    const fresh = await User.findById(user._id).lean();
+    return res.json({ token: signToken(fresh), user: formatUser(fresh) });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -288,7 +399,17 @@ router.patch("/profile", requireAuth, async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
     if (name != null) user.name = String(name).trim() || user.name;
-    if (phone != null) user.phone = String(phone).trim();
+    if (phone != null) {
+      const next = normalizePhone10India(phone);
+      if (phone && !next) {
+        return badRequest(res, "Invalid mobile number — use 10 digits (Indian)");
+      }
+      if (next && next !== normalizePhone10India(user.phone)) {
+        user.phoneVerifiedAt = null;
+      }
+      if (next) user.phone = next;
+      else if (String(phone).trim() === "") user.phone = "";
+    }
     if (city != null) user.city = String(city).trim() || user.city;
     if (region != null) user.region = String(region).trim() || user.region;
     if (!user.city || !user.region) {
@@ -328,6 +449,145 @@ router.get("/referral/me", requireAuth, async (req, res, next) => {
     return next(err);
   }
 });
+
+/**
+ * Self-serve delivery partner signup (email OTP same flow as buyers).
+ * Full UIDAI eKYC is not implemented — we store last 4 of Aadhaar + admin review (or auto-verify in dev).
+ */
+router.post("/delivery/register", async (req, res, next) => {
+  try {
+    const { email, password, name, phone, city, region } = req.body || {};
+    if (!email || !password || !name || !city || !region) {
+      return badRequest(res, "email, password, name, city, and region are required");
+    }
+    const phone10 = normalizePhone10India(phone);
+    if (!phone10) {
+      return badRequest(res, "Valid 10-digit Indian mobile number is required");
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const code = generateSixDigitCode();
+    const codeHash = await hashOtp(code);
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    const session = await mongoose.startSession();
+    let createdUser;
+    try {
+      await session.withTransaction(async () => {
+        const [user] = await User.create(
+          [
+            {
+              email: String(email).toLowerCase().trim(),
+              passwordHash,
+              name,
+              phone: phone10,
+              phoneVerifiedAt: null,
+              city,
+              region,
+              role: "delivery",
+              deliveryKyc: { status: "not_started" },
+            },
+          ],
+          { session }
+        );
+        createdUser = user;
+        await EmailOtp.create(
+          [{ user: user._id, codeHash, purpose: "email_verify", expiresAt }],
+          { session }
+        );
+      });
+    } finally {
+      session.endSession();
+    }
+
+    await sendMail({
+      to: createdUser.email,
+      subject: "Verify your email – Bachat delivery",
+      text: `Your verification code is: ${code}\nIt expires in 15 minutes.`,
+      html: `<p>Your verification code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 15 minutes.</p>`,
+    });
+
+    return res.status(201).json(
+      withDevOtp(
+        {
+          message: "Registered. Check your email for the verification code.",
+          user_id: String(createdUser._id),
+          email: createdUser.email,
+          next_step: "POST /api/auth/verify-email then complete KYC at /delivery-kyc.html",
+        },
+        code
+      )
+    );
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+    return next(err);
+  }
+});
+
+router.post(
+  "/delivery/kyc-submit",
+  requireAuth,
+  requireRole("delivery"),
+  async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) return res.status(404).json({ error: "User not found" });
+      if (!user.emailVerifiedAt) {
+        return res.status(403).json({ error: "Verify your email first" });
+      }
+      if (!user.phoneVerifiedAt) {
+        return res.status(403).json({ error: "Verify your mobile number first", code: "PHONE_UNVERIFIED" });
+      }
+
+      const st = user.deliveryKyc?.status || "not_started";
+      const allowed = ["awaiting_submit", "rejected", "not_started"];
+      if (!allowed.includes(st)) {
+        return badRequest(res, "KYC already submitted or verified");
+      }
+
+      const { aadhar_last4, pan_last4, consent_aadhar_kyc } = req.body || {};
+      if (consent_aadhar_kyc !== true && consent_aadhar_kyc !== "true") {
+        return badRequest(res, "consent_aadhar_kyc must be true to continue");
+      }
+      const a4 = String(aadhar_last4 || "").replace(/\D/g, "");
+      if (a4.length !== 4) {
+        return badRequest(res, "aadhar_last4 must be exactly 4 digits (last 4 of Aadhaar only — never send full number)");
+      }
+
+      if (!user.deliveryKyc) user.deliveryKyc = {};
+      user.deliveryKyc.aadharLast4 = a4;
+      user.deliveryKyc.panLast4 = pan_last4
+        ? String(pan_last4)
+            .replace(/[^a-zA-Z0-9]/g, "")
+            .slice(-4)
+        : "";
+      user.deliveryKyc.consentAcceptedAt = new Date();
+      user.deliveryKyc.submittedAt = new Date();
+      user.deliveryKyc.rejectedReason = "";
+
+      const autoVerify =
+        process.env.NODE_ENV !== "production" || process.env.DELIVERY_KYC_AUTO_VERIFY === "1";
+      if (autoVerify) {
+        user.deliveryKyc.status = "verified";
+        user.deliveryKyc.verifiedAt = new Date();
+      } else {
+        user.deliveryKyc.status = "submitted";
+      }
+      await user.save();
+
+      const fresh = await User.findById(user._id).lean();
+      return res.json({
+        delivery_kyc: formatUser(fresh).delivery_kyc,
+        token: signToken(fresh),
+        user: formatUser(fresh),
+      });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
 
 router.post("/login-otp/request", async (req, res, next) => {
   try {
@@ -385,8 +645,9 @@ router.post("/login-otp/verify", async (req, res, next) => {
     }
     otp.consumedAt = new Date();
     await otp.save();
-    const token = signToken(user);
-    return res.json({ token, user: formatUser(user) });
+    const fresh = await User.findById(user._id).lean();
+    const token = signToken(fresh);
+    return res.json({ token, user: formatUser(fresh) });
   } catch (err) {
     return next(err);
   }

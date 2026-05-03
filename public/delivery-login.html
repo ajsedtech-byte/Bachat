@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Bachat</title>
+  <title>Delivery partner login — Bachat</title>
   <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,67 +11,53 @@
 </head>
 <body class="bachat-ui min-h-screen bg-[#f8f9fa] text-slate-900">
   <div class="min-h-screen grid lg:grid-cols-2 lg:max-w-5xl xl:max-w-6xl lg:mx-auto w-full">
-    <!-- Left: value prop -->
     <div class="relative hidden lg:flex flex-col min-h-screen p-8 xl:p-10 bg-white border-r border-[#e5e7eb]">
       <div class="flex-1 min-h-0 flex flex-col">
         <div class="flex justify-between items-start gap-4">
           <a href="/" aria-label="Home"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto max-w-[170px] object-contain object-left" /></a>
-          <a href="/signup.html" class="text-sm font-semibold text-[#0056d2] flex items-center gap-1 shrink-0">Need help? <span class="w-6 h-6 rounded-full border border-[#0056d2] flex items-center justify-center text-xs">?</span></a>
+          <a href="/delivery-signup.html" class="text-sm font-semibold text-[#0056d2] flex items-center gap-1 shrink-0">New partner? <span class="font-extrabold">Sign up</span></a>
         </div>
-        <p class="inline-flex mt-5 rounded-full bg-[#e8f1fc] text-[#0056d2] text-xs font-bold px-4 py-1.5">Post your requirement. Get the best quotes.</p>
+        <p class="inline-flex mt-5 rounded-full bg-[#e8f1fc] text-[#0056d2] text-xs font-bold px-4 py-1.5">Delivery partner</p>
         <h1 class="mt-4 text-3xl xl:text-4xl font-extrabold text-slate-900 leading-[1.15] max-w-lg">
-          Find the right seller. <span class="text-[#0056d2]">Save time &amp; money.</span>
+          Pick up jobs. <span class="text-[#0056d2]">Deliver on your schedule.</span>
         </h1>
-        <p class="mt-3 text-slate-600 max-w-md text-[15px] leading-relaxed">Post requirements and receive quick quotes from trusted sellers in your city.</p>
+        <p class="mt-3 text-slate-600 max-w-md text-[15px] leading-relaxed">Claim paid orders in your area, follow pickup and drop-off steps, and share GPS when you are on the move — all from your Bachat dashboard.</p>
         <ul class="mt-6 space-y-3">
-          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">⚡</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Get quotes in 2–5 minutes</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Competitive quotes from nearby sellers.</p></div></li>
-          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">✓</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Compare trusted local sellers</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Ratings, delivery time &amp; price in one view.</p></div></li>
-          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">❤</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Track orders and savings</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Everything stays on Bachat.</p></div></li>
+          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">📦</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Open job pool</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">See nearby deliveries and claim when it suits you.</p></div></li>
+          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">✓</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Clear status steps</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">From pickup to delivered — guided in the app.</p></div></li>
+          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">🛡</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Verified partners</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Quick identity check before you can claim jobs.</p></div></li>
         </ul>
         <div class="mt-6 flex justify-center rounded-2xl bg-[#f8f9fa] border border-[#e5e7eb] p-5">
           <img src="/assets/bachat-logo-light.png" alt="" class="max-h-32 w-auto object-contain opacity-90" />
         </div>
       </div>
       <div class="flex items-center gap-3 pt-5 border-t border-[#e5e7eb] mt-6 shrink-0">
-        <div class="flex -space-x-2">
-          <span class="w-8 h-8 rounded-full bg-slate-300 ring-2 ring-white"></span>
-          <span class="w-8 h-8 rounded-full bg-slate-400 ring-2 ring-white"></span>
-          <span class="w-8 h-8 rounded-full bg-slate-500 ring-2 ring-white"></span>
-          <span class="w-8 h-8 rounded-full bg-[#e8f1fc] text-[10px] font-bold flex items-center justify-center ring-2 ring-white text-[#0056d2]">+10K</span>
-        </div>
-        <p class="text-xs font-semibold text-slate-600">Trusted by 10,000+ customers across India.</p>
+        <p class="text-xs font-semibold text-slate-600">Same Bachat account system as customers — use the email you registered as a delivery partner.</p>
       </div>
     </div>
 
-    <!-- Right: card -->
     <div class="flex flex-col justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10">
       <div class="lg:hidden mb-4 flex justify-between items-center">
         <a href="/"><img src="/assets/bachat-logo-light.png" alt="" class="h-9 w-auto" /></a>
-        <a href="/signup.html" class="text-sm font-semibold text-[#0056d2]">Sign up</a>
+        <a href="/delivery-signup.html" class="text-sm font-semibold text-[#0056d2]">Sign up</a>
       </div>
       <div class="max-w-md w-full mx-auto bg-white rounded-2xl border border-[#e5e7eb] shadow-xl p-5 sm:p-6 flex flex-col">
         <div class="flex border-b border-[#e5e7eb] mb-4">
-          <button type="button" id="tab-login" class="flex-1 pb-2.5 text-sm font-extrabold text-[#0056d2] border-b-2 border-[#0056d2]">Login</button>
-          <a href="/signup.html" id="tab-create" class="flex-1 pb-2.5 text-center text-sm font-bold text-slate-500 hover:text-[#0056d2]">Create Account</a>
+          <span class="flex-1 pb-2.5 text-sm font-extrabold text-[#0056d2] border-b-2 border-[#0056d2] text-center">Partner login</span>
+          <a href="/delivery-signup.html" class="flex-1 pb-2.5 text-center text-sm font-bold text-slate-500 hover:text-[#0056d2]">Create account</a>
         </div>
         <p class="text-lg font-extrabold text-slate-900">Welcome back! 👋</p>
-        <p class="text-sm text-slate-500 mt-0.5">Login to post requirements and receive the best quotes.</p>
+        <p class="text-sm text-slate-500 mt-0.5">Log in to open jobs, active deliveries, and your partner profile.</p>
         <p id="err" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mt-3 leading-snug"></p>
 
         <form id="login-form" class="mt-4 space-y-3">
-          <input type="hidden" name="role" id="role" value="buyer" />
-          <div class="flex rounded-xl border border-[#e5e7eb] p-1 bg-[#f8f9fa]">
-            <button type="button" id="tab-buyer" class="flex-1 rounded-lg py-2 text-xs font-extrabold transition-colors bg-white shadow text-[#0056d2]">Customer</button>
-            <button type="button" id="tab-seller" class="flex-1 rounded-lg py-2 text-xs font-extrabold transition-colors text-slate-500">Shopkeeper</button>
-          </div>
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Login with Mobile or Email</label>
-            <input name="email" type="email" autocomplete="username" required class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="Mobile number or Email address" />
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+            <input name="email" type="email" autocomplete="username" required class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="you@example.com" />
           </div>
           <div>
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-bold text-slate-500 uppercase">Password</label>
-              <span class="text-xs font-semibold text-[#0056d2] cursor-pointer opacity-70">Forgot password?</span>
             </div>
             <input name="password" type="password" autocomplete="current-password" required class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="Enter your password" />
           </div>
@@ -82,17 +68,17 @@
         </form>
 
         <p class="text-center text-sm text-slate-600 mt-3">
-          Delivery partner?
-          <a href="/delivery-login.html" class="text-[#0056d2] font-bold hover:underline">Log in</a>
+          Shopping on Bachat?
+          <a href="/login.html" class="text-[#0056d2] font-bold hover:underline">Customer login</a>
           ·
-          <a href="/delivery-signup.html" class="text-[#0056d2] font-bold hover:underline">Sign up</a>
+          <a href="/signup.html" class="text-[#0056d2] font-bold hover:underline">Sign up</a>
         </p>
 
         <div class="relative my-4"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[#e5e7eb]"></div></div><div class="relative flex justify-center text-xs font-bold uppercase text-slate-400"><span class="bg-white px-2">Or</span></div></div>
 
         <div class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fa] p-3 sm:p-4">
           <p class="text-sm font-bold text-slate-900">Login with OTP</p>
-          <p class="text-xs text-slate-500 mt-0.5">Uses the <strong>same email</strong> as password login. Code is sent to your verified inbox.</p>
+          <p class="text-xs text-slate-500 mt-0.5">Uses the <strong>same email</strong> as password login. Code is sent to your verified inbox. <strong>Delivery partner</strong> accounts only.</p>
           <div id="otp-dev-hint" class="hidden mt-2 text-xs font-mono text-[#0056d2] break-all"></div>
           <div class="mt-2.5">
             <button type="button" id="otp-send" class="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-[#0056d2] text-[#0056d2] text-xs font-bold hover:bg-[#e8f1fc]">Send code to email</button>
@@ -110,42 +96,25 @@
 
       <div class="max-w-md w-full mx-auto mt-5 grid grid-cols-3 gap-2 sm:gap-3 text-center text-[11px] font-semibold text-slate-600">
         <div class="rounded-xl bg-white border border-[#e5e7eb] py-3"><span class="text-lg block mb-1">🛡</span>100% Secure</div>
-        <div class="rounded-xl bg-white border border-[#e5e7eb] py-3"><span class="text-lg block mb-1">✓</span>Verified sellers</div>
+        <div class="rounded-xl bg-white border border-[#e5e7eb] py-3"><span class="text-lg block mb-1">✓</span>Verified partners</div>
         <div class="rounded-xl bg-white border border-[#e5e7eb] py-3"><span class="text-lg block mb-1">🎧</span>Live support</div>
       </div>
     </div>
   </div>
 
   <script>
-    function dashboardFor(role) {
-      if (role === "seller") return "/ShopkeeperDashboard.html";
-      if (role === "admin") return "/AdminDashboard.html";
-      if (role === "delivery") return "/DeliveryDashboard.html";
-      return "/UserDashboard.html";
-    }
-    (function () {
-      var roleIn = document.getElementById("role");
-      var tabBuyer = document.getElementById("tab-buyer");
-      var tabSeller = document.getElementById("tab-seller");
-      function setRole(role) {
-        roleIn.value = role;
-        if (role === "seller") {
-          tabSeller.classList.add("bg-white", "shadow", "text-[#0056d2]");
-          tabSeller.classList.remove("text-slate-500");
-          tabBuyer.classList.remove("bg-white", "shadow", "text-[#0056d2]");
-          tabBuyer.classList.add("text-slate-500");
-        } else {
-          tabBuyer.classList.add("bg-white", "shadow", "text-[#0056d2]");
-          tabBuyer.classList.remove("text-slate-500");
-          tabSeller.classList.remove("bg-white", "shadow", "text-[#0056d2]");
-          tabSeller.classList.add("text-slate-500");
-        }
+    function redirectAfterDeliveryLogin(user) {
+      var k = user && user.delivery_kyc && user.delivery_kyc.status;
+      var dest =
+        k === "verified" || k === "submitted" ? "/DeliveryDashboard.html" : "/delivery-kyc.html";
+      var needPhone = user && user.phone && !user.phone_verified_at;
+      if (needPhone) {
+        sessionStorage.setItem("bachat_post_phone_next", dest);
+        location.href = "/verify-phone.html";
+      } else {
+        location.href = dest;
       }
-      var params = new URLSearchParams(location.search);
-      setRole(params.get("role") === "seller" ? "seller" : "buyer");
-      tabBuyer.addEventListener("click", function () { setRole("buyer"); });
-      tabSeller.addEventListener("click", function () { setRole("seller"); });
-    })();
+    }
 
     async function loginFetch(body) {
       var proto = location.protocol;
@@ -171,9 +140,7 @@
           });
           if (res.ok) {
             if (url.indexOf("http") === 0) {
-              try {
-                localStorage.setItem("bachat_api_base", new URL(url).origin);
-              } catch (_) {}
+              try { localStorage.setItem("bachat_api_base", new URL(url).origin); } catch (_) {}
             } else if (proto !== "file:" && url.indexOf("/api/") === 0) {
               localStorage.removeItem("bachat_api_base");
             }
@@ -209,9 +176,7 @@
             body: JSON.stringify(body),
           });
           if (res.ok && url.indexOf("http") === 0) {
-            try {
-              localStorage.setItem("bachat_api_base", new URL(url).origin);
-            } catch (_) {}
+            try { localStorage.setItem("bachat_api_base", new URL(url).origin); } catch (_) {}
           } else if (res.ok && proto !== "file:" && url.indexOf("/api/") === 0) {
             localStorage.removeItem("bachat_api_base");
           }
@@ -228,7 +193,7 @@
       return String(fd.get("email") || "").trim().toLowerCase();
     }
 
-    document.getElementById("otp-send")?.addEventListener("click", async function () {
+    document.getElementById("otp-send").addEventListener("click", async function () {
       var err = document.getElementById("otp-err");
       var dev = document.getElementById("otp-dev-hint");
       err.classList.add("hidden");
@@ -257,7 +222,7 @@
       }
     });
 
-    document.getElementById("otp-verify")?.addEventListener("click", async function () {
+    document.getElementById("otp-verify").addEventListener("click", async function () {
       var err = document.getElementById("otp-err");
       err.classList.add("hidden");
       var email = loginEmail();
@@ -271,25 +236,13 @@
         var res = await otpFetch("/api/auth/login-otp/verify", { email: email, code: code });
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Invalid code");
-        var selectedRole = String(document.getElementById("role").value || "buyer");
         var actualRole = (data.user && data.user.role) || "";
-        var roleMismatch = selectedRole !== actualRole && !(selectedRole === "buyer" && actualRole === "admin");
-        if (roleMismatch) {
-          throw new Error(
-            selectedRole === "seller"
-              ? "This account is not a shopkeeper account."
-              : "This account is a shopkeeper account — use Shopkeeper tab."
-          );
+        if (actualRole !== "delivery") {
+          throw new Error("This account is not a delivery partner. Use customer login.");
         }
         localStorage.setItem("ajs_token", data.token);
         localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
-        var needPhoneOtp = data.user && data.user.phone && !data.user.phone_verified_at;
-        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole));
-        if (needPhoneOtp) {
-          location.href = "/verify-phone.html";
-        } else {
-          location.href = dashboardFor(actualRole);
-        }
+        redirectAfterDeliveryLogin(data.user);
       } catch (x) {
         err.textContent = x.message || "Error";
         err.classList.remove("hidden");
@@ -303,26 +256,17 @@
       err.classList.add("hidden");
       btn.disabled = true;
       var fd = new FormData(e.target);
-      var selectedRole = String(fd.get("role") || "buyer");
       var body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || "") };
       try {
         var res = await loginFetch(body);
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Login failed");
-        var actualRole = (data.user && data.user.role) || "";
-        var roleMismatch = selectedRole !== actualRole && !(selectedRole === "buyer" && actualRole === "admin");
-        if (roleMismatch) {
-          throw new Error(selectedRole === "seller" ? "This account is not a shopkeeper account." : "This account is a shopkeeper account — use Shopkeeper tab.");
+        if (data.user && data.user.role !== "delivery") {
+          throw new Error("This account is not a delivery partner. Use customer login.");
         }
         localStorage.setItem("ajs_token", data.token);
         localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
-        var needPhone = data.user && data.user.phone && !data.user.phone_verified_at;
-        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole));
-        if (needPhone) {
-          location.href = "/verify-phone.html";
-        } else {
-          location.href = dashboardFor(actualRole);
-        }
+        redirectAfterDeliveryLogin(data.user);
       } catch (x) {
         err.textContent = x.message || "Error";
         err.classList.remove("hidden");

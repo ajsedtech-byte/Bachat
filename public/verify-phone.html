@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify mobile — Bachat</title>
+  <link rel="icon" href="/assets/bachat-logo-light.png" type="image/png" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bachat-ui min-h-screen bg-[#f8f9fa] text-slate-900 flex flex-col items-center justify-center px-4 py-10">
+  <div class="max-w-md w-full bg-white rounded-2xl border border-[#e5e7eb] shadow-xl p-6 sm:p-8">
+    <a href="/" class="inline-block mb-4"><img src="/assets/bachat-logo-light.png" alt="Bachat" class="h-9 w-auto" /></a>
+    <h1 class="text-xl font-extrabold text-slate-900">Verify your mobile</h1>
+    <p class="text-sm text-slate-600 mt-2" id="intro">We send a 6-digit code by SMS to the number on your account.</p>
+    <p id="masked" class="text-sm font-mono font-semibold text-[#0056d2] mt-2 hidden"></p>
+    <p id="err" class="hidden mt-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+    <div id="dev-otp" class="hidden mt-2 text-xs font-mono text-[#0056d2] break-all"></div>
+
+    <div id="panel" class="mt-5 space-y-3">
+      <button type="button" id="send" class="w-full rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-extrabold py-3 text-sm disabled:opacity-50">Send SMS code</button>
+      <label class="block text-xs font-bold text-slate-500 uppercase">6-digit code</label>
+      <input id="code" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full text-center text-2xl font-mono tracking-widest rounded-xl border border-[#e5e7eb] px-4 py-3 outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]" placeholder="000000" />
+      <button type="button" id="verify" class="w-full rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-extrabold py-3 text-sm disabled:opacity-50">Verify &amp; continue</button>
+      <button type="button" id="resend" class="w-full text-sm font-semibold text-slate-600 py-2">Resend SMS</button>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-6 text-center">
+      Wrong number? Update it in your profile after you finish verification, or <a class="text-[#0056d2] font-bold" href="/login.html">log out</a> and sign up again.
+    </p>
+  </div>
+
+  <script>
+    function authHeaders() {
+      var t = localStorage.getItem("ajs_token");
+      return { "Content-Type": "application/json", Authorization: "Bearer " + (t || "") };
+    }
+
+    async function apiFetch(path, options) {
+      var clean = String(path || "").indexOf("/") === 0 ? String(path) : "/" + path;
+      var proto = location.protocol;
+      var host = location.hostname;
+      var stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      var paths = [];
+      if (proto !== "file:") paths.push(clean);
+      if (stored) paths.push(stored + clean);
+      [3000, 3001].forEach(function (p) {
+        paths.push(proto + "//" + host + ":" + p + clean);
+      });
+      var seen = {};
+      var lastErr;
+      for (var i = 0; i < paths.length; i++) {
+        var url = paths[i];
+        if (seen[url]) continue;
+        seen[url] = 1;
+        try {
+          var res = await fetch(url, options);
+          if (res.ok && url.indexOf("http") === 0) {
+            try {
+              localStorage.setItem("bachat_api_base", new URL(url).origin);
+            } catch (_) {}
+          }
+          return res;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr || new Error("Failed to fetch");
+    }
+
+    function nextUrl() {
+      return sessionStorage.getItem("bachat_post_phone_next") || "/UserDashboard.html";
+    }
+
+    function goNext() {
+      var n = nextUrl();
+      sessionStorage.removeItem("bachat_post_phone_next");
+      location.href = n;
+    }
+
+    /** @returns {Promise<boolean>} true if SMS step is needed */
+    async function boot() {
+      var token = localStorage.getItem("ajs_token");
+      if (!token) {
+        location.href = "/login.html";
+        return false;
+      }
+      var res = await apiFetch("/api/auth/me", { headers: authHeaders() });
+      var data = await res.json().catch(function () {
+        return {};
+      });
+      if (!res.ok) {
+        location.href = "/login.html";
+        return false;
+      }
+      var u = data.user;
+      if (!u || !u.phone) {
+        goNext();
+        return false;
+      }
+      if (u.phone_verified_at) {
+        goNext();
+        return false;
+      }
+      return true;
+    }
+
+    async function sendCode() {
+      var err = document.getElementById("err");
+      var dev = document.getElementById("dev-otp");
+      err.classList.add("hidden");
+      dev.classList.add("hidden");
+      dev.textContent = "";
+      var btn = document.getElementById("send");
+      btn.disabled = true;
+      try {
+        var res = await apiFetch("/api/auth/phone-otp/request", {
+          method: "POST",
+          headers: authHeaders(),
+          body: "{}",
+        });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) throw new Error(data.error || "Could not send SMS");
+        if (data.phone_masked) {
+          document.getElementById("masked").textContent = data.phone_masked;
+          document.getElementById("masked").classList.remove("hidden");
+        }
+        if (data.dev_otp) {
+          dev.textContent = "Dev / no SMS: " + data.dev_otp;
+          dev.classList.remove("hidden");
+        }
+      } catch (x) {
+        err.textContent = x.message || "Error";
+        err.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    document.getElementById("send").addEventListener("click", sendCode);
+    document.getElementById("resend").addEventListener("click", sendCode);
+
+    document.getElementById("verify").addEventListener("click", async function () {
+      var err = document.getElementById("err");
+      err.classList.add("hidden");
+      var code = String(document.getElementById("code").value || "").trim();
+      if (code.length !== 6) {
+        err.textContent = "Enter the 6-digit code.";
+        err.classList.remove("hidden");
+        return;
+      }
+      var btn = document.getElementById("verify");
+      btn.disabled = true;
+      try {
+        var res = await apiFetch("/api/auth/phone-otp/verify", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ code: code }),
+        });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) throw new Error(data.error || "Invalid code");
+        if (data.token) localStorage.setItem("ajs_token", data.token);
+        if (data.user) localStorage.setItem("ajs_user", JSON.stringify(data.user));
+        goNext();
+      } catch (x) {
+        err.textContent = x.message || "Error";
+        err.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    boot()
+      .then(function (need) {
+        if (need) return sendCode();
+      })
+      .catch(function (e) {
+        document.getElementById("err").textContent = e.message || "Could not load account";
+        document.getElementById("err").classList.remove("hidden");
+      });
+  </script>
+</body>
+</html>

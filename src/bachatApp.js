@@ -11,8 +11,11 @@ const productRoutes = require("./routes/products");
 const cartRoutes = require("./routes/cart");
 const savedRoutes = require("./routes/saved");
 const sellerRoutes = require("./routes/seller");
+const deliveryRoutes = require("./routes/delivery");
 const { router: paymentRoutes, handleRazorpayWebhook } = require("./routes/payments");
 const { CATEGORIES } = require("./lib/categories");
+const geoRoutes = require("./routes/geo");
+const digilockerRoutes = require("./routes/digilocker");
 
 const app = express();
 const publicDir = path.join(__dirname, "..", "public");
@@ -74,10 +77,14 @@ app.get("/api/categories", (_req, res) => {
   res.json({ categories: CATEGORIES });
 });
 
+app.use("/api/geo", geoRoutes);
+app.use("/api/digilocker", digilockerRoutes);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/quotes", quoteRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/delivery", deliveryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/saved", savedRoutes);
 app.use("/api/seller", sellerRoutes);

@@ -79,8 +79,9 @@
           <input name="name" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600">
         </div>
         <div>
-          <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Phone (optional)</label>
-          <input name="phone" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="+91">
+          <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Mobile (10 digits)</label>
+          <input name="phone" type="tel" inputmode="numeric" autocomplete="tel" required maxlength="15" class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="9876543210 or +91…">
+          <p class="text-[11px] text-neutral-500 mt-1">You will verify this number by SMS after email verification.</p>
         </div>
         <div>
           <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Referral code (optional)</label>
@@ -113,7 +114,7 @@
     </div>
 
     <div id="step-verify" class="hidden">
-      <p class="text-neutral-600 text-sm mb-4">Enter the 6-digit code we sent to <strong id="vemail"></strong></p>
+      <p class="text-neutral-600 text-sm mb-4">Enter the 6-digit <strong>email</strong> code we sent to <strong id="vemail"></strong></p>
       <p id="verr" class="hidden text-sm text-red-600 bg-red-50 border rounded-lg px-3 py-2 mb-4"></p>
       <input id="vcode" maxlength="6" class="w-full text-center text-2xl font-mono tracking-widest rounded-xl border border-neutral-200 px-4 py-4 mb-4 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="000000">
       <button type="button" id="vbtn" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 mb-3 shadow-md">Verify & go to app</button>
@@ -325,8 +326,16 @@
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.error || "Invalid code");
           localStorage.setItem("ajs_token", data.token);
+          localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
           const role = data.user && data.user.role;
-          location.href = dashboardFor(role);
+          const needPhone =
+            data.user && data.user.phone && !data.user.phone_verified_at;
+          sessionStorage.setItem("bachat_post_phone_next", dashboardFor(role));
+          if (needPhone) {
+            location.href = "/verify-phone.html";
+          } else {
+            location.href = dashboardFor(role);
+          }
         } catch (x) {
           verr.textContent = x.message || "Verification failed";
           verr.classList.remove("hidden");

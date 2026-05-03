@@ -48,6 +48,7 @@ async function main() {
         role: "admin",
         emailVerifiedAt: new Date(),
         phone: process.env.ADMIN_PHONE || "",
+        phoneVerifiedAt: process.env.ADMIN_PHONE ? new Date() : null,
       },
       $setOnInsert: { email: emailNorm },
     },

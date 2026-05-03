@@ -110,6 +110,67 @@ router.patch("/sellers/:sellerId/verify", async (req, res, next) => {
   }
 });
 
+/** Delivery partners waiting for manual Aadhaar/KYC review */
+router.get("/delivery-kyc/pending", async (_req, res, next) => {
+  try {
+    const rows = await User.find({ role: "delivery", "deliveryKyc.status": "submitted" })
+      .select("email name city region phone createdAt deliveryKyc")
+      .sort({ "deliveryKyc.submittedAt": 1 })
+      .lean();
+    const items = rows.map((u) => ({
+      user_id: String(u._id),
+      email: u.email,
+      name: u.name,
+      city: u.city,
+      region: u.region,
+      phone: u.phone,
+      submitted_at: u.deliveryKyc?.submittedAt || null,
+      /** Last 4 only — for ops review alongside profile. */
+      aadhar_last4: u.deliveryKyc?.aadharLast4 || "",
+      pan_last4: u.deliveryKyc?.panLast4 || "",
+      consent_accepted_at: u.deliveryKyc?.consentAcceptedAt || null,
+    }));
+    return res.json({ items });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/delivery-kyc/:userId", async (req, res, next) => {
+  try {
+    const uid = req.params.userId;
+    if (!mongoose.isValidObjectId(uid)) {
+      return res.status(400).json({ error: "Invalid user id" });
+    }
+    const { status, rejection_reason } = req.body || {};
+    if (!["verified", "rejected"].includes(status)) {
+      return res.status(400).json({ error: "status must be verified or rejected" });
+    }
+    const set = {
+      "deliveryKyc.status": status,
+    };
+    if (status === "verified") {
+      set["deliveryKyc.verifiedAt"] = new Date();
+      set["deliveryKyc.rejectedReason"] = "";
+    } else {
+      set["deliveryKyc.verifiedAt"] = null;
+      set["deliveryKyc.rejectedReason"] = String(rejection_reason || "Rejected").slice(0, 500);
+    }
+    const u = await User.findOneAndUpdate({ _id: uid, role: "delivery" }, { $set: set }, { new: true }).lean();
+    if (!u) {
+      return res.status(404).json({ error: "Delivery user not found" });
+    }
+    return res.json({
+      user_id: String(u._id),
+      kyc_status: u.deliveryKyc?.status,
+      verified_at: u.deliveryKyc?.verifiedAt || null,
+      rejection_reason: status === "rejected" ? u.deliveryKyc?.rejectedReason || "" : undefined,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.get("/orders", async (_req, res, next) => {
   try {
     const rows = await Order.find()

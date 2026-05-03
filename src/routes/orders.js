@@ -8,9 +8,10 @@ const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { formatOrder } = require("../lib/format");
+const { formatOrder, formatDeliveryPrivate } = require("../lib/format");
 const { buyerDisplayPrice, buyerMaxListedPrice } = require("../lib/buyerPrice");
 const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
+const { claimTimeoutMs, normalizeAddressPart } = require("../lib/delivery");
 
 const router = express.Router();
 
@@ -267,7 +268,13 @@ router.get(
       const rows = await Order.find({ user: req.user.id })
         .sort({ createdAt: -1 })
         .lean();
-      return res.json(rows.map((o) => formatOrder(o)));
+      return res.json(
+        rows.map((o) => {
+          const fo = formatOrder(o);
+          fo.delivery = formatDeliveryPrivate(o.delivery);
+          return fo;
+        })
+      );
     } catch (err) {
       return next(err);
     }
@@ -359,7 +366,182 @@ router.get(
       const rows = await Order.find({ seller: seller._id })
         .sort({ createdAt: -1 })
         .lean();
-      return res.json(rows.map((o) => formatOrder(o)));
+      return res.json(
+        rows.map((o) => {
+          const fo = formatOrder(o);
+          fo.delivery = formatDeliveryPrivate(o.delivery);
+          return fo;
+        })
+      );
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/** Buyer: after payment, request delivery with structured pickup/dropoff (goes to driver pool). */
+router.post(
+  "/:orderId/delivery-request",
+  requireAuth,
+  requireRole("buyer"),
+  async (req, res, next) => {
+    try {
+      const oid = req.params.orderId;
+      if (!mongoose.isValidObjectId(oid)) return badRequest(res, "Invalid order id");
+
+      const order = await Order.findById(oid);
+      if (!order) return res.status(404).json({ error: "Order not found" });
+      if (String(order.user) !== String(req.user.id)) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      if (order.paymentStatus !== "paid") {
+        return badRequest(res, "Order must be paid before requesting delivery");
+      }
+
+      if (!order.delivery) order.delivery = {};
+
+      const allowed = ["none", "expired_unclaimed", "pending_details"];
+      if (!allowed.includes(order.delivery?.status || "none")) {
+        return badRequest(res, "Delivery already requested or in progress");
+      }
+
+      const { dropoff, pickup: pickupOverride, fee } = req.body || {};
+      const addr = normalizeAddressPart(dropoff?.address);
+      if (!addr) {
+        return badRequest(res, "dropoff.address is required");
+      }
+
+      const buyer = await User.findById(req.user.id).lean();
+      const sellerDoc = await Seller.findById(order.seller).lean();
+      if (!sellerDoc) return res.status(404).json({ error: "Seller not found" });
+
+      const defaultPickupAddr = `${sellerDoc.shopName}, ${sellerDoc.city}, ${sellerDoc.region}`;
+      const pickupAddr = normalizeAddressPart(pickupOverride?.address) || defaultPickupAddr;
+
+      const dropPhone = normalizeAddressPart(dropoff?.contactPhone) || normalizeAddressPart(buyer?.phone) || "";
+      const pickPhone = normalizeAddressPart(pickupOverride?.contactPhone) || "";
+
+      order.delivery = order.delivery || {};
+      order.delivery.status = "delivery_requested";
+      order.delivery.fee = fee != null && Number.isFinite(Number(fee)) ? Math.max(0, Number(fee)) : order.delivery.fee || 0;
+      order.delivery.driver = null;
+      order.delivery.requestedAt = new Date();
+      order.delivery.claimExpiresAt = new Date(Date.now() + claimTimeoutMs());
+      order.delivery.assignedAt = null;
+      order.delivery.readyForPickupAt = null;
+      order.delivery.pickedUpAt = null;
+      order.delivery.deliveredAt = null;
+      order.delivery.driverLastLat = null;
+      order.delivery.driverLastLng = null;
+      order.delivery.driverLocationAt = null;
+      order.delivery.dropoffCity = normalizeAddressPart(buyer?.city) || "";
+      order.delivery.dropoffRegion = normalizeAddressPart(buyer?.region) || "";
+      order.delivery.dropoff = {
+        address: addr,
+        landmark: normalizeAddressPart(dropoff?.landmark),
+        lat: dropoff?.lat != null && Number.isFinite(Number(dropoff.lat)) ? Number(dropoff.lat) : null,
+        lng: dropoff?.lng != null && Number.isFinite(Number(dropoff.lng)) ? Number(dropoff.lng) : null,
+        contactPhone: dropPhone,
+      };
+      order.delivery.pickup = {
+        address: pickupAddr,
+        landmark: normalizeAddressPart(pickupOverride?.landmark),
+        lat:
+          pickupOverride?.lat != null && Number.isFinite(Number(pickupOverride.lat))
+            ? Number(pickupOverride.lat)
+            : null,
+        lng:
+          pickupOverride?.lng != null && Number.isFinite(Number(pickupOverride.lng))
+            ? Number(pickupOverride.lng)
+            : null,
+        contactPhone: pickPhone,
+      };
+
+      await order.save();
+      return res.status(201).json({ order: formatOrder(order) });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/** Shopkeeper: confirm order is ready for driver pickup (required before driver marks picked_up). */
+router.post(
+  "/seller/:orderId/delivery-ready",
+  requireAuth,
+  requireRole("seller"),
+  async (req, res, next) => {
+    try {
+      const oid = req.params.orderId;
+      if (!mongoose.isValidObjectId(oid)) return badRequest(res, "Invalid order id");
+
+      const seller = await Seller.findOne({ user: req.user.id });
+      if (!seller) return res.status(404).json({ error: "Seller profile not found" });
+
+      const order = await Order.findOne({ _id: oid, seller: seller._id });
+      if (!order) return res.status(404).json({ error: "Order not found" });
+      if (order.paymentStatus !== "paid") {
+        return badRequest(res, "Order is not paid yet");
+      }
+      if (!order.delivery?.status || order.delivery.status === "none") {
+        return badRequest(res, "Buyer must request delivery before marking ready for pickup");
+      }
+
+      order.delivery = order.delivery || {};
+      order.delivery.pickup = order.delivery.pickup || {};
+
+      const { pickup } = req.body || {};
+      if (pickup) {
+        if (pickup.address != null) order.delivery.pickup.address = normalizeAddressPart(pickup.address);
+        if (pickup.landmark != null) order.delivery.pickup.landmark = normalizeAddressPart(pickup.landmark);
+        if (pickup.lat != null && Number.isFinite(Number(pickup.lat))) order.delivery.pickup.lat = Number(pickup.lat);
+        if (pickup.lng != null && Number.isFinite(Number(pickup.lng))) order.delivery.pickup.lng = Number(pickup.lng);
+        if (pickup.contactPhone != null) {
+          order.delivery.pickup.contactPhone = normalizeAddressPart(pickup.contactPhone);
+        }
+      }
+      order.delivery.readyForPickupAt = new Date();
+      await order.save();
+      return res.json({ order: formatOrder(order) });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/** Shopkeeper: after claim timeout, put job back in the pool for drivers. */
+router.post(
+  "/seller/:orderId/delivery-reoffer",
+  requireAuth,
+  requireRole("seller"),
+  async (req, res, next) => {
+    try {
+      const oid = req.params.orderId;
+      if (!mongoose.isValidObjectId(oid)) return badRequest(res, "Invalid order id");
+
+      const seller = await Seller.findOne({ user: req.user.id });
+      if (!seller) return res.status(404).json({ error: "Seller profile not found" });
+
+      const order = await Order.findOne({ _id: oid, seller: seller._id });
+      if (!order) return res.status(404).json({ error: "Order not found" });
+
+      const now = new Date();
+      const claimExpired =
+        order.delivery?.claimExpiresAt && order.delivery.claimExpiresAt < now && !order.delivery?.driver;
+      const canReoffer =
+        order.delivery?.status === "expired_unclaimed" ||
+        (order.delivery?.status === "delivery_requested" && claimExpired);
+      if (!canReoffer) {
+        return badRequest(res, "Only expired delivery jobs (no driver) can be re-offered");
+      }
+
+      order.delivery.status = "delivery_requested";
+      order.delivery.driver = null;
+      order.delivery.requestedAt = new Date();
+      order.delivery.claimExpiresAt = new Date(Date.now() + claimTimeoutMs());
+      order.delivery.assignedAt = null;
+      await order.save();
+      return res.json({ order: formatOrder(order) });
     } catch (err) {
       return next(err);
     }
