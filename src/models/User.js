@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     name: { type: String, required: true },
     phone: { type: String, default: "" },
-    /** Set when mobile OTP is completed (Indian mobile on `phone`). */
+    /** Set when mobile on profile is confirmed (email code flow; not SMS by default). */
     phoneVerifiedAt: { type: Date, default: null },
     city: { type: String, required: true },
     region: { type: String, required: true },
