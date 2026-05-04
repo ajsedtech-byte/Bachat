@@ -6,6 +6,7 @@ const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatQuote } = require("../lib/format");
 const { recordEvent } = require("../lib/analytics");
+const { requireSellerTradeUnblocked, sellerTradeBlocked, forbiddenKyc } = require("../lib/sellerKycGate");
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
-router.post("/", requireAuth, requireRole("seller"), async (req, res, next) => {
+router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked, async (req, res, next) => {
   try {
     const { request_id, price, delivery_time, notes } = req.body || {};
     if (!request_id || !mongoose.isValidObjectId(request_id)) {
@@ -72,6 +73,12 @@ router.get("/request/:requestId", requireAuth, async (req, res, next) => {
     if (!mongoose.isValidObjectId(rid)) return res.json([]);
     const reqDoc = await Request.findById(rid).lean();
     if (!reqDoc) return res.status(404).json({ error: "Request not found" });
+    if (req.user.role === "seller") {
+      const sk = await Seller.findOne({ user: req.user.id }).lean();
+      if (sellerTradeBlocked(sk)) {
+        return forbiddenKyc(res);
+      }
+    }
     if (req.user.role === "buyer" && String(reqDoc.user) !== String(req.user.id)) {
       return res.status(403).json({ error: "Forbidden" });
     }
@@ -86,7 +93,7 @@ router.get("/request/:requestId", requireAuth, async (req, res, next) => {
   }
 });
 
-router.get("/mine/seller", requireAuth, requireRole("seller"), async (req, res, next) => {
+router.get("/mine/seller", requireAuth, requireRole("seller"), requireSellerTradeUnblocked, async (req, res, next) => {
   try {
     const seller = await Seller.findOne({ user: req.user.id }).lean();
     if (!seller) return res.json([]);

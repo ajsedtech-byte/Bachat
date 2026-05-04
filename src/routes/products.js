@@ -6,6 +6,7 @@ const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
 const { CATEGORY_SET, sellerCategoryList } = require("../lib/categories");
+const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
 
 const router = express.Router();
 
@@ -171,7 +172,7 @@ router.get("/seller/mine", requireAuth, requireRole("seller"), async (req, res, 
   }
 });
 
-router.post("/", requireAuth, requireRole("seller"), async (req, res, next) => {
+router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked, async (req, res, next) => {
   try {
     const seller = await sellerForUser(req.user.id);
     if (!seller) return res.status(404).json({ error: "Seller profile not found" });
@@ -209,7 +210,7 @@ router.post("/", requireAuth, requireRole("seller"), async (req, res, next) => {
   }
 });
 
-router.patch("/:productId", requireAuth, requireRole("seller"), async (req, res, next) => {
+router.patch("/:productId", requireAuth, requireRole("seller"), requireSellerTradeUnblocked, async (req, res, next) => {
   try {
     const seller = await sellerForUser(req.user.id);
     if (!seller) return res.status(404).json({ error: "Seller profile not found" });
@@ -251,7 +252,7 @@ router.patch("/:productId", requireAuth, requireRole("seller"), async (req, res,
   }
 });
 
-router.delete("/:productId", requireAuth, requireRole("seller"), async (req, res, next) => {
+router.delete("/:productId", requireAuth, requireRole("seller"), requireSellerTradeUnblocked, async (req, res, next) => {
   try {
     const seller = await sellerForUser(req.user.id);
     if (!seller) return res.status(404).json({ error: "Seller profile not found" });

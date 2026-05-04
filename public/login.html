@@ -117,8 +117,11 @@
   </div>
 
   <script>
-    function dashboardFor(role) {
-      if (role === "seller") return "/ShopkeeperDashboard.html";
+    function dashboardFor(role, data) {
+      if (role === "seller") {
+        if (data && data.seller && data.seller.needs_kyc_completion) return "/seller-kyc.html";
+        return "/ShopkeeperDashboard.html";
+      }
       if (role === "admin") return "/AdminDashboard.html";
       if (role === "delivery") return "/DeliveryDashboard.html";
       return "/UserDashboard.html";
@@ -283,12 +286,14 @@
         }
         localStorage.setItem("ajs_token", data.token);
         localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
+        if (data.seller) localStorage.setItem("ajs_seller", JSON.stringify(data.seller));
+        else localStorage.removeItem("ajs_seller");
         var needPhoneOtp = data.user && data.user.phone && !data.user.phone_verified_at;
-        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole));
+        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole, data));
         if (needPhoneOtp) {
           location.href = "/verify-phone.html";
         } else {
-          location.href = dashboardFor(actualRole);
+          location.href = dashboardFor(actualRole, data);
         }
       } catch (x) {
         err.textContent = x.message || "Error";
@@ -316,12 +321,14 @@
         }
         localStorage.setItem("ajs_token", data.token);
         localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
+        if (data.seller) localStorage.setItem("ajs_seller", JSON.stringify(data.seller));
+        else localStorage.removeItem("ajs_seller");
         var needPhone = data.user && data.user.phone && !data.user.phone_verified_at;
-        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole));
+        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole, data));
         if (needPhone) {
           location.href = "/verify-phone.html";
         } else {
-          location.href = dashboardFor(actualRole);
+          location.href = dashboardFor(actualRole, data);
         }
       } catch (x) {
         err.textContent = x.message || "Error";

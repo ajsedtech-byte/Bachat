@@ -250,8 +250,11 @@
 
       let regEmail = "";
 
-      function dashboardFor(role) {
-        if (role === "seller") return "/ShopkeeperDashboard.html";
+      function dashboardFor(role, data) {
+        if (role === "seller") {
+          if (data && data.seller && data.seller.needs_kyc_completion) return "/seller-kyc.html";
+          return "/ShopkeeperDashboard.html";
+        }
         return "/UserDashboard.html";
       }
 
@@ -327,14 +330,16 @@
           if (!res.ok) throw new Error(data.error || "Invalid code");
           localStorage.setItem("ajs_token", data.token);
           localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
+          if (data.seller) localStorage.setItem("ajs_seller", JSON.stringify(data.seller));
+          else localStorage.removeItem("ajs_seller");
           const role = data.user && data.user.role;
           const needPhone =
             data.user && data.user.phone && !data.user.phone_verified_at;
-          sessionStorage.setItem("bachat_post_phone_next", dashboardFor(role));
+          sessionStorage.setItem("bachat_post_phone_next", dashboardFor(role, data));
           if (needPhone) {
             location.href = "/verify-phone.html";
           } else {
-            location.href = dashboardFor(role);
+            location.href = dashboardFor(role, data);
           }
         } catch (x) {
           verr.textContent = x.message || "Verification failed";

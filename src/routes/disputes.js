@@ -6,6 +6,7 @@ const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatDispute } = require("../lib/format");
 const { recordEvent } = require("../lib/analytics");
+const { sellerTradeBlocked, forbiddenKyc } = require("../lib/sellerKycGate");
 
 const router = express.Router();
 const REASONS = Dispute.DISPUTE_REASONS;
@@ -22,6 +23,12 @@ async function sellerForUser(userId) {
 
 router.post("/", requireAuth, requireRole("buyer", "seller"), async (req, res, next) => {
   try {
+    if (req.user.role === "seller") {
+      const sk = await sellerForUser(req.user.id);
+      if (sellerTradeBlocked(sk)) {
+        return forbiddenKyc(res);
+      }
+    }
     const { order_id, reason_code, description } = req.body || {};
     if (!order_id || !mongoose.isValidObjectId(order_id)) {
       return badRequest(res, "order_id is required");

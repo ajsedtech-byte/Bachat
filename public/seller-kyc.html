@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop verification — Bachat</title>
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="bachat-ui min-h-screen bg-[#f0f4fa] text-slate-900">
+  <div class="min-h-screen flex flex-col lg:flex-row">
+    <aside class="lg:w-[min(100%,420px)] bg-gradient-to-br from-[#0056d2] to-[#003d99] text-white p-8 lg:p-12 flex flex-col justify-between shrink-0">
+      <div>
+        <a href="/" class="inline-block mb-8"><img src="/assets/bachat-logo-hero.png" alt="Bachat" class="h-14 w-auto object-contain brightness-0 invert opacity-95" width="1024" height="1536" /></a>
+        <h1 class="text-2xl lg:text-3xl font-extrabold leading-tight">Complete your shop verification</h1>
+        <p class="mt-4 text-white/90 text-sm max-w-sm">Buyers trust verified shops. Finish eKYC to list products, send quotes, and receive orders.</p>
+        <ul class="mt-8 space-y-3 text-sm text-white/90">
+          <li class="flex gap-2"><span aria-hidden="true">✓</span> Receive ready-to-buy demand</li>
+          <li class="flex gap-2"><span aria-hidden="true">✓</span> Send quotes &amp; grow orders</li>
+          <li class="flex gap-2"><span aria-hidden="true">✓</span> Fast ops review (typically under 24h)</li>
+        </ul>
+      </div>
+      <p class="text-xs text-white/70 mt-10">Questions? Use support from your dashboard after verification.</p>
+    </aside>
+
+    <main class="flex-1 p-6 lg:p-12 overflow-auto">
+      <p id="err" class="hidden mb-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+      <p id="banner-done" class="hidden mb-6 text-sm font-semibold text-green-800 bg-green-50 border border-green-100 rounded-xl px-4 py-3">You are verified. Redirecting to your dashboard…</p>
+
+      <div id="stepper" class="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 mb-8">
+        <span class="rounded-full bg-[#0056d2] text-white px-3 py-1">1 · Choose method</span>
+        <span class="text-slate-300">→</span>
+        <span id="st-2" class="rounded-full bg-slate-200 px-3 py-1">2 · Verify business</span>
+        <span class="text-slate-300">→</span>
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-400">3 · Go live</span>
+      </div>
+
+      <div id="panel-choice" class="max-w-4xl space-y-6">
+        <h2 class="text-xl font-extrabold text-slate-900">How would you like to verify?</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <button type="button" id="btn-salesman" class="text-left rounded-2xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2] hover:shadow-md transition-all">
+            <p class="text-lg font-extrabold text-slate-900">Verify via field team</p>
+            <p class="text-sm text-slate-600 mt-2">A Bachat representative will visit or call you to complete verification in person. Best if you prefer guided onboarding.</p>
+            <p class="mt-4 text-xs font-bold text-[#0056d2]">Select this option →</p>
+          </button>
+          <button type="button" id="btn-direct" class="text-left rounded-2xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2] hover:shadow-md transition-all">
+            <p class="text-lg font-extrabold text-slate-900">Verify directly (upload)</p>
+            <p class="text-sm text-slate-600 mt-2">Upload shop proof, GST, Aadhaar (masked OK), Udyam, etc. Our team reviews against registry / DigiLocker-style checks where applicable.</p>
+            <p class="mt-4 text-xs font-bold text-[#0056d2]">Select this option →</p>
+          </button>
+        </div>
+      </div>
+
+      <div id="panel-salesman" class="hidden max-w-xl rounded-2xl border border-[#e5e7eb] bg-white p-8 shadow-sm">
+        <h2 class="text-xl font-extrabold">Field verification requested</h2>
+        <p class="text-sm text-slate-600 mt-3">We have queued your shop for a field visit or call-back. Keep your phone reachable on <strong id="salesman-phone">—</strong>.</p>
+        <p class="text-xs text-slate-500 mt-4">You will receive an email when verification is approved. You can close this page and sign in again later.</p>
+        <a href="/ShopkeeperDashboard.html" class="mt-6 inline-block rounded-xl bg-[#0056d2] text-white font-bold px-6 py-3 text-sm">Back to dashboard</a>
+      </div>
+
+      <div id="panel-direct" class="hidden max-w-3xl space-y-6">
+        <h2 class="text-xl font-extrabold">Upload business proofs</h2>
+        <p class="text-sm text-slate-600">Accepted: shop board photo, GST certificate, Aadhaar (last 4 visible is fine), Udyam, PAN. Max ~900KB per file (encoded). JPG, PNG, or PDF as data in browser.</p>
+        <label class="block text-xs font-bold text-slate-500 uppercase">GST number (optional)</label>
+        <input id="gst-no" type="text" maxlength="20" class="w-full max-w-md rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" placeholder="22AAAAA0000A1Z5" />
+        <div class="rounded-2xl border-2 border-dashed border-[#0056d2]/40 bg-[#f8fafc] p-8 text-center">
+          <input type="file" id="kyc-files" multiple accept="image/*,.pdf" class="hidden" />
+          <button type="button" id="pick-files" class="rounded-xl bg-white border border-[#e5e7eb] px-5 py-2.5 text-sm font-bold text-[#0056d2] shadow-sm">Choose files</button>
+          <p id="file-hint" class="text-xs text-slate-500 mt-3">Up to 6 files</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button type="button" id="btn-upload" class="rounded-xl bg-[#0056d2] text-white font-bold px-6 py-3 text-sm disabled:opacity-50" disabled>Save uploads</button>
+          <button type="button" id="btn-submit-review" class="rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-bold px-6 py-3 text-sm disabled:opacity-40" disabled>Submit for review</button>
+        </div>
+        <p id="status-line" class="text-sm text-slate-600"></p>
+      </div>
+
+      <div id="panel-submitted" class="hidden max-w-xl rounded-2xl border border-amber-200 bg-amber-50/80 p-8">
+        <h2 class="text-xl font-extrabold text-amber-950">Under review</h2>
+        <p class="text-sm text-amber-900/90 mt-2">Your documents were submitted. We will email you at <strong id="sub-email">—</strong> when verification is complete.</p>
+      </div>
+
+      <div id="panel-rejected" class="hidden max-w-xl rounded-2xl border border-red-200 bg-red-50/80 p-8">
+        <h2 class="text-xl font-extrabold text-red-900">Verification needs a redo</h2>
+        <p id="rej-reason" class="text-sm text-red-800 mt-2"></p>
+        <button type="button" id="btn-restart" class="mt-4 rounded-xl bg-red-700 text-white font-bold px-5 py-2.5 text-sm">Start again</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var token = localStorage.getItem("ajs_token");
+      if (!token) {
+        location.href = "/login.html?role=seller";
+        return;
+      }
+
+      function esc(s) {
+        var d = document.createElement("div");
+        d.textContent = s == null ? "" : String(s);
+        return d.innerHTML;
+      }
+
+      async function api(method, path, body) {
+        var res = await fetch(path, {
+          method: method,
+          headers: Object.assign({ Authorization: "Bearer " + token }, body ? { "Content-Type": "application/json" } : {}),
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        if (res.status === 401) {
+          localStorage.removeItem("ajs_token");
+          location.href = "/login.html?role=seller";
+          return null;
+        }
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        return data;
+      }
+
+      function readFileAsDataURL(file) {
+        return new Promise(function (resolve, reject) {
+          var r = new FileReader();
+          r.onload = function () {
+            resolve(String(r.result || ""));
+          };
+          r.onerror = function () {
+            reject(new Error("Could not read file"));
+          };
+          r.readAsDataURL(file);
+        });
+      }
+
+      var pickedFiles = [];
+
+      function showErr(msg) {
+        var e = document.getElementById("err");
+        e.textContent = msg;
+        e.classList.remove("hidden");
+      }
+      function hideErr() {
+        document.getElementById("err").classList.add("hidden");
+      }
+
+      function setVisible(id) {
+        ["panel-choice", "panel-salesman", "panel-direct", "panel-submitted", "panel-rejected"].forEach(function (x) {
+          document.getElementById(x).classList.add("hidden");
+        });
+        document.getElementById(id).classList.remove("hidden");
+      }
+
+      async function refresh() {
+        hideErr();
+        try {
+          var d = await api("GET", "/api/seller/kyc");
+          var k = d.kyc || {};
+          var seller = d.seller || {};
+          if (!seller.needs_kyc_completion && seller.is_verified) {
+            document.getElementById("banner-done").classList.remove("hidden");
+            setTimeout(function () {
+              location.href = "/ShopkeeperDashboard.html";
+            }, 1200);
+            return;
+          }
+          document.getElementById("st-2").className =
+            "rounded-full px-3 py-1 " + (k.status === "awaiting_path" ? "bg-slate-200 text-slate-600" : "bg-[#0056d2] text-white");
+          if (k.status === "rejected") {
+            document.getElementById("rej-reason").textContent = k.rejected_reason || "Please resubmit.";
+            setVisible("panel-rejected");
+            return;
+          }
+          if (k.status === "submitted" || k.status === "salesman_pending") {
+            var me2 = await api("GET", "/api/auth/me");
+            if (k.status === "salesman_pending") {
+              setVisible("panel-salesman");
+              document.getElementById("salesman-phone").textContent = (me2.user && me2.user.phone) || "—";
+            } else {
+              setVisible("panel-submitted");
+              document.getElementById("sub-email").textContent = (me2.user && me2.user.email) || "your email";
+            }
+            return;
+          }
+          if (k.path === "direct" || k.status === "direct_draft") {
+            setVisible("panel-direct");
+            document.getElementById("gst-no").value = k.gst_number || "";
+            document.getElementById("status-line").textContent =
+              (k.document_count || 0) > 0 ? "Saved " + k.document_count + " document(s). Submit when ready." : "Add at least one document, then save.";
+            document.getElementById("btn-submit-review").disabled = (k.document_count || 0) < 1;
+            return;
+          }
+          setVisible("panel-choice");
+        } catch (x) {
+          showErr(x.message || "Error");
+        }
+      }
+
+      document.getElementById("btn-salesman").addEventListener("click", async function () {
+        try {
+          hideErr();
+          await api("POST", "/api/seller/kyc/path", { path: "salesman" });
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+      document.getElementById("btn-direct").addEventListener("click", async function () {
+        try {
+          hideErr();
+          await api("POST", "/api/seller/kyc/path", { path: "direct" });
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+
+      document.getElementById("pick-files").addEventListener("click", function () {
+        document.getElementById("kyc-files").click();
+      });
+      document.getElementById("kyc-files").addEventListener("change", async function () {
+        var inp = document.getElementById("kyc-files");
+        pickedFiles = Array.prototype.slice.call(inp.files || [], 0, 6);
+        document.getElementById("file-hint").textContent = pickedFiles.length ? pickedFiles.length + " file(s) selected" : "Up to 6 files";
+        document.getElementById("btn-upload").disabled = pickedFiles.length < 1;
+      });
+      document.getElementById("btn-upload").addEventListener("click", async function () {
+        hideErr();
+        try {
+          var docs = [];
+          for (var i = 0; i < pickedFiles.length; i++) {
+            var f = pickedFiles[i];
+            var data = await readFileAsDataURL(f);
+            if (data.length > 900000) throw new Error("File too large: " + f.name);
+            var kind = "other";
+            var n = f.name.toLowerCase();
+            if (n.indexOf("gst") >= 0) kind = "gst_cert";
+            else if (n.indexOf("aadhaar") >= 0 || n.indexOf("aadhar") >= 0) kind = "aadhaar";
+            else if (n.indexOf("shop") >= 0 || n.indexOf("board") >= 0) kind = "shop_photo";
+            else if (n.indexOf("udyam") >= 0) kind = "udyam";
+            else if (n.indexOf("pan") >= 0) kind = "pan";
+            docs.push({ kind: kind, filename: f.name, mime_type: f.type || "application/octet-stream", data: data });
+          }
+          await api("POST", "/api/seller/kyc/documents", { documents: docs, gst_number: document.getElementById("gst-no").value.trim() });
+          pickedFiles = [];
+          document.getElementById("kyc-files").value = "";
+          document.getElementById("btn-upload").disabled = true;
+          document.getElementById("file-hint").textContent = "Up to 6 files";
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+      document.getElementById("btn-submit-review").addEventListener("click", async function () {
+        try {
+          hideErr();
+          await api("POST", "/api/seller/kyc/submit", {});
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+      document.getElementById("btn-restart").addEventListener("click", async function () {
+        try {
+          await api("POST", "/api/seller/kyc/restart", {});
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+
+      refresh();
+    })();
+  </script>
+</body>
+</html>

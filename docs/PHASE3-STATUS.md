@@ -8,7 +8,7 @@ Large modules from the original design mocks are **not** all implemented as firs
 | Disputes & refunds | **Live (v1)** | `Dispute` model + `POST/GET /api/disputes`, buyer/seller UI; `GET/PATCH /api/admin/disputes`; `dispute-signals` still for payment flags |
 | City / coverage heatmaps | **Planned** | No GIS warehouse |
 | Field sales CRM | **Live (v1)** | `Lead` model + `GET/POST/PATCH /api/leads` (admin + sales); `scripts/create-sales.js`; `admin-sales.html` |
-| Compliance / KYC depth | **Partial** | Delivery KYC + DigiLocker hooks; see `docs/DELIVERY-KYC.md` |
+| Compliance / KYC depth | **Partial** | Delivery KYC + DigiLocker hooks; see `docs/DELIVERY-KYC.md` · **Shopkeeper eKYC** (`seller-kyc.html`, `/api/seller/kyc/*`, admin queue) for new seller signups |
 | Notification centre | **Partial** | `GET /api/admin/notifications-summary`; no user-facing alert rules engine |
 | Analytics warehouse | **Live (v1)** | `AnalyticsEvent` + `recordEvent` on requests/quotes/orders/payments/disputes; `GET /api/admin/analytics-events` & `analytics-rollup` |
 | Team portal / SSO / 2FA | **Live (v1)** | TOTP MFA for `admin`/`sales` (`/api/auth/mfa/*`, `/api/auth/login/mfa`); optional OIDC (`/api/auth/oidc/team/*`, env in `.env.example`) |

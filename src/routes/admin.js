@@ -8,11 +8,124 @@ const Order = require("../models/Order");
 const Dispute = require("../models/Dispute");
 const AnalyticsEvent = require("../models/AnalyticsEvent");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { formatRequest, formatOrder, formatDispute } = require("../lib/format");
+const { formatRequest, formatOrder, formatDispute, formatSeller } = require("../lib/format");
+const { sendMail } = require("../services/email");
 
 const router = express.Router();
 
 /** Read-only pipeline counts — shared with field sales portal. */
+/** Shopkeepers waiting for eKYC (field visit or document review). */
+router.get("/seller-kyc/pending", requireAuth, requireRole("admin", "sales"), async (_req, res, next) => {
+  try {
+    const filter = {
+      isVerified: false,
+      $or: [{ "sellerKyc.status": "salesman_pending" }, { "sellerKyc.status": "submitted" }],
+    };
+    const rows = await Seller.find(filter)
+      .sort({ updatedAt: -1 })
+      .limit(100)
+      .populate("user", "name email phone city region createdAt")
+      .lean();
+    const items = rows.map((s) => {
+      const u = s.user && typeof s.user === "object" ? s.user : null;
+      const kyc = s.sellerKyc || {};
+      return {
+        seller_id: String(s._id),
+        shop_name: s.shopName,
+        city: s.city,
+        region: s.region,
+        kyc_status: kyc.status,
+        kyc_path: kyc.path || "",
+        document_count: Array.isArray(kyc.documents) ? kyc.documents.length : 0,
+        submitted_at: kyc.submittedAt || null,
+        salesman_requested_at: kyc.salesmanRequestedAt || null,
+        owner_name: u ? u.name : "—",
+        owner_email: u ? u.email : "—",
+        owner_phone: u ? u.phone || "" : "",
+      };
+    });
+    return res.json({ items });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales"), async (req, res, next) => {
+  try {
+    const sid = req.params.sellerId;
+    if (!mongoose.isValidObjectId(sid)) {
+      return res.status(400).json({ error: "Invalid seller id" });
+    }
+    const { action, rejection_reason } = req.body || {};
+    if (!["verify", "reject"].includes(action)) {
+      return res.status(400).json({ error: "action must be verify or reject" });
+    }
+    const seller = await Seller.findById(sid).populate("user", "name email");
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+    if (!seller.sellerKyc) {
+      seller.sellerKyc = {};
+    }
+    const st = seller.sellerKyc.status;
+    if (action === "verify") {
+      if (!["submitted", "salesman_pending"].includes(st)) {
+        return res.status(400).json({ error: "Seller is not in a state that can be verified from the queue" });
+      }
+      seller.isVerified = true;
+      seller.sellerKyc.status = "verified";
+      seller.sellerKyc.verifiedAt = new Date();
+      seller.sellerKyc.rejectedReason = "";
+      await seller.save();
+      const u = seller.user;
+      const email = u && u.email;
+      if (email) {
+        try {
+          await sendMail({
+            to: email,
+            subject: "Your Bachat shop verification is complete",
+            text: `Hi ${(u && u.name) || ""},\n\nYour shop eKYC / business verification on Bachat is approved. You can now sign in and use the full Shopkeeper dashboard.\n\n— Bachat`,
+            html: `<p>Hi ${(u && u.name) || "there"},</p><p>Your <strong>shop eKYC / business verification</strong> on Bachat is <strong>approved</strong>. You can now sign in and use the full Shopkeeper dashboard.</p><p>— Bachat</p>`,
+          });
+        } catch (e) {
+          console.error("[seller-kyc-verify-mail]", e.message || e);
+        }
+      }
+      return res.json({ seller: formatSeller(seller.toObject ? seller.toObject() : seller), message: "Verified" });
+    }
+    if (st !== "submitted" && st !== "salesman_pending") {
+      return res.status(400).json({ error: "Only pending sellers can be rejected from this queue" });
+    }
+    seller.sellerKyc.status = "rejected";
+    seller.sellerKyc.rejectedReason = String(rejection_reason || "Please resubmit or choose another verification option.").slice(
+      0,
+      2000
+    );
+    seller.isVerified = false;
+    await seller.save();
+    const u2 = seller.user;
+    if (u2 && u2.email) {
+      try {
+        const reasonEsc = String(seller.sellerKyc.rejectedReason || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        await sendMail({
+          to: u2.email,
+          subject: "Bachat shop verification needs attention",
+          text: `Hi ${u2.name || ""},\n\nWe could not approve your verification yet.\nReason: ${seller.sellerKyc.rejectedReason}\n\nPlease sign in to Bachat and complete verification again.\n\n— Bachat`,
+          html: `<p>Hi ${u2.name || "there"},</p><p>We could not approve your verification yet.</p><p><strong>Reason:</strong></p><p style="white-space:pre-wrap">${reasonEsc}</p><p>Please sign in to Bachat and complete verification again.</p><p>— Bachat</p>`,
+        });
+      } catch (e) {
+        console.error("[seller-kyc-reject-mail]", e.message || e);
+      }
+    }
+    return res.json({ seller: formatSeller(seller.toObject()), message: "Rejected" });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.get("/sales-pipeline", requireAuth, requireRole("admin", "sales"), async (_req, res, next) => {
   try {
     const [sellers, verified, buyers] = await Promise.all([

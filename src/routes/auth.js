@@ -41,6 +41,18 @@ function isTeamRole(role) {
   return role === "admin" || role === "sales";
 }
 
+/** Attach seller profile on login/verify responses so the client can route eKYC. */
+async function jsonWithSellerToken(userDocOrLean) {
+  const u = userDocOrLean;
+  const token = signToken(u);
+  const body = { token, user: formatUser(u) };
+  if (u.role === "seller") {
+    const s = await Seller.findOne({ user: u._id }).lean();
+    body.seller = formatSeller(s);
+  }
+  return body;
+}
+
 /** Only include OTP in JSON when EXPOSE_DEV_OTP=1 (never in real production). */
 function withDevOtp(payload, code) {
   if (process.env.EXPOSE_DEV_OTP === "1") {
@@ -134,6 +146,13 @@ router.post("/register", async (req, res, next) => {
                 category: sellerCategories[0],
                 city,
                 region,
+                isVerified: false,
+                sellerKyc: {
+                  status: "awaiting_path",
+                  path: "",
+                  documents: [],
+                  gstNumber: "",
+                },
               },
             ],
             { session }
@@ -218,8 +237,7 @@ router.post("/verify-email", async (req, res, next) => {
     }
 
     const fresh = await User.findById(user._id).lean();
-    const token = signToken(fresh);
-    return res.json({ token, user: formatUser(fresh) });
+    return res.json(await jsonWithSellerToken(fresh));
   } catch (err) {
     return next(err);
   }
@@ -323,8 +341,7 @@ router.post("/login", async (req, res, next) => {
       });
     }
 
-    const token = signToken(user);
-    return res.json({ token, user: formatUser(user) });
+    return res.json(await jsonWithSellerToken(user));
   } catch (err) {
     return next(err);
   }
@@ -360,7 +377,7 @@ router.post("/login/mfa", async (req, res, next) => {
       return res.status(401).json({ error: "Invalid authenticator code" });
     }
     const fresh = await User.findById(user._id).lean();
-    return res.json({ token: signToken(fresh), user: formatUser(fresh) });
+    return res.json(await jsonWithSellerToken(fresh));
   } catch (err) {
     return next(err);
   }
@@ -595,11 +612,9 @@ router.post("/phone-otp/verify", requireAuth, async (req, res, next) => {
     }
     if (user.phoneVerifiedAt) {
       const fresh = await User.findById(user._id).lean();
-      return res.json({
-        message: "Already verified",
-        token: signToken(fresh),
-        user: formatUser(fresh),
-      });
+      const body = await jsonWithSellerToken(fresh);
+      body.message = "Already verified";
+      return res.json(body);
     }
 
     const otp = await EmailOtp.findOne({
@@ -624,7 +639,7 @@ router.post("/phone-otp/verify", requireAuth, async (req, res, next) => {
     await ensureReferralCode(User, user);
 
     const fresh = await User.findById(user._id).lean();
-    return res.json({ token: signToken(fresh), user: formatUser(fresh) });
+    return res.json(await jsonWithSellerToken(fresh));
   } catch (err) {
     return next(err);
   }
@@ -910,8 +925,7 @@ router.post("/login-otp/verify", async (req, res, next) => {
         user: { email: fresh.email, role: fresh.role },
       });
     }
-    const token = signToken(fresh);
-    return res.json({ token, user: formatUser(fresh) });
+    return res.json(await jsonWithSellerToken(fresh));
   } catch (err) {
     return next(err);
   }

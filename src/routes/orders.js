@@ -13,6 +13,7 @@ const { buyerDisplayPrice, buyerMaxListedPrice } = require("../lib/buyerPrice");
 const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
 const { claimTimeoutMs, normalizeAddressPart } = require("../lib/delivery");
 const { recordEvent } = require("../lib/analytics");
+const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
 
 const router = express.Router();
 
@@ -231,6 +232,7 @@ router.patch(
   "/seller/:orderId/order-status",
   requireAuth,
   requireRole("seller"),
+  requireSellerTradeUnblocked,
   async (req, res, next) => {
     try {
       const { order_status } = req.body || {};
@@ -481,6 +483,7 @@ router.post(
   "/seller/:orderId/delivery-ready",
   requireAuth,
   requireRole("seller"),
+  requireSellerTradeUnblocked,
   async (req, res, next) => {
     try {
       const oid = req.params.orderId;
@@ -525,6 +528,7 @@ router.post(
   "/seller/:orderId/delivery-reoffer",
   requireAuth,
   requireRole("seller"),
+  requireSellerTradeUnblocked,
   async (req, res, next) => {
     try {
       const oid = req.params.orderId;

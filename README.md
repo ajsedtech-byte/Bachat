@@ -43,6 +43,7 @@ See `.env.example` for all options. **Never commit `.env`** — it is gitignored
 - Set **Razorpay** keys when taking payments; configure webhook URL and secret.
 - **Monitoring:** attach your platform’s health checks to `GET /health` and log aggregation for the Node process.
 - Ops UI: sign in as **`admin`** (see `npm run create-admin`) at `/team-login.html` (Operations), then open `/AdminDashboard.html` and linked `admin-*.html` pages. Field sales uses **`npm run create-sales`** and the same team login (Field sales tab) → `/admin-sales.html`.
+- **Seller eKYC:** New shopkeepers verify at `/seller-kyc.html` (field visit or document upload). Approve or reject from **`/admin-seller-kyc.html`** (`GET/PATCH /api/admin/seller-kyc/*`). Approved sellers receive a completion email and full access to `ShopkeeperDashboard.html`.
 
 ### Docs
 

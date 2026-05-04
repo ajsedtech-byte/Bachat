@@ -990,6 +990,10 @@
           location.href = "/login.html";
           return;
         }
+        if (me.seller && me.seller.needs_kyc_completion) {
+          location.href = "/seller-kyc.html";
+          return;
+        }
         const nm = (me.user.name || "").trim() || (me.user.email || "there").split("@")[0];
         document.getElementById("hello-user").textContent = me.user.name || me.user.email || "";
         document.getElementById("dashboard-hello-name").textContent = nm;

@@ -5,6 +5,7 @@ function idStr(x) {
 }
 
 const { sellerCategoryList } = require("./categories");
+const { sellerTradeBlocked } = require("./sellerKycGate");
 const { maskPhone } = require("./delivery");
 
 function formatUser(u) {
@@ -60,6 +61,7 @@ function formatSeller(s) {
   if (!s) return null;
   const o = s.toObject ? s.toObject() : s;
   const cats = sellerCategoryList(o);
+  const kyc = o.sellerKyc || {};
   return {
     seller_id: idStr(o._id),
     user_id: idStr(o.user),
@@ -70,6 +72,9 @@ function formatSeller(s) {
     region: o.region,
     rating: o.rating,
     is_verified: o.isVerified,
+    kyc_status: kyc.status || null,
+    kyc_path: kyc.path || null,
+    needs_kyc_completion: sellerTradeBlocked(o),
     created_at: o.createdAt,
   };
 }

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Seller eKYC — Bachat Ops</title>
+  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="bachat-ui bg-[#f8f9fb] min-h-screen text-slate-900" data-bachat-admin="seller_kyc">
+  <div class="flex min-h-screen">
+    <aside data-bachat-sidebar class="w-64 shrink-0 bg-white border-r border-[#e5e7eb] hidden lg:flex flex-col"></aside>
+    <div class="flex-1 flex flex-col min-w-0">
+      <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
+      <main class="flex-1 p-4 lg:p-6 overflow-auto">
+        <h1 class="text-2xl font-extrabold">Seller eKYC queue</h1>
+        <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/seller-kyc/pending</code> · Approve after field visit or document review.</p>
+        <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <div class="mt-6 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+          <table class="w-full text-sm text-left min-w-[960px]">
+            <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+              <tr>
+                <th class="px-4 py-3">Shop</th>
+                <th class="px-4 py-3">Owner</th>
+                <th class="px-4 py-3">Path</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Docs</th>
+                <th class="px-4 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="/js/bachat-admin-shell.js"></script>
+  <script src="/js/bachat-admin-runtime.js"></script>
+  <script>
+    (function () {
+      function esc(s) {
+        var t = document.createElement("div");
+        t.textContent = s == null ? "" : String(s);
+        return t.innerHTML;
+      }
+      async function patch(id, action) {
+        var err = document.getElementById("err");
+        err.classList.add("hidden");
+        var body = { action: action };
+        if (action === "reject") {
+          var reason = window.prompt("Rejection reason for the seller email:", "Please resubmit clearer documents.");
+          if (reason === null) return;
+          body.rejection_reason = reason;
+        }
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/seller-kyc/" + encodeURIComponent(id), {
+          method: "PATCH",
+          headers: BachatAdminRuntime.authHeaders(),
+          body: JSON.stringify(body),
+        });
+        var d = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) {
+          err.textContent = d.error || "Failed";
+          err.classList.remove("hidden");
+          return;
+        }
+        await load();
+      }
+      async function load() {
+        var err = document.getElementById("err");
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/seller-kyc/pending", { headers: BachatAdminRuntime.authHeaders() });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        var tb = document.getElementById("tbody");
+        tb.innerHTML = "";
+        if (!res.ok) {
+          err.textContent = data.error || "Failed to load";
+          err.classList.remove("hidden");
+          return;
+        }
+        if (!(data.items && data.items.length)) {
+          tb.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No pending seller verifications.</td></tr>';
+          return;
+        }
+        data.items.forEach(function (row) {
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-[#f8f9fb]";
+          tr.innerHTML =
+            "<td class=\"px-4 py-3 font-semibold\">" +
+            esc(row.shop_name) +
+            "<p class=\"text-xs text-slate-500 font-normal\">" +
+            esc(row.city) +
+            ", " +
+            esc(row.region) +
+            "</p></td><td class=\"px-4 py-3 text-xs\">" +
+            esc(row.owner_name) +
+            "<br/><span class=\"text-slate-500\">" +
+            esc(row.owner_email) +
+            "</span><br/>" +
+            esc(row.owner_phone) +
+            "</td><td class=\"px-4 py-3\">" +
+            esc(row.kyc_path || "—") +
+            "</td><td class=\"px-4 py-3 font-mono text-xs\">" +
+            esc(row.kyc_status) +
+            "</td><td class=\"px-4 py-3\">" +
+            String(row.document_count || 0) +
+            "</td><td class=\"px-4 py-3 space-x-2\"><button type=\"button\" data-a=\"verify\" data-id=\"" +
+            esc(row.seller_id) +
+            "\" class=\"text-xs font-bold text-white bg-green-600 rounded-lg px-3 py-1.5 hover:bg-green-700\">Approve</button> " +
+            "<button type=\"button\" data-a=\"reject\" data-id=\"" +
+            esc(row.seller_id) +
+            "\" class=\"text-xs font-bold text-red-700 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50\">Reject</button></td>";
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll("button[data-a]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            patch(b.getAttribute("data-id"), b.getAttribute("data-a"));
+          });
+        });
+      }
+      (async function () {
+        if (!(await BachatAdminRuntime.guardOpsPage(["admin", "sales"]))) return;
+        await load();
+      })();
+    })();
+  </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest } = require("../lib/format");
 const { CATEGORY_SET, sellerCategoryList } = require("../lib/categories");
 const { recordEvent } = require("../lib/analytics");
+const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
 
 const router = express.Router();
 
@@ -56,7 +57,7 @@ router.get("/mine", requireAuth, requireRole("buyer", "admin"), async (req, res,
   }
 });
 
-router.get("/seller/open", requireAuth, requireRole("seller"), async (req, res, next) => {
+router.get("/seller/open", requireAuth, requireRole("seller"), requireSellerTradeUnblocked, async (req, res, next) => {
   try {
     const seller = await Seller.findOne({ user: req.user.id }).lean();
     if (!seller) return res.status(404).json({ error: "Seller profile not found" });
