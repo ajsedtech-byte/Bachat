@@ -225,12 +225,32 @@
         <h2 class="text-xl font-extrabold">Field verification requested</h2>
         <p class="text-sm text-slate-600 mt-3">We have queued your shop for a field visit or call-back. Keep your phone reachable on <strong id="salesman-phone">—</strong>.</p>
         <p class="text-xs text-slate-500 mt-4">You will receive an email when verification is approved.</p>
-        <a href="/ShopkeeperDashboard.html" class="mt-6 inline-block rounded-xl bg-[#0056d2] text-white font-bold px-6 py-3 text-sm">Back to dashboard</a>
+        <div class="mt-6 flex flex-wrap gap-3 items-center">
+          <button type="button" id="btn-track-salesman" class="inline-flex items-center justify-center rounded-xl bg-[#0056d2] text-white font-bold px-5 py-3 text-sm shadow-sm hover:bg-[#0046b0]">Track verification</button>
+          <a href="/" class="inline-flex items-center justify-center rounded-xl border-2 border-slate-300 text-slate-800 font-bold px-5 py-3 text-sm hover:bg-slate-50">Home</a>
+          <a href="/login.html?role=seller" class="inline-flex items-center justify-center rounded-xl border-2 border-slate-300 text-slate-800 font-bold px-5 py-3 text-sm hover:bg-slate-50">Login</a>
+        </div>
+        <div id="sales-track-box" class="hidden mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Live updates</p>
+          <div id="sales-track-log" class="max-h-44 overflow-y-auto text-[11px] text-slate-700 font-mono space-y-1.5"></div>
+          <p id="sales-track-hint" class="hidden text-[10px] text-slate-500 mt-2">Checking every 20 seconds while you keep this page open.</p>
+        </div>
+        <a href="/ShopkeeperDashboard.html" class="mt-4 inline-block text-sm font-semibold text-[#0056d2] hover:underline">Back to dashboard</a>
       </div>
 
       <div id="panel-submitted" class="hidden max-w-xl rounded-2xl border border-amber-200 bg-amber-50/80 p-8">
         <h2 class="text-xl font-extrabold text-amber-950">Under review</h2>
         <p class="text-sm text-amber-900/90 mt-2">Your documents were submitted. We will email you at <strong id="sub-email">—</strong> when verification is complete.</p>
+        <div class="mt-6 flex flex-wrap gap-3 items-center">
+          <button type="button" id="btn-track-verify" class="inline-flex items-center justify-center rounded-xl bg-amber-950 text-white font-bold px-5 py-3 text-sm shadow-sm hover:bg-amber-900">Track verification</button>
+          <a href="/" class="inline-flex items-center justify-center rounded-xl border-2 border-amber-900/40 text-amber-950 font-bold px-5 py-3 text-sm bg-white/80 hover:bg-white">Home</a>
+          <a href="/login.html?role=seller" class="inline-flex items-center justify-center rounded-xl border-2 border-amber-900/40 text-amber-950 font-bold px-5 py-3 text-sm bg-white/80 hover:bg-white">Login</a>
+        </div>
+        <div id="sub-track-box" class="hidden mt-4 rounded-xl border border-amber-200/80 bg-white/90 p-4">
+          <p class="text-xs font-bold text-amber-950 uppercase tracking-wide mb-2">Live updates</p>
+          <div id="sub-track-log" class="max-h-44 overflow-y-auto text-[11px] text-amber-950/90 font-mono space-y-1.5"></div>
+          <p id="sub-track-hint" class="hidden text-[10px] text-amber-800/80 mt-2">Checking every 20 seconds while you keep this page open.</p>
+        </div>
       </div>
 
       <div id="panel-rejected" class="hidden max-w-xl rounded-2xl border border-red-200 bg-red-50/80 p-8">
@@ -254,6 +274,50 @@
       var lastKyc = null;
       var lastSeller = null;
       var digiRedirectConsumed = false;
+      var submittedPollId = null;
+      var salesmanPollId = null;
+
+      function stopSubmittedPoll() {
+        if (submittedPollId) {
+          clearInterval(submittedPollId);
+          submittedPollId = null;
+        }
+      }
+      function stopSalesmanPoll() {
+        if (salesmanPollId) {
+          clearInterval(salesmanPollId);
+          salesmanPollId = null;
+        }
+      }
+      function stopAllKycPolls() {
+        stopSubmittedPoll();
+        stopSalesmanPoll();
+      }
+
+      function trackTime() {
+        return new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      }
+
+      function appendTrackLine(logElId, line) {
+        var log = document.getElementById(logElId);
+        if (!log) return;
+        var row = document.createElement("div");
+        row.textContent = trackTime() + " — " + line;
+        log.appendChild(row);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function formatKycSnapshot(k, seller) {
+        var parts = [
+          "status=" + (k.status || "—"),
+          "docs=" + String(k.document_count != null ? k.document_count : 0),
+          "verified=" + (seller.is_verified ? "yes" : "no"),
+        ];
+        if (k.live && k.live.gst_checksum_ok) parts.push("GST✓");
+        if (k.live && k.live.gst_registry_active) parts.push("registry✓");
+        if (k.live && k.live.digilocker_linked_at) parts.push("DigiLocker");
+        return parts.join(" · ");
+      }
 
       function consumeDigiRedirect() {
         if (digiRedirectConsumed) return false;
@@ -467,6 +531,7 @@
 
       async function refresh() {
         hideErr();
+        stopAllKycPolls();
         try {
           if (consumeDigiRedirect()) {
             try {
@@ -769,6 +834,108 @@
           await refresh();
         } catch (x) {
           showErr(x.message);
+        }
+      });
+
+      async function pollSubmittedOnce() {
+        var d = await api("GET", "/api/seller/kyc");
+        if (!d) {
+          appendTrackLine("sub-track-log", "Could not load status — stopping live updates.");
+          stopSubmittedPoll();
+          return true;
+        }
+        var k = d.kyc || {};
+        var seller = d.seller || {};
+        appendTrackLine("sub-track-log", formatKycSnapshot(k, seller));
+        if (!seller.needs_kyc_completion && seller.is_verified) {
+          appendTrackLine("sub-track-log", "Approved — opening dashboard…");
+          stopSubmittedPoll();
+          location.href = "/ShopkeeperDashboard.html";
+          return true;
+        }
+        if (k.status === "rejected") {
+          appendTrackLine("sub-track-log", "Verification needs changes — updating screen.");
+          stopSubmittedPoll();
+          await refresh();
+          return true;
+        }
+        if (k.status !== "submitted") {
+          appendTrackLine("sub-track-log", "Status is now " + (k.status || "") + " — refreshing.");
+          stopSubmittedPoll();
+          await refresh();
+          return true;
+        }
+        return false;
+      }
+
+      async function pollSalesmanOnce() {
+        var d = await api("GET", "/api/seller/kyc");
+        if (!d) {
+          appendTrackLine("sales-track-log", "Could not load status — stopping live updates.");
+          stopSalesmanPoll();
+          return true;
+        }
+        var k = d.kyc || {};
+        var seller = d.seller || {};
+        appendTrackLine("sales-track-log", formatKycSnapshot(k, seller));
+        if (!seller.needs_kyc_completion && seller.is_verified) {
+          appendTrackLine("sales-track-log", "Approved — opening dashboard…");
+          stopSalesmanPoll();
+          location.href = "/ShopkeeperDashboard.html";
+          return true;
+        }
+        if (k.status === "rejected") {
+          appendTrackLine("sales-track-log", "Verification update — refreshing.");
+          stopSalesmanPoll();
+          await refresh();
+          return true;
+        }
+        if (k.status !== "salesman_pending") {
+          appendTrackLine("sales-track-log", "Status is now " + (k.status || "") + " — refreshing.");
+          stopSalesmanPoll();
+          await refresh();
+          return true;
+        }
+        return false;
+      }
+
+      document.getElementById("btn-track-verify").addEventListener("click", async function () {
+        document.getElementById("sub-track-box").classList.remove("hidden");
+        document.getElementById("sub-track-hint").classList.remove("hidden");
+        var log = document.getElementById("sub-track-log");
+        if (log && !submittedPollId) log.innerHTML = "";
+        try {
+          appendTrackLine("sub-track-log", "Checking now…");
+          await pollSubmittedOnce();
+        } catch (x) {
+          appendTrackLine("sub-track-log", "Error: " + (x.message || String(x)));
+        }
+        if (!submittedPollId) {
+          submittedPollId = setInterval(function () {
+            pollSubmittedOnce().catch(function (e2) {
+              appendTrackLine("sub-track-log", "Poll error: " + (e2.message || String(e2)));
+            });
+          }, 20000);
+        }
+      });
+
+      document.getElementById("btn-track-salesman").addEventListener("click", async function () {
+        document.getElementById("sales-track-box").classList.remove("hidden");
+        document.getElementById("sales-track-hint").classList.remove("hidden");
+        var logS = document.getElementById("sales-track-log");
+        if (logS && !salesmanPollId) logS.innerHTML = "";
+        try {
+          appendTrackLine("sales-track-log", "Checking now…");
+          await pollSalesmanOnce();
+        } catch (x) {
+          appendTrackLine("sales-track-log", "Error: " + (x.message || String(x)));
+        }
+        if (!salesmanPollId) {
+          salesmanPollId = setInterval(function () {
+            pollSalesmanOnce().catch(function (e2) {
+              appendTrackLine("sales-track-log", "Poll error: " + (e2.message || String(e2)));
+            });
+          }, 20000);
         }
       });
 
