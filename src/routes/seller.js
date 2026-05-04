@@ -4,6 +4,7 @@ const Seller = require("../models/Seller");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatSeller } = require("../lib/format");
+const { normalizeSellerCategories } = require("../lib/categories");
 const { sendMail } = require("../services/email");
 
 const router = express.Router();
@@ -60,6 +61,11 @@ router.get("/kyc", requireAuth, requireRole("seller"), async (req, res, next) =>
     }
     const kyc = seller.sellerKyc || {};
     const n = Array.isArray(kyc.documents) ? kyc.documents.length : 0;
+    const areas = Array.isArray(kyc.serviceAreas) ? kyc.serviceAreas : [];
+    const bankSaved = Boolean(
+      kyc.bankDetailsProvidedAt &&
+        (String(kyc.bankIfsc || "").trim() || String(kyc.bankAccountNumber || "").trim())
+    );
     return res.json({
       seller: formatSeller(seller),
       kyc: {
@@ -71,8 +77,158 @@ router.get("/kyc", requireAuth, requireRole("seller"), async (req, res, next) =>
         verified_at: kyc.verifiedAt || null,
         salesman_requested_at: kyc.salesmanRequestedAt || null,
         rejected_reason: kyc.rejectedReason || "",
+        business: {
+          completed_at: kyc.businessDetailsCompletedAt || null,
+          locality: kyc.locality || "",
+          service_areas: areas,
+          offers_delivery: kyc.offersDelivery !== false,
+        },
+        bank_saved: bankSaved,
       },
     });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+const IFSC_RE = /^[A-Z]{4}0[A-Z0-9]{6}$/i;
+
+/** Step 1 wizard — shop profile + locality / service areas (not allowed while documents are under review). */
+router.post("/kyc/business-details", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const {
+      shop_name,
+      owner_name,
+      categories,
+      city,
+      region,
+      locality,
+      service_areas,
+      offers_delivery,
+      gst_number,
+    } = req.body || {};
+    const seller = await Seller.findOne({ user: req.user.id });
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+    }
+    if (seller.isVerified) {
+      return res.status(400).json({ error: "Shop is already verified" });
+    }
+    const st = seller.sellerKyc?.status || "awaiting_path";
+    if (st === "submitted") {
+      return res.status(400).json({ error: "Business details cannot be changed while verification is under review" });
+    }
+    const sn = String(shop_name || "").trim();
+    if (!sn || sn.length > 160) {
+      return badRequest(res, "shop_name is required (max 160 characters)");
+    }
+    const nextCats = normalizeSellerCategories(
+      Array.isArray(categories) ? categories : categories != null ? [categories] : []
+    );
+    if (!nextCats.length) {
+      return badRequest(res, "Select at least one business category");
+    }
+    const c = String(city || "").trim();
+    const r = String(region || "").trim();
+    if (!c || !r) {
+      return badRequest(res, "city and region are required");
+    }
+    const loc = String(locality || "").trim();
+    if (!loc) {
+      return badRequest(res, "locality (area) is required");
+    }
+    let areas = [];
+    if (Array.isArray(service_areas)) {
+      const seen = new Set();
+      for (const x of service_areas) {
+        const t = String(x || "").trim().slice(0, 100);
+        if (!t || seen.has(t)) continue;
+        seen.add(t);
+        areas.push(t);
+        if (areas.length >= 20) break;
+      }
+    }
+    const offers =
+      offers_delivery === false || String(offers_delivery).toLowerCase() === "false" ? false : true;
+
+    seller.shopName = sn;
+    seller.categories = nextCats;
+    seller.category = nextCats[0];
+    seller.city = c;
+    seller.region = r;
+    if (!seller.sellerKyc) {
+      seller.sellerKyc = {};
+    }
+    seller.sellerKyc.locality = loc.slice(0, 200);
+    seller.sellerKyc.serviceAreas = areas.length ? areas : [];
+    seller.sellerKyc.offersDelivery = offers;
+    seller.sellerKyc.businessDetailsCompletedAt = new Date();
+    if (gst_number != null && gst_number !== "") {
+      seller.sellerKyc.gstNumber = String(gst_number).replace(/\s/g, "").toUpperCase().slice(0, 20);
+    }
+    await seller.save();
+
+    const on = String(owner_name || "").trim().slice(0, 120);
+    if (on) {
+      await User.updateOne({ _id: req.user.id, role: "seller" }, { $set: { name: on, city: c, region: r } });
+    } else {
+      await User.updateOne({ _id: req.user.id, role: "seller" }, { $set: { city: c, region: r } });
+    }
+
+    const fresh = await Seller.findOne({ user: req.user.id }).lean();
+    return res.json({ seller: formatSeller(fresh), message: "Business details saved" });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/** Step 3 — optional payout bank (before or after document submit, until verified). */
+router.post("/kyc/bank-details", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const { account_holder, ifsc, account_number } = req.body || {};
+    const seller = await Seller.findOne({ user: req.user.id });
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+    }
+    if (seller.isVerified) {
+      return res.status(400).json({ error: "Shop is already verified" });
+    }
+    const st = seller.sellerKyc?.status || "awaiting_path";
+    if (st === "submitted") {
+      return res.status(400).json({ error: "Bank details cannot be changed while verification is under review" });
+    }
+    if (!seller.sellerKyc) {
+      seller.sellerKyc = {};
+    }
+    const holder = String(account_holder || "").trim().slice(0, 120);
+    const ifscClean = String(ifsc || "").trim().toUpperCase().slice(0, 11);
+    const acct = String(account_number || "").replace(/\s/g, "").slice(0, 24);
+
+    if (!holder && !ifscClean && !acct) {
+      seller.sellerKyc.bankAccountHolder = "";
+      seller.sellerKyc.bankIfsc = "";
+      seller.sellerKyc.bankAccountNumber = "";
+      seller.sellerKyc.bankDetailsProvidedAt = null;
+      await seller.save();
+      const fresh = await Seller.findOne({ user: req.user.id }).lean();
+      return res.json({ seller: formatSeller(fresh), message: "Bank details cleared" });
+    }
+    if (!holder || holder.length < 2) {
+      return badRequest(res, "account_holder is required when saving bank details");
+    }
+    if (!IFSC_RE.test(ifscClean)) {
+      return badRequest(res, "Enter a valid 11-character IFSC");
+    }
+    if (!acct || acct.length < 5) {
+      return badRequest(res, "account_number looks invalid");
+    }
+    seller.sellerKyc.bankAccountHolder = holder;
+    seller.sellerKyc.bankIfsc = ifscClean;
+    seller.sellerKyc.bankAccountNumber = acct;
+    seller.sellerKyc.bankDetailsProvidedAt = new Date();
+    await seller.save();
+    const fresh = await Seller.findOne({ user: req.user.id }).lean();
+    return res.json({ seller: formatSeller(fresh), message: "Bank details saved" });
   } catch (err) {
     return next(err);
   }

@@ -3,78 +3,218 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shop verification — Bachat</title>
+  <title>Shop onboarding — Bachat</title>
   <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 </head>
-<body class="bachat-ui min-h-screen bg-[#f0f4fa] text-slate-900">
+<body class="bachat-ui min-h-screen bg-[#f0f4fa] text-slate-900 font-[Inter,sans-serif]">
   <div class="min-h-screen flex flex-col lg:flex-row">
     <aside class="lg:w-[min(100%,420px)] bg-gradient-to-br from-[#0056d2] to-[#003d99] text-white p-8 lg:p-12 flex flex-col justify-between shrink-0">
       <div>
         <a href="/" class="inline-block mb-8"><img src="/assets/bachat-logo-hero.png" alt="Bachat" class="h-14 w-auto object-contain brightness-0 invert opacity-95" width="1024" height="1536" /></a>
-        <h1 class="text-2xl lg:text-3xl font-extrabold leading-tight">Complete your shop verification</h1>
-        <p class="mt-4 text-white/90 text-sm max-w-sm">Buyers trust verified shops. Finish eKYC to list products, send quotes, and receive orders.</p>
-        <ul class="mt-8 space-y-3 text-sm text-white/90">
-          <li class="flex gap-2"><span aria-hidden="true">✓</span> Receive ready-to-buy demand</li>
-          <li class="flex gap-2"><span aria-hidden="true">✓</span> Send quotes &amp; grow orders</li>
-          <li class="flex gap-2"><span aria-hidden="true">✓</span> Fast ops review (typically under 24h)</li>
+        <h1 class="text-2xl lg:text-3xl font-extrabold leading-tight">Get customer requests. Send quotes. Grow your business.</h1>
+        <ul class="mt-8 space-y-4 text-sm text-white/95">
+          <li class="flex gap-3"><span class="text-lg shrink-0" aria-hidden="true">📬</span><span>Receive ready-to-buy demand.</span></li>
+          <li class="flex gap-3"><span class="text-lg shrink-0" aria-hidden="true">⚡</span><span>Send quotes instantly.</span></li>
+          <li class="flex gap-3"><span class="text-lg shrink-0" aria-hidden="true">📊</span><span>Track orders and payouts.</span></li>
         </ul>
       </div>
-      <p class="text-xs text-white/70 mt-10">Questions? Use support from your dashboard after verification.</p>
+      <p class="text-xs text-white/70 mt-10">Need help? Contact support after your shop is verified.</p>
     </aside>
 
-    <main class="flex-1 p-6 lg:p-12 overflow-auto">
+    <main class="flex-1 p-6 lg:p-10 xl:p-12 overflow-auto">
       <p id="err" class="hidden mb-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
       <p id="banner-done" class="hidden mb-6 text-sm font-semibold text-green-800 bg-green-50 border border-green-100 rounded-xl px-4 py-3">You are verified. Redirecting to your dashboard…</p>
 
-      <div id="stepper" class="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 mb-8">
-        <span class="rounded-full bg-[#0056d2] text-white px-3 py-1">1 · Choose method</span>
-        <span class="text-slate-300">→</span>
-        <span id="st-2" class="rounded-full bg-slate-200 px-3 py-1">2 · Verify business</span>
-        <span class="text-slate-300">→</span>
-        <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-400">3 · Go live</span>
-      </div>
+      <!-- Wizard shell (hidden for terminal states) -->
+      <div id="wizard-shell" class="hidden max-w-5xl">
+        <div id="stepper" class="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs font-bold mb-6">
+          <button type="button" id="stepper-1" class="rounded-full px-3 py-1.5 border-2 border-transparent bg-[#0056d2] text-white">1 · Business details</button>
+          <span class="text-slate-300 hidden sm:inline">→</span>
+          <button type="button" id="stepper-2" class="rounded-full px-3 py-1.5 border-2 border-transparent bg-slate-200 text-slate-600">2 · Verify business</button>
+          <span class="text-slate-300 hidden sm:inline">→</span>
+          <button type="button" id="stepper-3" class="rounded-full px-3 py-1.5 border-2 border-transparent bg-slate-100 text-slate-400">3 · Bank (optional)</button>
+        </div>
 
-      <div id="panel-choice" class="max-w-4xl space-y-6">
-        <h2 class="text-xl font-extrabold text-slate-900">How would you like to verify?</h2>
-        <div class="grid md:grid-cols-2 gap-4">
-          <button type="button" id="btn-salesman" class="text-left rounded-2xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2] hover:shadow-md transition-all">
-            <p class="text-lg font-extrabold text-slate-900">Verify via field team</p>
-            <p class="text-sm text-slate-600 mt-2">A Bachat representative will visit or call you to complete verification in person. Best if you prefer guided onboarding.</p>
-            <p class="mt-4 text-xs font-bold text-[#0056d2]">Select this option →</p>
-          </button>
-          <button type="button" id="btn-direct" class="text-left rounded-2xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2] hover:shadow-md transition-all">
-            <p class="text-lg font-extrabold text-slate-900">Verify directly (upload)</p>
-            <p class="text-sm text-slate-600 mt-2">Upload shop proof, GST, Aadhaar (masked OK), Udyam, etc. Our team reviews against registry / DigiLocker-style checks where applicable.</p>
-            <p class="mt-4 text-xs font-bold text-[#0056d2]">Select this option →</p>
-          </button>
+        <div class="rounded-2xl border border-sky-100 bg-sky-50/90 text-sky-950 px-4 py-3 text-sm font-semibold mb-6">
+          Quick &amp; easy onboarding · Get approved in less than 24 hours.
+        </div>
+
+        <!-- Step 1 -->
+        <div id="panel-step1" class="hidden">
+          <div class="grid lg:grid-cols-2 gap-8 items-start">
+            <div class="rounded-2xl border border-[#e5e7eb] bg-white p-6 lg:p-8 shadow-sm space-y-5">
+              <h2 class="text-lg font-extrabold text-slate-900">Step 1 · Business details</h2>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Shop / business name</label>
+                <input id="f-shop" type="text" maxlength="160" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Owner name</label>
+                <input id="f-owner" type="text" maxlength="120" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mobile number</label>
+                <div class="flex rounded-xl border border-[#e5e7eb] overflow-hidden bg-slate-50">
+                  <span class="px-3 py-2.5 text-sm font-semibold text-slate-600 border-r border-[#e5e7eb] bg-white">+91</span>
+                  <input id="f-phone" type="text" readonly class="flex-1 px-4 py-2.5 text-sm bg-slate-50 text-slate-600" value="—" />
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Change your number from account settings after verification.</p>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">City &amp; state / region</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <input id="f-city" type="text" class="rounded-xl border border-[#e5e7eb] px-3 py-2.5 text-sm" placeholder="City" />
+                  <input id="f-region" type="text" class="rounded-xl border border-[#e5e7eb] px-3 py-2.5 text-sm" placeholder="Region" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Locality / area</label>
+                <input id="f-locality" type="text" maxlength="200" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" placeholder="Neighbourhood, landmark, pincode area" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Business categories</label>
+                <p class="text-[11px] text-slate-500 mb-2">Select all that apply (scroll).</p>
+                <div id="cat-box" class="max-h-48 overflow-y-auto rounded-xl border border-[#e5e7eb] p-3 space-y-2 text-sm bg-slate-50/50"></div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Service areas</label>
+                <p class="text-[11px] text-slate-500 mb-2">Areas you serve (add multiple).</p>
+                <div class="flex gap-2">
+                  <input id="f-area-input" type="text" maxlength="100" class="flex-1 rounded-xl border border-[#e5e7eb] px-3 py-2 text-sm" placeholder="e.g. Sector 12, MG Road" />
+                  <button type="button" id="btn-add-area" class="rounded-xl bg-slate-800 text-white font-bold px-4 py-2 text-sm shrink-0">Add</button>
+                </div>
+                <div id="area-chips" class="flex flex-wrap gap-2 mt-2"></div>
+              </div>
+              <div>
+                <span class="block text-xs font-bold text-slate-500 uppercase mb-2">Delivery option</span>
+                <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                  <input type="radio" name="deliver" value="yes" class="accent-[#0056d2]" checked />
+                  <span class="text-sm">Yes, I deliver to customers</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="deliver" value="no" class="accent-[#0056d2]" />
+                  <span class="text-sm">No — customer pickup only</span>
+                </label>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">GST number (optional)</label>
+                <input id="f-gst" type="text" maxlength="20" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm uppercase" placeholder="22AAAAA0000A1Z5" />
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="rounded-2xl border-2 border-dashed border-[#0056d2]/35 bg-[#f8fafc] p-6 lg:p-8">
+                <p class="text-sm font-extrabold text-slate-900">Upload business proof / KYC</p>
+                <p class="text-sm text-slate-600 mt-2">You will upload shop board, GST, Aadhaar (masked), Udyam, etc. in <strong class="text-[#0056d2]">Step 2</strong> after saving business details.</p>
+                <p class="text-xs text-slate-500 mt-4">Accepted later: JPG, PNG, or PDF · max ~900KB each (encoded).</p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-white p-5 flex gap-3 shadow-sm">
+                <span class="text-2xl shrink-0" aria-hidden="true">🛡</span>
+                <div>
+                  <p class="text-sm font-bold text-slate-900">Why do we need this?</p>
+                  <p class="text-xs text-slate-600 mt-1 leading-relaxed">Verification helps buyers trust your shop and reduces fraud on the marketplace.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-4 flex-wrap">
+            <button type="button" id="btn-step1-save" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0056d2] text-white font-bold px-8 py-3.5 text-sm shadow-md hover:bg-[#0046b0] transition-colors">
+              Save &amp; continue
+              <span aria-hidden="true">→</span>
+            </button>
+            <button type="button" id="btn-step1-later" class="text-sm font-semibold text-slate-500 hover:text-[#0056d2] underline-offset-2 hover:underline">You can complete later</button>
+          </div>
+          <div class="mt-6 flex flex-wrap gap-4 text-xs font-bold text-slate-500">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1.5">🔒 100% Secure</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1.5">✓ Verified sellers only</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1.5">⚡ Fast approval</span>
+          </div>
+        </div>
+
+        <!-- Step 2 · Verify -->
+        <div id="panel-step2" class="hidden space-y-6">
+          <h2 class="text-lg font-extrabold text-slate-900">Step 2 · Verify business</h2>
+          <div id="sub2-choice" class="grid md:grid-cols-2 gap-4">
+            <button type="button" id="btn-salesman" class="text-left rounded-2xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2] hover:shadow-md transition-all">
+              <p class="text-lg font-extrabold text-slate-900">Verify via field team</p>
+              <p class="text-sm text-slate-600 mt-2">A Bachat representative will visit or call to complete verification.</p>
+              <p class="mt-4 text-xs font-bold text-[#0056d2]">Select →</p>
+            </button>
+            <button type="button" id="btn-direct" class="text-left rounded-2xl border-2 border-[#e5e7eb] bg-white p-6 shadow-sm hover:border-[#0056d2] hover:shadow-md transition-all">
+              <p class="text-lg font-extrabold text-slate-900">Verify directly</p>
+              <p class="text-sm text-slate-600 mt-2">Upload documents for review (shop photo, GST, Aadhaar, Udyam, PAN).</p>
+              <p class="mt-4 text-xs font-bold text-[#0056d2]">Select →</p>
+            </button>
+          </div>
+          <div id="sub2-direct" class="hidden grid lg:grid-cols-2 gap-8 items-start">
+            <div class="space-y-4 rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm">
+              <p class="text-sm font-extrabold text-slate-900">Upload business proofs</p>
+              <p class="text-xs text-slate-500">GST (if not already saved) can be updated below.</p>
+              <label class="block text-xs font-bold text-slate-500 uppercase">GST number (optional)</label>
+              <input id="gst-no" type="text" maxlength="20" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm uppercase" placeholder="22AAAAA0000A1Z5" />
+              <div class="rounded-2xl border-2 border-dashed border-[#0056d2]/40 bg-[#f8fafc] p-8 text-center">
+                <input type="file" id="kyc-files" multiple accept="image/*,.pdf" class="hidden" />
+                <button type="button" id="pick-files" class="rounded-xl bg-white border border-[#e5e7eb] px-5 py-2.5 text-sm font-bold text-[#0056d2] shadow-sm">Choose files</button>
+                <p id="file-hint" class="text-xs text-slate-500 mt-3">Drag &amp; drop not available — use Choose files · up to 6 · max ~900KB each</p>
+              </div>
+              <div class="flex flex-wrap gap-3">
+                <button type="button" id="btn-upload" class="rounded-xl bg-[#0056d2] text-white font-bold px-6 py-3 text-sm disabled:opacity-50" disabled>Save uploads</button>
+                <button type="button" id="btn-to-bank" class="rounded-xl border-2 border-slate-300 text-slate-800 font-bold px-6 py-3 text-sm">Optional bank details →</button>
+              </div>
+              <p id="status-line" class="text-sm text-slate-600"></p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 text-sm text-slate-600">
+              <p class="font-extrabold text-slate-900 text-sm">Accepted documents</p>
+              <ul class="list-disc pl-5 space-y-1 text-xs">
+                <li>Shop board photo</li>
+                <li>GST certificate</li>
+                <li>Aadhaar (masked / last 4 visible)</li>
+                <li>Udyam certificate (optional)</li>
+                <li>PAN (optional)</li>
+              </ul>
+              <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 flex gap-3 mt-4">
+                <span class="text-xl">🛡</span>
+                <p class="text-xs leading-relaxed">We use these only to verify your business. Misuse may lead to account suspension.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 · Bank -->
+        <div id="panel-step3" class="hidden max-w-xl rounded-2xl border border-[#e5e7eb] bg-white p-6 lg:p-8 shadow-sm space-y-4">
+          <h2 class="text-lg font-extrabold text-slate-900">Step 3 · Bank details (optional)</h2>
+          <p class="text-sm text-slate-600">Add a payout account now or skip — you can add it later from your dashboard after approval.</p>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Account holder name</label>
+            <input id="b-holder" type="text" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" maxlength="120" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">IFSC</label>
+            <input id="b-ifsc" type="text" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm uppercase" maxlength="11" placeholder="SBIN0001234" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Account number</label>
+            <input id="b-acct" type="text" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" maxlength="24" inputmode="numeric" autocomplete="off" />
+          </div>
+          <div class="flex flex-wrap gap-3 pt-2">
+            <button type="button" id="btn-bank-save" class="rounded-xl bg-[#0056d2] text-white font-bold px-6 py-3 text-sm">Save bank</button>
+            <button type="button" id="btn-back-docs" class="rounded-xl border-2 border-[#e5e7eb] font-bold px-6 py-3 text-sm">← Back to documents</button>
+          </div>
+          <div class="border-t border-slate-100 pt-4 mt-2">
+            <button type="button" id="btn-submit-review" class="w-full rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-bold px-6 py-3 text-sm disabled:opacity-40" disabled>Submit for review</button>
+            <button type="button" id="btn-skip-bank-submit" class="mt-3 w-full text-sm font-semibold text-slate-500 hover:text-[#0056d2] underline-offset-2 hover:underline">Skip bank — submit for review</button>
+          </div>
         </div>
       </div>
 
+      <!-- Terminal panels -->
       <div id="panel-salesman" class="hidden max-w-xl rounded-2xl border border-[#e5e7eb] bg-white p-8 shadow-sm">
         <h2 class="text-xl font-extrabold">Field verification requested</h2>
         <p class="text-sm text-slate-600 mt-3">We have queued your shop for a field visit or call-back. Keep your phone reachable on <strong id="salesman-phone">—</strong>.</p>
-        <p class="text-xs text-slate-500 mt-4">You will receive an email when verification is approved. You can close this page and sign in again later.</p>
+        <p class="text-xs text-slate-500 mt-4">You will receive an email when verification is approved.</p>
         <a href="/ShopkeeperDashboard.html" class="mt-6 inline-block rounded-xl bg-[#0056d2] text-white font-bold px-6 py-3 text-sm">Back to dashboard</a>
-      </div>
-
-      <div id="panel-direct" class="hidden max-w-3xl space-y-6">
-        <h2 class="text-xl font-extrabold">Upload business proofs</h2>
-        <p class="text-sm text-slate-600">Accepted: shop board photo, GST certificate, Aadhaar (last 4 visible is fine), Udyam, PAN. Max ~900KB per file (encoded). JPG, PNG, or PDF as data in browser.</p>
-        <label class="block text-xs font-bold text-slate-500 uppercase">GST number (optional)</label>
-        <input id="gst-no" type="text" maxlength="20" class="w-full max-w-md rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" placeholder="22AAAAA0000A1Z5" />
-        <div class="rounded-2xl border-2 border-dashed border-[#0056d2]/40 bg-[#f8fafc] p-8 text-center">
-          <input type="file" id="kyc-files" multiple accept="image/*,.pdf" class="hidden" />
-          <button type="button" id="pick-files" class="rounded-xl bg-white border border-[#e5e7eb] px-5 py-2.5 text-sm font-bold text-[#0056d2] shadow-sm">Choose files</button>
-          <p id="file-hint" class="text-xs text-slate-500 mt-3">Up to 6 files</p>
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <button type="button" id="btn-upload" class="rounded-xl bg-[#0056d2] text-white font-bold px-6 py-3 text-sm disabled:opacity-50" disabled>Save uploads</button>
-          <button type="button" id="btn-submit-review" class="rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-bold px-6 py-3 text-sm disabled:opacity-40" disabled>Submit for review</button>
-        </div>
-        <p id="status-line" class="text-sm text-slate-600"></p>
       </div>
 
       <div id="panel-submitted" class="hidden max-w-xl rounded-2xl border border-amber-200 bg-amber-50/80 p-8">
@@ -97,6 +237,11 @@
         location.href = "/login.html?role=seller";
         return;
       }
+
+      var serviceAreaList = [];
+      var allCategories = [];
+      var lastKyc = null;
+      var lastSeller = null;
 
       function esc(s) {
         var d = document.createElement("div");
@@ -146,57 +291,282 @@
         document.getElementById("err").classList.add("hidden");
       }
 
-      function setVisible(id) {
-        ["panel-choice", "panel-salesman", "panel-direct", "panel-submitted", "panel-rejected"].forEach(function (x) {
-          document.getElementById(x).classList.add("hidden");
+      function setBankHash(on) {
+        if (on) {
+          if (location.hash !== "#bank") {
+            history.pushState(null, "", "#bank");
+          }
+        } else if (location.hash === "#bank") {
+          history.pushState(null, "", location.pathname + location.search);
+        }
+      }
+
+      function paintStepper(step) {
+        for (var i = 1; i <= 3; i++) {
+          var el = document.getElementById("stepper-" + i);
+          if (!el) continue;
+          el.className =
+            "rounded-full px-3 py-1.5 border-2 text-[11px] sm:text-xs font-bold " +
+            (i === step
+              ? "border-[#0056d2] bg-[#0056d2] text-white"
+              : i < step
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border-transparent bg-slate-100 text-slate-400");
+        }
+      }
+
+      function renderCategoryBoxes(selected) {
+        var box = document.getElementById("cat-box");
+        var set = {};
+        (selected || []).forEach(function (c) {
+          set[c] = true;
         });
-        document.getElementById(id).classList.remove("hidden");
+        box.innerHTML = allCategories
+          .map(function (c) {
+            var id = "cat-" + String(c).replace(/[^a-z0-9]+/gi, "-").slice(0, 40);
+            return (
+              '<label class="flex items-start gap-2 cursor-pointer">' +
+              '<input type="checkbox" class="cat-cb accent-[#0056d2] mt-0.5" data-cat="' +
+              esc(c) +
+              '" ' +
+              (set[c] ? "checked" : "") +
+              " />" +
+              '<span class="text-slate-800 leading-snug">' +
+              esc(c) +
+              "</span></label>"
+            );
+          })
+          .join("");
+      }
+
+      function getSelectedCategories() {
+        var out = [];
+        document.querySelectorAll(".cat-cb:checked").forEach(function (el) {
+          out.push(el.getAttribute("data-cat"));
+        });
+        return out;
+      }
+
+      function renderAreaChips() {
+        var wrap = document.getElementById("area-chips");
+        wrap.innerHTML = serviceAreaList
+          .map(function (a, i) {
+            return (
+              '<span class="inline-flex items-center gap-1 rounded-full bg-[#e8f1fc] text-[#003d99] text-xs font-semibold px-3 py-1">' +
+              esc(a) +
+              ' <button type="button" class="area-rm font-bold hover:text-red-600" data-i="' +
+              i +
+              '">×</button></span>'
+            );
+          })
+          .join("");
+        wrap.querySelectorAll(".area-rm").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var idx = parseInt(btn.getAttribute("data-i"), 10);
+            serviceAreaList.splice(idx, 1);
+            renderAreaChips();
+          });
+        });
+      }
+
+      function hideWizardPanels() {
+        document.getElementById("wizard-shell").classList.add("hidden");
+        ["panel-step1", "panel-step2", "panel-step3", "panel-salesman", "panel-submitted", "panel-rejected"].forEach(function (id) {
+          document.getElementById(id).classList.add("hidden");
+        });
+      }
+
+      function showWizardStep(n, sub) {
+        hideWizardPanels();
+        document.getElementById("wizard-shell").classList.remove("hidden");
+        document.getElementById("panel-salesman").classList.add("hidden");
+        document.getElementById("panel-submitted").classList.add("hidden");
+        document.getElementById("panel-rejected").classList.add("hidden");
+        if (n === 1) {
+          document.getElementById("panel-step1").classList.remove("hidden");
+          document.getElementById("panel-step2").classList.add("hidden");
+          document.getElementById("panel-step3").classList.add("hidden");
+          paintStepper(1);
+        } else if (n === 2) {
+          document.getElementById("panel-step1").classList.add("hidden");
+          document.getElementById("panel-step2").classList.remove("hidden");
+          document.getElementById("panel-step3").classList.add("hidden");
+          paintStepper(2);
+          var choice = document.getElementById("sub2-choice");
+          var direct = document.getElementById("sub2-direct");
+          if (sub === "direct") {
+            choice.classList.add("hidden");
+            direct.classList.remove("hidden");
+          } else {
+            choice.classList.remove("hidden");
+            direct.classList.add("hidden");
+          }
+        } else if (n === 3) {
+          document.getElementById("panel-step1").classList.add("hidden");
+          document.getElementById("panel-step2").classList.add("hidden");
+          document.getElementById("panel-step3").classList.remove("hidden");
+          paintStepper(3);
+        }
       }
 
       async function refresh() {
         hideErr();
         try {
           var d = await api("GET", "/api/seller/kyc");
+          if (!d) return;
           var k = d.kyc || {};
           var seller = d.seller || {};
+          lastKyc = k;
+          lastSeller = seller;
           if (!seller.needs_kyc_completion && seller.is_verified) {
+            hideWizardPanels();
             document.getElementById("banner-done").classList.remove("hidden");
             setTimeout(function () {
               location.href = "/ShopkeeperDashboard.html";
             }, 1200);
             return;
           }
-          document.getElementById("st-2").className =
-            "rounded-full px-3 py-1 " + (k.status === "awaiting_path" ? "bg-slate-200 text-slate-600" : "bg-[#0056d2] text-white");
           if (k.status === "rejected") {
+            hideWizardPanels();
             document.getElementById("rej-reason").textContent = k.rejected_reason || "Please resubmit.";
-            setVisible("panel-rejected");
+            document.getElementById("panel-rejected").classList.remove("hidden");
             return;
           }
-          if (k.status === "submitted" || k.status === "salesman_pending") {
+          if (k.status === "submitted") {
+            hideWizardPanels();
             var me2 = await api("GET", "/api/auth/me");
-            if (k.status === "salesman_pending") {
-              setVisible("panel-salesman");
-              document.getElementById("salesman-phone").textContent = (me2.user && me2.user.phone) || "—";
+            if (!me2) return;
+            document.getElementById("sub-email").textContent = (me2.user && me2.user.email) || "your email";
+            document.getElementById("panel-submitted").classList.remove("hidden");
+            return;
+          }
+          if (k.status === "salesman_pending") {
+            hideWizardPanels();
+            var me3 = await api("GET", "/api/auth/me");
+            if (!me3) return;
+            document.getElementById("salesman-phone").textContent = (me3.user && me3.user.phone) || "—";
+            document.getElementById("panel-salesman").classList.remove("hidden");
+            return;
+          }
+
+          var me = await api("GET", "/api/auth/me");
+          if (!me) return;
+          var u = me.user || {};
+          document.getElementById("f-phone").value = u.phone ? String(u.phone).replace(/\D/g, "").slice(-10) : "—";
+          document.getElementById("f-owner").value = u.name || "";
+          document.getElementById("f-shop").value = seller.shop_name || "";
+          document.getElementById("f-city").value = seller.city || u.city || "";
+          document.getElementById("f-region").value = seller.region || u.region || "";
+          var bus = k.business || {};
+          document.getElementById("f-locality").value = bus.locality || "";
+          serviceAreaList = Array.isArray(bus.service_areas) ? bus.service_areas.slice() : [];
+          renderAreaChips();
+          if (bus.offers_delivery === false) {
+            document.querySelector('input[name="deliver"][value="no"]').checked = true;
+          } else {
+            document.querySelector('input[name="deliver"][value="yes"]').checked = true;
+          }
+          document.getElementById("f-gst").value = k.gst_number || "";
+          document.getElementById("gst-no").value = k.gst_number || "";
+
+          if (!allCategories.length) {
+            var cr = await fetch("/api/categories");
+            var cj = await cr.json().catch(function () {
+              return {};
+            });
+            allCategories = Array.isArray(cj.categories) ? cj.categories : [];
+          }
+          renderCategoryBoxes(seller.categories || []);
+
+          var bizDone = !!bus.completed_at;
+          var st = k.status || "awaiting_path";
+          var path = k.path || "";
+          var isBankHash = location.hash === "#bank";
+
+          if (!bizDone) {
+            showWizardStep(1);
+            return;
+          }
+          if (st === "awaiting_path" && path !== "direct") {
+            setBankHash(false);
+            showWizardStep(2, "choice");
+            return;
+          }
+          if (path === "direct" || st === "direct_draft") {
+            var docCount = k.document_count || 0;
+            document.getElementById("status-line").textContent =
+              docCount > 0 ? "Saved " + docCount + " document(s). Submit when ready." : "Add at least one document, then save.";
+            document.getElementById("btn-submit-review").disabled = docCount < 1;
+            if (isBankHash) {
+              showWizardStep(3);
             } else {
-              setVisible("panel-submitted");
-              document.getElementById("sub-email").textContent = (me2.user && me2.user.email) || "your email";
+              showWizardStep(2, "direct");
             }
             return;
           }
-          if (k.path === "direct" || k.status === "direct_draft") {
-            setVisible("panel-direct");
-            document.getElementById("gst-no").value = k.gst_number || "";
-            document.getElementById("status-line").textContent =
-              (k.document_count || 0) > 0 ? "Saved " + k.document_count + " document(s). Submit when ready." : "Add at least one document, then save.";
-            document.getElementById("btn-submit-review").disabled = (k.document_count || 0) < 1;
-            return;
-          }
-          setVisible("panel-choice");
+          showWizardStep(2, "choice");
         } catch (x) {
           showErr(x.message || "Error");
         }
       }
+
+      document.getElementById("btn-add-area").addEventListener("click", function () {
+        var inp = document.getElementById("f-area-input");
+        var t = String(inp.value || "").trim();
+        if (!t) return;
+        if (serviceAreaList.length >= 20) {
+          showErr("Maximum 20 service areas");
+          return;
+        }
+        if (serviceAreaList.indexOf(t) < 0) serviceAreaList.push(t);
+        inp.value = "";
+        hideErr();
+        renderAreaChips();
+      });
+
+      document.getElementById("stepper-1").addEventListener("click", function () {
+        if (!lastKyc || !lastKyc.business || !lastKyc.business.completed_at) return;
+        setBankHash(false);
+        history.pushState(null, "", location.pathname + location.search);
+        refresh();
+      });
+      document.getElementById("stepper-2").addEventListener("click", function () {
+        if (!lastKyc || !lastKyc.business || !lastKyc.business.completed_at) return;
+        setBankHash(false);
+        history.pushState(null, "", location.pathname + location.search);
+        refresh();
+      });
+      document.getElementById("stepper-3").addEventListener("click", function () {
+        if (!lastKyc || lastKyc.path !== "direct") return;
+        if (lastKyc.status !== "direct_draft") return;
+        setBankHash(true);
+        refresh();
+      });
+
+      document.getElementById("btn-step1-save").addEventListener("click", async function () {
+        hideErr();
+        try {
+          var offers = document.querySelector('input[name="deliver"]:checked').value === "yes";
+          await api("POST", "/api/seller/kyc/business-details", {
+            shop_name: document.getElementById("f-shop").value,
+            owner_name: document.getElementById("f-owner").value,
+            categories: getSelectedCategories(),
+            city: document.getElementById("f-city").value,
+            region: document.getElementById("f-region").value,
+            locality: document.getElementById("f-locality").value,
+            service_areas: serviceAreaList,
+            offers_delivery: offers,
+            gst_number: document.getElementById("f-gst").value.trim(),
+          });
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+
+      document.getElementById("btn-step1-later").addEventListener("click", function () {
+        location.href = "/ShopkeeperDashboard.html";
+      });
 
       document.getElementById("btn-salesman").addEventListener("click", async function () {
         try {
@@ -211,6 +581,7 @@
         try {
           hideErr();
           await api("POST", "/api/seller/kyc/path", { path: "direct" });
+          setBankHash(false);
           await refresh();
         } catch (x) {
           showErr(x.message);
@@ -220,7 +591,7 @@
       document.getElementById("pick-files").addEventListener("click", function () {
         document.getElementById("kyc-files").click();
       });
-      document.getElementById("kyc-files").addEventListener("change", async function () {
+      document.getElementById("kyc-files").addEventListener("change", function () {
         var inp = document.getElementById("kyc-files");
         pickedFiles = Array.prototype.slice.call(inp.files || [], 0, 6);
         document.getElementById("file-hint").textContent = pickedFiles.length ? pickedFiles.length + " file(s) selected" : "Up to 6 files";
@@ -243,7 +614,10 @@
             else if (n.indexOf("pan") >= 0) kind = "pan";
             docs.push({ kind: kind, filename: f.name, mime_type: f.type || "application/octet-stream", data: data });
           }
-          await api("POST", "/api/seller/kyc/documents", { documents: docs, gst_number: document.getElementById("gst-no").value.trim() });
+          await api("POST", "/api/seller/kyc/documents", {
+            documents: docs,
+            gst_number: document.getElementById("gst-no").value.trim(),
+          });
           pickedFiles = [];
           document.getElementById("kyc-files").value = "";
           document.getElementById("btn-upload").disabled = true;
@@ -253,22 +627,57 @@
           showErr(x.message);
         }
       });
-      document.getElementById("btn-submit-review").addEventListener("click", async function () {
+
+      document.getElementById("btn-to-bank").addEventListener("click", function () {
+        hideErr();
+        setBankHash(true);
+        refresh();
+      });
+      document.getElementById("btn-back-docs").addEventListener("click", function () {
+        setBankHash(false);
+        refresh();
+      });
+
+      document.getElementById("btn-bank-save").addEventListener("click", async function () {
+        hideErr();
         try {
-          hideErr();
-          await api("POST", "/api/seller/kyc/submit", {});
+          await api("POST", "/api/seller/kyc/bank-details", {
+            account_holder: document.getElementById("b-holder").value,
+            ifsc: document.getElementById("b-ifsc").value,
+            account_number: document.getElementById("b-acct").value,
+          });
           await refresh();
         } catch (x) {
           showErr(x.message);
         }
       });
-      document.getElementById("btn-restart").addEventListener("click", async function () {
+
+      document.getElementById("btn-submit-review").addEventListener("click", submitReview);
+      document.getElementById("btn-skip-bank-submit").addEventListener("click", submitReview);
+
+      async function submitReview() {
         try {
-          await api("POST", "/api/seller/kyc/restart", {});
+          hideErr();
+          await api("POST", "/api/seller/kyc/submit", {});
+          setBankHash(false);
           await refresh();
         } catch (x) {
           showErr(x.message);
         }
+      }
+
+      document.getElementById("btn-restart").addEventListener("click", async function () {
+        try {
+          await api("POST", "/api/seller/kyc/restart", {});
+          setBankHash(false);
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+
+      window.addEventListener("hashchange", function () {
+        refresh();
       });
 
       refresh();

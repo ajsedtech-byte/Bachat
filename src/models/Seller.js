@@ -31,6 +31,16 @@ const sellerKycSchema = new mongoose.Schema(
     verifiedAt: { type: Date, default: null },
     rejectedReason: { type: String, default: "", maxlength: 2000 },
     documents: { type: [sellerKycDocumentSchema], default: [] },
+    /** Step 1 — business profile (onboarding wizard). */
+    locality: { type: String, default: "", trim: true, maxlength: 200 },
+    serviceAreas: { type: [String], default: undefined },
+    offersDelivery: { type: Boolean, default: true },
+    businessDetailsCompletedAt: { type: Date, default: null },
+    /** Step 3 — optional payout bank (plain fields; restrict access in production). */
+    bankAccountHolder: { type: String, default: "", trim: true, maxlength: 120 },
+    bankIfsc: { type: String, default: "", trim: true, maxlength: 11 },
+    bankAccountNumber: { type: String, default: "", trim: true, maxlength: 24 },
+    bankDetailsProvidedAt: { type: Date, default: null },
   },
   { _id: false }
 );

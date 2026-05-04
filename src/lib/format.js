@@ -74,6 +74,7 @@ function formatSeller(s) {
     is_verified: o.isVerified,
     kyc_status: kyc.status || null,
     kyc_path: kyc.path || null,
+    kyc_business_completed: Boolean(kyc.businessDetailsCompletedAt),
     needs_kyc_completion: sellerTradeBlocked(o),
     created_at: o.createdAt,
   };
