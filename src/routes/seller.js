@@ -5,6 +5,8 @@ const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatSeller } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
+const { validateGstinChecksum } = require("../lib/gstinValidate");
+const { gstRegistryLookupHttp } = require("../lib/gstRegistryLookup");
 const { sendMail } = require("../services/email");
 
 const router = express.Router();
@@ -66,6 +68,11 @@ router.get("/kyc", requireAuth, requireRole("seller"), async (req, res, next) =>
       kyc.bankDetailsProvidedAt &&
         (String(kyc.bankIfsc || "").trim() || String(kyc.bankAccountNumber || "").trim())
     );
+    const issued = Array.isArray(kyc.digilockerIssuedItems) ? kyc.digilockerIssuedItems : [];
+    const issuedPreview = issued.map((row) => {
+      const { uri: _u, ...rest } = row || {};
+      return rest;
+    });
     return res.json({
       seller: formatSeller(seller),
       kyc: {
@@ -84,7 +91,76 @@ router.get("/kyc", requireAuth, requireRole("seller"), async (req, res, next) =>
           offers_delivery: kyc.offersDelivery !== false,
         },
         bank_saved: bankSaved,
+        live: {
+          gst_checksum_ok: Boolean(kyc.gstinChecksumOk),
+          gst_checksum_checked_at: kyc.gstinChecksumCheckedAt || null,
+          gst_registry_active: Boolean(kyc.gstRegistryActive),
+          gst_registry_legal_name: kyc.gstRegistryLegalName || "",
+          gst_registry_checked_at: kyc.gstRegistryCheckedAt || null,
+          gst_registry_warning: kyc.gstRegistryWarning || "",
+          digilocker_linked_at: kyc.digilockerLinkedAt || null,
+          digilocker_issued_synced_at: kyc.digilockerIssuedSyncedAt || null,
+          digilocker_issued_docs: issuedPreview,
+        },
       },
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/**
+ * Live GST checks: (1) 15-digit format + checksum on server; (2) optional GET to GST_REGISTRY_LOOKUP_URL.
+ */
+router.post("/kyc/verify-gst", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const { gstin } = req.body || {};
+    const seller = await Seller.findOne({ user: req.user.id });
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+    }
+    if (seller.isVerified) {
+      return res.status(400).json({ error: "Shop is already verified" });
+    }
+    const st = seller.sellerKyc?.status || "awaiting_path";
+    if (st === "submitted") {
+      return res.status(400).json({ error: "GST cannot be changed while verification is under review" });
+    }
+    const chk = validateGstinChecksum(gstin);
+    if (!chk.ok) {
+      return badRequest(res, chk.error);
+    }
+    if (!seller.sellerKyc) {
+      seller.sellerKyc = {};
+    }
+    seller.sellerKyc.gstNumber = chk.gstin;
+    seller.sellerKyc.gstinChecksumOk = true;
+    seller.sellerKyc.gstinChecksumCheckedAt = new Date();
+
+    const registry = await gstRegistryLookupHttp(chk.gstin);
+    let registry_warning = null;
+    if (registry && !registry.skipped) {
+      seller.sellerKyc.gstRegistryCheckedAt = new Date();
+      if (registry.error) {
+        registry_warning = registry.error;
+        seller.sellerKyc.gstRegistryActive = false;
+        seller.sellerKyc.gstRegistryLegalName = "";
+        seller.sellerKyc.gstRegistryWarning = String(registry.error).slice(0, 500);
+      } else {
+        seller.sellerKyc.gstRegistryActive = !!registry.active;
+        seller.sellerKyc.gstRegistryLegalName = String(registry.legal_name || "").slice(0, 200);
+        seller.sellerKyc.gstRegistryWarning = "";
+      }
+    }
+
+    await seller.save();
+    const fresh = await Seller.findOne({ user: req.user.id }).lean();
+    return res.json({
+      seller: formatSeller(fresh),
+      gst_checksum_ok: true,
+      gst_registry_active: !!(fresh.sellerKyc && fresh.sellerKyc.gstRegistryActive),
+      gst_registry_legal_name: (fresh.sellerKyc && fresh.sellerKyc.gstRegistryLegalName) || "",
+      registry_warning,
     });
   } catch (err) {
     return next(err);

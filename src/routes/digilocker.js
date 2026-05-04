@@ -1,9 +1,11 @@
 /**
  * DigiLocker: OAuth, optional issued-document metadata sync, optional file/XML download.
  * Access tokens are kept in memory only (short TTL) — never persisted in MongoDB.
+ * Supports delivery partners and shopkeepers (seller role).
  */
 const express = require("express");
 const User = require("../models/User");
+const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const {
   digilockerEnv,
@@ -18,7 +20,7 @@ const {
 
 const router = express.Router();
 
-/** state -> { userId, exp } (10 min) */
+/** state -> { userId, role: 'delivery'|'seller', exp } (10 min) */
 const pendingStates = new Map();
 const STATE_TTL_MS = 10 * 60 * 1000;
 
@@ -79,11 +81,12 @@ router.get("/status", (_req, res) => {
     /** Not a substitute for partner onboarding / MeitY or portal review. */
     partner_registration_required: true,
     legal_review_required: true,
+    roles: ["delivery", "seller"],
   });
 });
 
-/** Delivery partner: returns { authorize_url, state } to start DigiLocker login. */
-router.post("/authorize-url", requireAuth, requireRole("delivery"), async (req, res, next) => {
+/** Start DigiLocker login (delivery or shopkeeper). */
+router.post("/authorize-url", requireAuth, requireRole("delivery", "seller"), async (req, res, next) => {
   try {
     sweepStates();
     const { clientId, clientSecret, redirectUri, configured } = digilockerEnv();
@@ -91,7 +94,11 @@ router.post("/authorize-url", requireAuth, requireRole("delivery"), async (req, 
       return res.status(503).json({ error: "DigiLocker is not configured on this server" });
     }
     const state = randomState();
-    pendingStates.set(state, { userId: String(req.user.id), exp: Date.now() + STATE_TTL_MS });
+    pendingStates.set(state, {
+      userId: String(req.user.id),
+      role: req.user.role,
+      exp: Date.now() + STATE_TTL_MS,
+    });
     const authorize_url = buildAuthorizeUrl({ clientId, redirectUri, state });
     return res.json({ authorize_url, state });
   } catch (err) {
@@ -100,16 +107,15 @@ router.post("/authorize-url", requireAuth, requireRole("delivery"), async (req, 
 });
 
 /**
- * After OAuth callback, sync issued-document metadata into deliveryKyc (no file bodies).
- * Requires an in-memory access session from the callback (short window).
+ * After OAuth callback, sync issued-document metadata (no file bodies).
  */
-router.post("/pull-issued-meta", requireAuth, requireRole("delivery"), async (req, res, next) => {
+router.post("/pull-issued-meta", requireAuth, requireRole("delivery", "seller"), async (req, res, next) => {
   try {
     const sess = getAccessSession(req.user.id);
     if (!sess) {
       return res.status(400).json({
         error:
-          "No active DigiLocker session. Open “Continue with DigiLocker” again, finish login, then retry within a few minutes.",
+          "No active DigiLocker session. Open DigiLocker again, finish login, then retry within a few minutes.",
       });
     }
     try {
@@ -120,15 +126,27 @@ router.post("/pull-issued-meta", requireAuth, requireRole("delivery"), async (re
         if (n) normalized.push(n);
         if (normalized.length >= 100) break;
       }
-      await User.updateOne(
-        { _id: req.user.id, role: "delivery" },
-        {
-          $set: {
-            "deliveryKyc.digilockerIssuedSyncedAt": new Date(),
-            "deliveryKyc.digilockerIssuedItems": normalized,
-          },
-        }
-      );
+      if (req.user.role === "delivery") {
+        await User.updateOne(
+          { _id: req.user.id, role: "delivery" },
+          {
+            $set: {
+              "deliveryKyc.digilockerIssuedSyncedAt": new Date(),
+              "deliveryKyc.digilockerIssuedItems": normalized,
+            },
+          }
+        );
+      } else {
+        await Seller.updateOne(
+          { user: req.user.id },
+          {
+            $set: {
+              "sellerKyc.digilockerIssuedSyncedAt": new Date(),
+              "sellerKyc.digilockerIssuedItems": normalized,
+            },
+          }
+        );
+      }
       const preview = normalized.map(({ uri: _u, ...rest }) => rest);
       return res.json({ ok: true, count: normalized.length, items: preview });
     } catch (err) {
@@ -143,7 +161,7 @@ router.post("/pull-issued-meta", requireAuth, requireRole("delivery"), async (re
  * Download one file the user already listed in digilockerIssuedItems (same access session).
  * Disabled unless DIGILOCKER_ALLOW_FILE_FETCH=1 — high sensitivity (Aadhaar/PAN in some PDFs/XML).
  */
-router.post("/file", requireAuth, requireRole("delivery"), async (req, res, next) => {
+router.post("/file", requireAuth, requireRole("delivery", "seller"), async (req, res, next) => {
   try {
     const env = digilockerEnv();
     if (!env.configured) {
@@ -163,8 +181,14 @@ router.post("/file", requireAuth, requireRole("delivery"), async (req, res, next
     if (!uri) {
       return res.status(400).json({ error: "uri is required" });
     }
-    const user = await User.findById(req.user.id).select("deliveryKyc.digilockerIssuedItems").lean();
-    const allowed = (user?.deliveryKyc?.digilockerIssuedItems || []).some((x) => String(x.uri) === uri);
+    let allowed = false;
+    if (req.user.role === "delivery") {
+      const user = await User.findById(req.user.id).select("deliveryKyc.digilockerIssuedItems").lean();
+      allowed = (user?.deliveryKyc?.digilockerIssuedItems || []).some((x) => String(x.uri) === uri);
+    } else {
+      const seller = await Seller.findOne({ user: req.user.id }).select("sellerKyc.digilockerIssuedItems").lean();
+      allowed = (seller?.sellerKyc?.digilockerIssuedItems || []).some((x) => String(x.uri) === uri);
+    }
     if (!allowed) {
       return res.status(403).json({ error: "URI is not in your last issued-document sync — run pull-issued-meta first." });
     }
@@ -185,15 +209,13 @@ router.post("/file", requireAuth, requireRole("delivery"), async (req, res, next
   }
 });
 
-/** Drop in-memory token (user can call after finishing downloads). */
-router.post("/session/revoke", requireAuth, requireRole("delivery"), (req, res) => {
+router.post("/session/revoke", requireAuth, requireRole("delivery", "seller"), (req, res) => {
   clearAccessSession(req.user.id);
   return res.json({ ok: true });
 });
 
 /**
  * OAuth redirect target (DigiLocker redirects browser here with ?code=&state=).
- * Sets digilockerLinkedAt and stores a short-lived access session for issued-doc APIs.
  */
 router.get("/callback", async (req, res, next) => {
   try {
@@ -204,7 +226,7 @@ router.get("/callback", async (req, res, next) => {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
       res.status(400).send(
-        `<!DOCTYPE html><html><head><meta charset="utf-8"><title>DigiLocker</title></head><body style="font-family:sans-serif;padding:2rem"><p><strong>DigiLocker</strong>: ${safe}</p><p><a href="/delivery-kyc.html">Back to KYC</a></p></body></html>`
+        `<!DOCTYPE html><html><head><meta charset="utf-8"><title>DigiLocker</title></head><body style="font-family:sans-serif;padding:2rem"><p><strong>DigiLocker</strong>: ${safe}</p><p><a href="/delivery-kyc.html">Delivery KYC</a> · <a href="/seller-kyc.html">Shopkeeper KYC</a></p></body></html>`
       );
     };
     if (!code || !state) {
@@ -235,14 +257,20 @@ router.get("/callback", async (req, res, next) => {
       return fail(e.message || "Token exchange failed");
     }
 
-    await User.updateOne(
-      { _id: rec.userId, role: "delivery" },
-      { $set: { "deliveryKyc.digilockerLinkedAt": new Date() } }
-    );
+    const role = rec.role === "seller" ? "seller" : "delivery";
+    if (role === "seller") {
+      await Seller.updateOne(
+        { user: rec.userId },
+        { $set: { "sellerKyc.digilockerLinkedAt": new Date() } }
+      );
+    } else {
+      await User.updateOne({ _id: rec.userId, role: "delivery" }, { $set: { "deliveryKyc.digilockerLinkedAt": new Date() } });
+    }
 
     setAccessSession(rec.userId, accessToken, expiresIn);
 
-    res.redirect(302, "/delivery-kyc.html?digilocker=1");
+    const nextUrl = role === "seller" ? "/seller-kyc.html?digilocker=1" : "/delivery-kyc.html?digilocker=1";
+    res.redirect(302, nextUrl);
   } catch (err) {
     return next(err);
   }

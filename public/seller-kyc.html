@@ -154,6 +154,17 @@
               <p class="text-xs text-slate-500">GST (if not already saved) can be updated below.</p>
               <label class="block text-xs font-bold text-slate-500 uppercase">GST number (optional)</label>
               <input id="gst-no" type="text" maxlength="20" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm uppercase" placeholder="22AAAAA0000A1Z5" />
+              <div class="flex flex-wrap gap-2 items-center">
+                <button type="button" id="btn-verify-gst" class="rounded-lg bg-emerald-700 text-white font-bold px-4 py-2 text-xs sm:text-sm">Verify GST (live)</button>
+                <span id="live-gst-line" class="text-[11px] sm:text-xs text-slate-600 max-w-full"></span>
+              </div>
+              <p class="text-[10px] text-slate-500">Validates 15-digit format + check digit on our server. If your ops team configures <code class="bg-slate-100 px-1 rounded">GST_REGISTRY_LOOKUP_URL</code>, we also call your registry endpoint.</p>
+              <div id="digilocker-box" class="hidden rounded-xl border border-[#0056d2]/30 bg-[#f0f7ff] p-4 space-y-2">
+                <p class="text-sm font-extrabold text-slate-900">DigiLocker (live)</p>
+                <p class="text-xs text-slate-600">Link your DigiLocker to import <strong>metadata</strong> for government-issued documents (same Meri Pehchaan app registration as delivery partners).</p>
+                <button type="button" id="digilocker-btn" class="w-full rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-bold py-2.5 text-sm">Continue with DigiLocker</button>
+                <p id="digilocker-ok" class="hidden text-xs text-emerald-800 font-semibold"></p>
+              </div>
               <div class="rounded-2xl border-2 border-dashed border-[#0056d2]/40 bg-[#f8fafc] p-8 text-center">
                 <input type="file" id="kyc-files" multiple accept="image/*,.pdf" class="hidden" />
                 <button type="button" id="pick-files" class="rounded-xl bg-white border border-[#e5e7eb] px-5 py-2.5 text-sm font-bold text-[#0056d2] shadow-sm">Choose files</button>
@@ -242,6 +253,51 @@
       var allCategories = [];
       var lastKyc = null;
       var lastSeller = null;
+      var digiRedirectConsumed = false;
+
+      function consumeDigiRedirect() {
+        if (digiRedirectConsumed) return false;
+        var q = new URLSearchParams(location.search || "");
+        if (q.get("digilocker") !== "1") return false;
+        digiRedirectConsumed = true;
+        history.replaceState({}, "", "/seller-kyc.html");
+        return true;
+      }
+
+      function paintLiveChecks(k) {
+        var live = (k && k.live) || {};
+        var line = document.getElementById("live-gst-line");
+        if (!line) return;
+        var parts = [];
+        if (live.gst_checksum_ok) parts.push("GST format + checksum OK");
+        if (live.gst_registry_active) {
+          parts.push("Registry: active");
+          if (live.gst_registry_legal_name) parts.push("(" + live.gst_registry_legal_name + ")");
+        } else if (live.gst_registry_warning) {
+          parts.push("Registry: " + String(live.gst_registry_warning).slice(0, 140));
+        } else if (live.gst_registry_checked_at) {
+          parts.push("Registry checked (inactive)");
+        }
+        if (live.digilocker_linked_at) parts.push("DigiLocker linked");
+        if (live.digilocker_issued_synced_at && (live.digilocker_issued_docs || []).length)
+          parts.push("DigiLocker docs: " + live.digilocker_issued_docs.length);
+        line.textContent = parts.length ? parts.join(" · ") : "Tap “Verify GST” or link DigiLocker for live checks.";
+      }
+
+      async function ensureDigilockerBoxVisible() {
+        var box = document.getElementById("digilocker-box");
+        if (!box) return;
+        try {
+          var r = await fetch("/api/digilocker/status");
+          var j = await r.json().catch(function () {
+            return {};
+          });
+          if (j.enabled) box.classList.remove("hidden");
+          else box.classList.add("hidden");
+        } catch (_) {
+          box.classList.add("hidden");
+        }
+      }
 
       function esc(s) {
         var d = document.createElement("div");
@@ -412,6 +468,19 @@
       async function refresh() {
         hideErr();
         try {
+          if (consumeDigiRedirect()) {
+            try {
+              var pj = await api("POST", "/api/digilocker/pull-issued-meta", {});
+              var okDl = document.getElementById("digilocker-ok");
+              if (okDl) {
+                okDl.textContent =
+                  "DigiLocker linked. Imported metadata for " + String((pj && pj.count) || 0) + " issued document(s).";
+                okDl.classList.remove("hidden");
+              }
+            } catch (e) {
+              showErr(e.message || "DigiLocker sync failed");
+            }
+          }
           var d = await api("GET", "/api/seller/kyc");
           if (!d) return;
           var k = d.kyc || {};
@@ -497,6 +566,8 @@
             document.getElementById("status-line").textContent =
               docCount > 0 ? "Saved " + docCount + " document(s). Submit when ready." : "Add at least one document, then save.";
             document.getElementById("btn-submit-review").disabled = docCount < 1;
+            paintLiveChecks(k);
+            ensureDigilockerBoxVisible();
             if (isBankHash) {
               showWizardStep(3);
             } else {
@@ -585,6 +656,31 @@
           await refresh();
         } catch (x) {
           showErr(x.message);
+        }
+      });
+
+      document.getElementById("btn-verify-gst").addEventListener("click", async function () {
+        hideErr();
+        try {
+          var g = String(document.getElementById("gst-no").value || "").trim();
+          if (!g) {
+            showErr("Enter a GSTIN first.");
+            return;
+          }
+          await api("POST", "/api/seller/kyc/verify-gst", { gstin: g });
+          await refresh();
+        } catch (x) {
+          showErr(x.message);
+        }
+      });
+
+      document.getElementById("digilocker-btn").addEventListener("click", async function () {
+        hideErr();
+        try {
+          var res = await api("POST", "/api/digilocker/authorize-url", {});
+          if (res && res.authorize_url) location.href = res.authorize_url;
+        } catch (x) {
+          showErr(x.message || "Could not start DigiLocker");
         }
       });
 

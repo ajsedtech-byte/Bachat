@@ -75,6 +75,9 @@ function formatSeller(s) {
     kyc_status: kyc.status || null,
     kyc_path: kyc.path || null,
     kyc_business_completed: Boolean(kyc.businessDetailsCompletedAt),
+    kyc_gst_checksum_ok: Boolean(kyc.gstinChecksumOk),
+    kyc_gst_registry_active: Boolean(kyc.gstRegistryActive),
+    kyc_digilocker_linked_at: kyc.digilockerLinkedAt || null,
     needs_kyc_completion: sellerTradeBlocked(o),
     created_at: o.createdAt,
   };

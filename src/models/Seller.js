@@ -1,6 +1,21 @@
 const mongoose = require("mongoose");
 const { CATEGORIES } = require("../lib/categories");
 
+/** DigiLocker issued-document row (URI never exposed to clients). */
+const digilockerIssuedItemSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: "" },
+    description: { type: String, default: "" },
+    doctype: { type: String, default: "" },
+    mime: { type: String, default: "" },
+    date: { type: String, default: "" },
+    issuer: { type: String, default: "" },
+    issuerid: { type: String, default: "" },
+    uri: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
 const sellerKycDocumentSchema = new mongoose.Schema(
   {
     kind: {
@@ -41,6 +56,19 @@ const sellerKycSchema = new mongoose.Schema(
     bankIfsc: { type: String, default: "", trim: true, maxlength: 11 },
     bankAccountNumber: { type: String, default: "", trim: true, maxlength: 24 },
     bankDetailsProvidedAt: { type: Date, default: null },
+    /** DigiLocker (Meri Pehchaan) — same OAuth keys as delivery; metadata only unless file fetch enabled. */
+    digilockerLinkedAt: { type: Date, default: null },
+    digilockerIssuedSyncedAt: { type: Date, default: null },
+    digilockerIssuedItems: { type: [digilockerIssuedItemSchema], default: undefined },
+    /** GSTIN structure + checksum validated on server (no portal call). */
+    gstinChecksumOk: { type: Boolean, default: false },
+    gstinChecksumCheckedAt: { type: Date, default: null },
+    /** Optional HTTP registry lookup (GST_REGISTRY_LOOKUP_URL). */
+    gstRegistryCheckedAt: { type: Date, default: null },
+    gstRegistryActive: { type: Boolean, default: false },
+    gstRegistryLegalName: { type: String, default: "", maxlength: 200 },
+    /** Last registry HTTP error message (for seller UI / ops). */
+    gstRegistryWarning: { type: String, default: "", maxlength: 500 },
   },
   { _id: false }
 );

@@ -18,7 +18,7 @@
         <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/seller-kyc/pending</code> · Approve after field visit or document review.</p>
         <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
         <div class="mt-6 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
-          <table class="w-full text-sm text-left min-w-[960px]">
+          <table class="w-full text-sm text-left min-w-[1080px]">
             <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
               <tr>
                 <th class="px-4 py-3">Shop</th>
@@ -26,6 +26,7 @@
                 <th class="px-4 py-3">Path</th>
                 <th class="px-4 py-3">Status</th>
                 <th class="px-4 py-3">Docs</th>
+                <th class="px-4 py-3">Live checks</th>
                 <th class="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -82,7 +83,7 @@
           return;
         }
         if (!(data.items && data.items.length)) {
-          tb.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No pending seller verifications.</td></tr>';
+          tb.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">No pending seller verifications.</td></tr>';
           return;
         }
         data.items.forEach(function (row) {
@@ -107,6 +108,10 @@
             esc(row.kyc_status) +
             "</td><td class=\"px-4 py-3\">" +
             String(row.document_count || 0) +
+            "</td><td class=\"px-4 py-3 text-xs leading-relaxed\">" +
+            (row.gst_checksum_ok ? "<span class=\"text-green-700 font-semibold\">GST✓</span> " : "<span class=\"text-slate-400\">GST —</span> ") +
+            (row.gst_registry_active ? "<span class=\"text-green-700 font-semibold\">Reg✓</span> " : "<span class=\"text-slate-400\">Reg —</span> ") +
+            (row.digilocker_linked ? "<span class=\"text-blue-700 font-semibold\">DL</span>" : "<span class=\"text-slate-400\">DL —</span>") +
             "</td><td class=\"px-4 py-3 space-x-2\"><button type=\"button\" data-a=\"verify\" data-id=\"" +
             esc(row.seller_id) +
             "\" class=\"text-xs font-bold text-white bg-green-600 rounded-lg px-3 py-1.5 hover:bg-green-700\">Approve</button> " +
