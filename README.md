@@ -50,6 +50,7 @@ See `.env.example` for all options. **Never commit `.env`** — it is gitignored
 - `docs/MVP-ROADMAP.md` — product phases.
 - `docs/PHASE3-STATUS.md` — what “Phase 3” modules exist vs planned.
 - `docs/DELIVERY-KYC.md` — delivery identity / DigiLocker / UIDAI expectations.
+- `docs/DIGILOCKER.md` — **DigiLocker / Meri Pehchaan** partner setup, env vars, flows (delivery + seller).
 
 ### Repo
 

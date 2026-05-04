@@ -5,7 +5,7 @@
 1. **Last-4 Aadhaar + optional PAN last-4** — Collected on `delivery-kyc.html` with explicit consent. Only four digits of Aadhaar are stored; the full UID must never be sent to this server.
 2. **Admin review** — Submissions appear in `GET /api/admin/delivery-kyc/pending`. Admins approve or reject via `PATCH /api/admin/delivery-kyc/:userId` with `status: "verified"` or `"rejected"`.
 3. **Dev auto-verify** — If `NODE_ENV` is not `production` or `DELIVERY_KYC_AUTO_VERIFY=1`, submit can auto-verify (see `src/routes/auth.js`). Turn **off** auto-verify in production unless you accept that risk.
-4. **DigiLocker (optional)** — OAuth and issued-document **metadata** sync exist under `/api/digilocker` when env vars are set. Binary/XML fetch is gated off by default. Partner registration on the [Meri Pehchaan / DigiLocker partner portal](https://dlpartners.meripehchaan.gov.in/) is required for production use.
+4. **DigiLocker (optional)** — OAuth and issued-document **metadata** sync exist under `/api/digilocker` when env vars are set. Binary/XML fetch is gated off by default. Partner registration on the [Meri Pehchaan / DigiLocker partner portal](https://dlpartners.meripehchaan.gov.in/) is required for production use. **Step-by-step:** see [`docs/DIGILOCKER.md`](DIGILOCKER.md).
 
 ## What is *not* implemented
 
