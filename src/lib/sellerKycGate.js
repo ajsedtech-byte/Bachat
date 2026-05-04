@@ -1,17 +1,14 @@
 const Seller = require("../models/Seller");
 
-/** Statuses where the shop cannot quote, list products, or change orders until ops approves KYC. */
-const KYC_BLOCKED = new Set(["awaiting_path", "salesman_pending", "direct_draft", "submitted", "rejected"]);
-
+/**
+ * Any shop that is not ops-verified must complete eKYC before trading or using the dashboard.
+ * Applies to new signups and legacy sellers (no sellerKyc subdoc, or any in-progress status).
+ */
 function sellerTradeBlocked(sellerLeanOrDoc) {
   if (!sellerLeanOrDoc || sellerLeanOrDoc.isVerified) {
     return false;
   }
-  const st = sellerLeanOrDoc.sellerKyc && sellerLeanOrDoc.sellerKyc.status;
-  if (st == null || st === "") {
-    return false;
-  }
-  return KYC_BLOCKED.has(st);
+  return true;
 }
 
 function forbiddenKyc(res) {
@@ -38,4 +35,4 @@ function requireSellerTradeUnblocked(req, res, next) {
     .catch(next);
 }
 
-module.exports = { sellerTradeBlocked, requireSellerTradeUnblocked, forbiddenKyc, KYC_BLOCKED };
+module.exports = { sellerTradeBlocked, requireSellerTradeUnblocked, forbiddenKyc };
