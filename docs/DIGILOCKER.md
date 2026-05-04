@@ -6,6 +6,52 @@ Official ecosystem: [DigiLocker / Meri Pehchaan](https://digilocker.meripehchaan
 
 ---
 
+## Step-by-step: what you do (portal → Bachat)
+
+Portal UI may change; follow what you actually see on [dlpartners.meripehchaan.gov.in](https://dlpartners.meripehchaan.gov.in/). Use **FAQ’s** and support links on that site for timelines and required documents.
+
+### Part A — Partner portal (Government / MeitY process)
+
+1. **Open** [https://dlpartners.meripehchaan.gov.in](https://dlpartners.meripehchaan.gov.in) (DigiLocker & Meri Pehchaan partner site).
+2. If you **already have** a partner account, click **Login** (top right) and sign in. If not, click **GET STARTED** and follow the portal’s **registration / organisation onboarding** (company details, authorised signatory, purpose of integration, etc.).
+3. Complete any **verification or approval** steps the portal asks for (this phase is **outside Bachat** — timelines depend on the portal and your entity type).
+4. In the partner dashboard, find the section for **OAuth / API / Application** (names vary). **Create an application** (or “OAuth client”) for your Bachat backend.
+5. **Copy and store securely**:
+   - **Client ID**
+   - **Client Secret** (shown once on some portals — save it immediately).
+6. **Register redirect URL(s)** in that same application. Add **exactly** (Bachat callback):
+
+   - Local: `http://localhost:3000/api/digilocker/callback`
+   - Production: `https://YOUR-API-DOMAIN/api/digilocker/callback`
+
+   The string must match **character-for-character** what you put in `DIGILOCKER_REDIRECT_URI` later (including `http` vs `https`, port `:3000`, no extra slash).
+7. Note which **scopes** the portal allows for your app. Bachat defaults to `openid` unless you set `DIGILOCKER_OAUTH_SCOPE` differently (see below).
+8. **Save / submit** the application if the portal requires it and wait until the app is **approved / active** (if their workflow has a review state).
+
+### Part B — Your Bachat server
+
+9. On the machine where Bachat runs, edit **`.env`** (copy from `.env.example` if needed) and set:
+
+   ```env
+   DIGILOCKER_CLIENT_ID=paste_from_portal
+   DIGILOCKER_CLIENT_SECRET=paste_from_portal
+   DIGILOCKER_REDIRECT_URI=http://localhost:3000/api/digilocker/callback
+   ```
+
+   For production, use your real **HTTPS** URL for both the portal registration and `DIGILOCKER_REDIRECT_URI`.
+
+10. **Restart** the Node process (`npm run dev` or your process manager) so env vars load.
+11. **Check** in a browser or with curl: `GET http://localhost:3000/api/digilocker/status` → JSON should show `"enabled": true` when all three variables are set.
+
+### Part C — Test with a real user
+
+12. **Sign up / log in** as a **delivery** user (`delivery-kyc.html`) or **seller** (`seller-kyc.html`, direct verification path).
+13. Click **Continue with DigiLocker**. You should be sent to the **government login** page, then back to Bachat at `delivery-kyc.html?digilocker=1` or `seller-kyc.html?digilocker=1`.
+14. The page should call **pull issued metadata**; in MongoDB, `digilockerLinkedAt` / issued items should update for that user or seller.
+15. If something fails, see **Troubleshooting** below and the portal **FAQ’s**.
+
+---
+
 ## What Bachat implements
 
 | Piece | Details |
@@ -18,29 +64,11 @@ Official ecosystem: [DigiLocker / Meri Pehchaan](https://digilocker.meripehchaan
 
 Code references: `src/lib/digilocker.js`, `src/routes/digilocker.js`, `public/delivery-kyc.html`, `public/seller-kyc.html`.
 
----
-
-## 1. Partner registration (required for production)
-
-1. Go to **[Meri Pehchaan / DigiLocker partner portal](https://dlpartners.meripehchaan.gov.in/)** and create or access your organisation’s application.
-2. Complete their **KYC / verification** for your entity (varies by portal process).
-3. Create an **OAuth client** and obtain:
-   - **Client ID**
-   - **Client Secret**
-4. Register **Redirect URI(s)** — must match **exactly** (scheme, host, port, path, no trailing slash mismatch). For Bachat use **one** callback for all roles:
-
-   `https://<your-api-domain>/api/digilocker/callback`  
-   Local dev example: `http://localhost:3000/api/digilocker/callback`
-
-5. Confirm **scopes** the portal allows. Bachat defaults to sending `scope=openid` unless you override (see `DIGILOCKER_OAUTH_SCOPE` below).
-
-6. Use **HTTPS** in production for `PUBLIC_APP_URL`, your site, and the redirect URI.
-
 > Portal wording and steps change over time — follow the **current** partner documentation and support channels on the official site.
 
 ---
 
-## 2. Environment variables (`.env`)
+## 1. Environment variables (`.env`)
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
@@ -58,7 +86,7 @@ Code references: `src/lib/digilocker.js`, `src/routes/digilocker.js`, `public/de
 
 ---
 
-## 3. End-user flow (same for delivery and seller)
+## 2. End-user flow (same for delivery and seller)
 
 1. User is logged in (JWT) as `delivery` or `seller`.
 2. User clicks **Continue with DigiLocker** → `POST /api/digilocker/authorize-url` → browser redirects to DigiLocker login.
@@ -70,7 +98,7 @@ Code references: `src/lib/digilocker.js`, `src/routes/digilocker.js`, `public/de
 
 ---
 
-## 4. API endpoints (reference)
+## 3. API endpoints (reference)
 
 | Method | Path | Role | Purpose |
 |--------|------|------|---------|
@@ -83,7 +111,7 @@ Code references: `src/lib/digilocker.js`, `src/routes/digilocker.js`, `public/de
 
 ---
 
-## 5. Local development checklist
+## 4. Local development checklist
 
 - [ ] MongoDB + `JWT_SECRET` + app running (`npm run dev`).
 - [ ] `.env` has the three `DIGILOCKER_*` variables; redirect is **`http://localhost:3000/api/digilocker/callback`** and is **registered identically** on the partner portal.
@@ -92,7 +120,7 @@ Code references: `src/lib/digilocker.js`, `src/routes/digilocker.js`, `public/de
 
 ---
 
-## 6. Production checklist
+## 5. Production checklist
 
 - [ ] HTTPS everywhere; redirect URI is **https** and matches portal config.
 - [ ] Secrets only in env / secret manager — never committed.
@@ -102,7 +130,7 @@ Code references: `src/lib/digilocker.js`, `src/routes/digilocker.js`, `public/de
 
 ---
 
-## 7. Troubleshooting
+## 6. Troubleshooting
 
 | Symptom | Things to check |
 |---------|------------------|
@@ -113,7 +141,7 @@ Code references: `src/lib/digilocker.js`, `src/routes/digilocker.js`, `public/de
 
 ---
 
-## 8. What this is *not*
+## 7. What this is *not*
 
 - **Not** a substitute for full **UIDAI OTP/XML eKYC** as a first-party app — that requires a **UIDAI-licensed ASP** if you need that specific modality.
 - **Not** automatic “verified seller” — Bachat can still require **manual** `admin-seller-kyc` approval unless you change that logic.
