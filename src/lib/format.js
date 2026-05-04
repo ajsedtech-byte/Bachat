@@ -49,6 +49,10 @@ function formatUser(u) {
       });
     }
   }
+  if (o.role === "admin" || o.role === "sales") {
+    base.mfa_totp_enabled = !!o.mfaTotpEnabled;
+    base.team_oidc_linked = !!(o.oidcSubject && o.oidcIssuer);
+  }
   return base;
 }
 
@@ -173,6 +177,52 @@ function formatDeliveryPrivate(d) {
   };
 }
 
+function formatDispute(d) {
+  const o = d.toObject ? d.toObject() : d;
+  return {
+    dispute_id: idStr(o._id),
+    order_id: idStr(o.order),
+    buyer_user_id: idStr(o.buyerUser),
+    seller_id: idStr(o.seller),
+    opened_by_role: o.openedByRole,
+    opened_by_user_id: idStr(o.openedByUser),
+    reason_code: o.reasonCode,
+    description: o.description || "",
+    status: o.status,
+    resolution_notes: o.resolutionNotes || "",
+    events: Array.isArray(o.events)
+      ? o.events.map((ev) => ({
+          at: ev.at,
+          message: ev.message,
+          author_role: ev.authorRole,
+          author_user_id: ev.authorUser ? idStr(ev.authorUser) : null,
+        }))
+      : [],
+    created_at: o.createdAt,
+    updated_at: o.updatedAt,
+  };
+}
+
+function formatLead(row) {
+  const o = row.toObject ? row.toObject() : row;
+  const owner = o.ownerUser && typeof o.ownerUser === "object" ? o.ownerUser : null;
+  return {
+    lead_id: idStr(o._id),
+    title: o.title,
+    type: o.type,
+    stage: o.stage,
+    city: o.city || "",
+    region: o.region || "",
+    notes: o.notes || "",
+    owner_user_id: owner ? idStr(owner._id) : o.ownerUser ? idStr(o.ownerUser) : null,
+    owner_name: owner ? owner.name || "" : "",
+    owner_email: owner ? owner.email || "" : "",
+    meta: o.meta && typeof o.meta === "object" ? o.meta : {},
+    created_at: o.createdAt,
+    updated_at: o.updatedAt,
+  };
+}
+
 function formatOrder(doc) {
   const x = doc.toObject ? doc.toObject() : doc;
   const orderType = x.orderType || "quote";
@@ -227,6 +277,8 @@ module.exports = {
   formatSeller,
   formatRequest,
   formatQuote,
+  formatDispute,
+  formatLead,
   formatOrder,
   formatDeliveryPublic,
   formatDeliveryPrivate,

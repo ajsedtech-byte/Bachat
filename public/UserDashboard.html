@@ -1089,6 +1089,41 @@
           }
           wrap.appendChild(delRow);
 
+          const disputeBox = document.createElement("div");
+          disputeBox.className = "border-t border-slate-200 pt-3 text-xs";
+          disputeBox.innerHTML =
+            '<details class="group"><summary class="cursor-pointer font-semibold text-slate-800">Report an issue (dispute)</summary>' +
+            '<div class="mt-2 space-y-2">' +
+            '<select class="w-full rounded border border-slate-200 px-2 py-1" data-disp-reason>' +
+            "<option value=\"item_not_received\">Item not received</option>" +
+            "<option value=\"damaged\">Damaged</option>" +
+            "<option value=\"wrong_item\">Wrong item</option>" +
+            "<option value=\"quality\">Quality</option>" +
+            "<option value=\"other\">Other</option>" +
+            "</select>" +
+            '<textarea class="w-full rounded border border-slate-200 px-2 py-1" rows="2" data-disp-desc placeholder="What happened?"></textarea>' +
+            '<button type="button" class="rounded bg-amber-700 text-white font-bold px-3 py-1.5 text-xs" data-disp-btn>Open dispute</button>' +
+            "</div></details>";
+          wrap.appendChild(disputeBox);
+          const dbtn = disputeBox.querySelector("[data-disp-btn]");
+          if (dbtn) {
+            dbtn.addEventListener("click", async () => {
+              const reason = disputeBox.querySelector("[data-disp-reason]")?.value || "other";
+              const description = String(disputeBox.querySelector("[data-disp-desc]")?.value || "").trim();
+              try {
+                await api("POST", "/api/disputes", {
+                  order_id: o.order_id,
+                  reason_code: reason,
+                  description: description || "—",
+                });
+                showToast("Dispute opened — we will review with the shop.");
+                disputeBox.querySelector("details").open = false;
+              } catch (err) {
+                showToast(err.message || "Could not open dispute", true);
+              }
+            });
+          }
+
           if (canRequest) {
             const btn = delRow.querySelector("[data-del-req]");
             if (btn) {

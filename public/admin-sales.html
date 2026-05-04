@@ -14,18 +14,127 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <h1 class="text-2xl font-extrabold">Field sales pipeline</h1>
-        <p class="text-slate-500 text-sm mt-1">Lightweight counts — <code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/sales-pipeline</code>. Extend when you store visits and leads.</p>
+        <h1 class="text-2xl font-extrabold">Field sales &amp; leads</h1>
+        <p class="text-slate-500 text-sm mt-1">Pipeline counts and <code class="text-xs bg-slate-100 px-1 rounded">GET /api/leads</code> (admin + sales).</p>
         <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
         <div id="box" class="hidden mt-6 rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm max-w-lg space-y-2 text-sm"></div>
+        <div class="mt-8 rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm max-w-xl">
+          <h2 class="font-bold text-slate-900">New lead</h2>
+          <form id="lead-form" class="mt-4 space-y-3 text-sm">
+            <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Title</span>
+              <input name="title" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2" placeholder="Shop name or campaign" /></label>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Type</span>
+                <select name="type" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2">
+                  <option value="seller_onboard">Seller onboard</option>
+                  <option value="buyer_campaign">Buyer campaign</option>
+                  <option value="other">Other</option>
+                </select></label>
+              <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Stage</span>
+                <select name="stage" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2">
+                  <option value="new">New</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="qualified">Qualified</option>
+                  <option value="won">Won</option>
+                  <option value="lost">Lost</option>
+                </select></label>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">City</span>
+                <input name="city" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2" /></label>
+              <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Region</span>
+                <input name="region" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2" /></label>
+            </div>
+            <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Notes</span>
+              <textarea name="notes" rows="2" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"></textarea></label>
+            <button type="submit" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm">Save lead</button>
+          </form>
+        </div>
+        <div class="mt-8 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+          <table class="w-full text-sm text-left min-w-[720px]">
+            <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+              <tr>
+                <th class="px-4 py-3">Lead</th>
+                <th class="px-4 py-3">Type</th>
+                <th class="px-4 py-3">Stage</th>
+                <th class="px-4 py-3">Area</th>
+                <th class="px-4 py-3">Owner</th>
+                <th class="px-4 py-3">Updated</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+          </table>
+        </div>
       </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
   <script src="/js/bachat-admin-runtime.js"></script>
   <script>
+    function esc(s) {
+      var t = document.createElement("div");
+      t.textContent = s == null ? "" : String(s);
+      return t.innerHTML;
+    }
+    async function loadLeads() {
+      var err = document.getElementById("err");
+      var res = await BachatAdminRuntime.adminFetch("/api/leads?limit=80", { headers: BachatAdminRuntime.authHeaders() });
+      var data = await res.json().catch(function () {
+        return {};
+      });
+      if (!res.ok) {
+        err.textContent = data.error || "Failed to load leads";
+        err.classList.remove("hidden");
+        return;
+      }
+      var tb = document.getElementById("leads-tbody");
+      tb.innerHTML = "";
+      (data.items || []).forEach(function (row) {
+        var tr = document.createElement("tr");
+        tr.className = "hover:bg-[#f8f9fb]";
+        var owner = row.owner_email ? esc(row.owner_name) + " <span class=\"text-slate-400\">" + esc(row.owner_email) + "</span>" : "—";
+        tr.innerHTML =
+          "<td class=\"px-4 py-3 font-semibold text-slate-900\">" +
+          esc(row.title) +
+          "</td><td class=\"px-4 py-3\">" +
+          esc(row.type) +
+          "</td><td class=\"px-4 py-3\"><select data-lead=\"" +
+          esc(row.lead_id) +
+          "\" class=\"lead-stage rounded border border-slate-200 px-2 py-1 text-xs font-bold\">" +
+          ["new", "contacted", "qualified", "won", "lost"]
+            .map(function (s) {
+              return "<option" + (s === row.stage ? " selected" : "") + ">" + s + "</option>";
+            })
+            .join("") +
+          "</select></td><td class=\"px-4 py-3 text-xs\">" +
+          esc(row.city) +
+          (row.region ? ", " + esc(row.region) : "") +
+          "</td><td class=\"px-4 py-3 text-xs\">" +
+          owner +
+          "</td><td class=\"px-4 py-3 text-xs text-slate-500\">" +
+          esc((row.updated_at || "").slice(0, 16)) +
+          "</td>";
+        tb.appendChild(tr);
+      });
+      tb.querySelectorAll("select.lead-stage").forEach(function (sel) {
+        sel.addEventListener("change", async function () {
+          var id = sel.getAttribute("data-lead");
+          try {
+            var r2 = await BachatAdminRuntime.adminFetch("/api/leads/" + encodeURIComponent(id), {
+              method: "PATCH",
+              headers: BachatAdminRuntime.authHeaders(),
+              body: JSON.stringify({ stage: sel.value }),
+            });
+            if (!r2.ok) throw new Error("Update failed");
+          } catch (e) {
+            err.textContent = e.message || "Update failed";
+            err.classList.remove("hidden");
+          }
+        });
+      });
+    }
     (async function () {
-      if (!(await BachatAdminRuntime.guardAdminPage())) return;
+      if (!(await BachatAdminRuntime.guardOpsPage(["admin", "sales"]))) return;
       var err = document.getElementById("err");
       var res = await BachatAdminRuntime.adminFetch("/api/admin/sales-pipeline", { headers: BachatAdminRuntime.authHeaders() });
       var d = await res.json().catch(function () {
@@ -49,6 +158,36 @@
         (d.note || "") +
         "</p>";
       document.getElementById("box").classList.remove("hidden");
+      document.getElementById("lead-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        err.classList.add("hidden");
+        var fd = new FormData(e.target);
+        var body = {
+          title: String(fd.get("title") || "").trim(),
+          type: String(fd.get("type") || "other"),
+          stage: String(fd.get("stage") || "new"),
+          city: String(fd.get("city") || "").trim(),
+          region: String(fd.get("region") || "").trim(),
+          notes: String(fd.get("notes") || "").trim(),
+        };
+        try {
+          var r2 = await BachatAdminRuntime.adminFetch("/api/leads", {
+            method: "POST",
+            headers: BachatAdminRuntime.authHeaders(),
+            body: JSON.stringify(body),
+          });
+          var j2 = await r2.json().catch(function () {
+            return {};
+          });
+          if (!r2.ok) throw new Error(j2.error || "Save failed");
+          e.target.reset();
+          await loadLeads();
+        } catch (x) {
+          err.textContent = x.message || "Error";
+          err.classList.remove("hidden");
+        }
+      });
+      await loadLeads();
     })();
   </script>
 </body>

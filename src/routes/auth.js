@@ -12,6 +12,8 @@ const { formatUser, formatSeller, maskEmail } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
 const { ensureReferralCode } = require("../lib/referralCode");
 const { normalizePhone10India, maskPhoneIndia } = require("../lib/phone");
+const { encryptUtf8, decryptUtf8 } = require("../lib/mfaCrypto");
+const { generateSecret, verifySync, generateURI } = require("otplib");
 
 const router = express.Router();
 
@@ -19,12 +21,24 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
-function signToken(user) {
+function jwtSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("JWT_SECRET is not configured");
   }
-  return jwt.sign({ sub: String(user._id), role: user.role }, secret, { expiresIn: "7d" });
+  return secret;
+}
+
+function signToken(user) {
+  return jwt.sign({ sub: String(user._id), role: user.role }, jwtSecret(), { expiresIn: "7d" });
+}
+
+function signMfaPendingToken(userId) {
+  return jwt.sign({ sub: String(userId), purpose: "mfa_pending" }, jwtSecret(), { expiresIn: "10m" });
+}
+
+function isTeamRole(role) {
+  return role === "admin" || role === "sales";
 }
 
 /** Only include OTP in JSON when EXPOSE_DEV_OTP=1 (never in real production). */
@@ -301,12 +315,169 @@ router.post("/login", async (req, res, next) => {
       return res.status(403).json({ error: "Email not verified" });
     }
 
+    if (isTeamRole(user.role) && user.mfaTotpEnabled) {
+      return res.json({
+        mfa_required: true,
+        mfa_token: signMfaPendingToken(user._id),
+        user: { email: user.email, role: user.role },
+      });
+    }
+
     const token = signToken(user);
     return res.json({ token, user: formatUser(user) });
   } catch (err) {
     return next(err);
   }
 });
+
+router.post("/login/mfa", async (req, res, next) => {
+  try {
+    const { mfa_token, code } = req.body || {};
+    if (!mfa_token || !code) {
+      return badRequest(res, "mfa_token and code are required");
+    }
+    let payload;
+    try {
+      payload = jwt.verify(mfa_token, jwtSecret());
+    } catch {
+      return res.status(400).json({ error: "Invalid or expired mfa_token" });
+    }
+    if (payload.purpose !== "mfa_pending" || !payload.sub) {
+      return res.status(400).json({ error: "Invalid mfa_token" });
+    }
+    const user = await User.findById(payload.sub);
+    if (!user || !isTeamRole(user.role) || !user.mfaTotpEnabled || !user.mfaTotpEnc) {
+      return res.status(400).json({ error: "MFA is not active for this account" });
+    }
+    let secret32;
+    try {
+      secret32 = decryptUtf8(user.mfaTotpEnc);
+    } catch {
+      return res.status(500).json({ error: "MFA configuration error" });
+    }
+    const check = verifySync({ token: String(code).replace(/\s+/g, ""), secret: secret32 });
+    if (!check || !check.valid) {
+      return res.status(401).json({ error: "Invalid authenticator code" });
+    }
+    const fresh = await User.findById(user._id).lean();
+    return res.json({ token: signToken(fresh), user: formatUser(fresh) });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post(
+  "/mfa/enroll/start",
+  requireAuth,
+  requireRole("admin", "sales"),
+  async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      if (user.mfaTotpEnabled) {
+        return res.status(400).json({ error: "MFA is already enabled" });
+      }
+      const secret = generateSecret();
+      user.mfaTotpPendingEnc = encryptUtf8(secret);
+      await user.save();
+      const otpauth_url = generateURI({ issuer: "Bachat Ops", label: user.email, secret });
+      return res.json({ otpauth_url });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+router.post(
+  "/mfa/enroll/confirm",
+  requireAuth,
+  requireRole("admin", "sales"),
+  async (req, res, next) => {
+    try {
+      const { code } = req.body || {};
+      if (!code) {
+        return badRequest(res, "code is required");
+      }
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      if (user.mfaTotpEnabled) {
+        return res.status(400).json({ error: "MFA is already enabled" });
+      }
+      if (!user.mfaTotpPendingEnc) {
+        return res.status(400).json({ error: "Start enrollment first (POST /api/auth/mfa/enroll/start)" });
+      }
+      let secret32;
+      try {
+        secret32 = decryptUtf8(user.mfaTotpPendingEnc);
+      } catch {
+        return res.status(500).json({ error: "MFA pending secret corrupted — start again" });
+      }
+      const check = verifySync({ token: String(code).replace(/\s+/g, ""), secret: secret32 });
+      if (!check || !check.valid) {
+        return res.status(400).json({ error: "Invalid code — try again" });
+      }
+      user.mfaTotpEnc = user.mfaTotpPendingEnc;
+      user.mfaTotpPendingEnc = "";
+      user.mfaTotpEnabled = true;
+      user.mfaTotpVerifiedAt = new Date();
+      await user.save();
+      return res.json({ message: "MFA enabled", user: formatUser(await User.findById(user._id).lean()) });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+router.post(
+  "/mfa/disable",
+  requireAuth,
+  requireRole("admin", "sales"),
+  async (req, res, next) => {
+    try {
+      const { password, code } = req.body || {};
+      if (!password) {
+        return badRequest(res, "password is required");
+      }
+      const user = await User.findById(req.user.id);
+      if (!user || !user.mfaTotpEnabled) {
+        return res.status(400).json({ error: "MFA is not enabled" });
+      }
+      const match = await bcrypt.compare(String(password), user.passwordHash);
+      if (!match) {
+        return res.status(401).json({ error: "Invalid password" });
+      }
+      let secret32;
+      try {
+        secret32 = decryptUtf8(user.mfaTotpEnc);
+      } catch {
+        user.mfaTotpEnabled = false;
+        user.mfaTotpEnc = "";
+        user.mfaTotpPendingEnc = "";
+        user.mfaTotpVerifiedAt = null;
+        await user.save();
+        return res.json({ message: "MFA disabled (secret was reset)" });
+      }
+      if (code) {
+        const check = verifySync({ token: String(code).replace(/\s+/g, ""), secret: secret32 });
+        if (!check || !check.valid) {
+          return res.status(400).json({ error: "Invalid authenticator code" });
+        }
+      }
+      user.mfaTotpEnabled = false;
+      user.mfaTotpEnc = "";
+      user.mfaTotpPendingEnc = "";
+      user.mfaTotpVerifiedAt = null;
+      await user.save();
+      return res.json({ message: "MFA disabled", user: formatUser(await User.findById(user._id).lean()) });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
 
 router.post("/resend-verification", async (req, res, next) => {
   try {
@@ -732,6 +903,13 @@ router.post("/login-otp/verify", async (req, res, next) => {
     otp.consumedAt = new Date();
     await otp.save();
     const fresh = await User.findById(user._id).lean();
+    if (isTeamRole(fresh.role) && fresh.mfaTotpEnabled) {
+      return res.json({
+        mfa_required: true,
+        mfa_token: signMfaPendingToken(fresh._id),
+        user: { email: fresh.email, role: fresh.role },
+      });
+    }
     const token = signToken(fresh);
     return res.json({ token, user: formatUser(fresh) });
   } catch (err) {

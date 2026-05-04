@@ -5,10 +5,32 @@ const Seller = require("../models/Seller");
 const Request = require("../models/Request");
 const Quote = require("../models/Quote");
 const Order = require("../models/Order");
+const Dispute = require("../models/Dispute");
+const AnalyticsEvent = require("../models/AnalyticsEvent");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { formatRequest, formatOrder } = require("../lib/format");
+const { formatRequest, formatOrder, formatDispute } = require("../lib/format");
 
 const router = express.Router();
+
+/** Read-only pipeline counts — shared with field sales portal. */
+router.get("/sales-pipeline", requireAuth, requireRole("admin", "sales"), async (_req, res, next) => {
+  try {
+    const [sellers, verified, buyers] = await Promise.all([
+      Seller.countDocuments(),
+      Seller.countDocuments({ isVerified: true }),
+      User.countDocuments({ role: "buyer" }),
+    ]);
+    return res.json({
+      sellers_total: sellers,
+      sellers_verified: verified,
+      sellers_pending_verify: sellers - verified,
+      buyers_total: buyers,
+      note: "Lightweight pipeline counts; CRM leads live under /api/leads.",
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
 
 router.use(requireAuth, requireRole("admin"));
 
@@ -367,6 +389,124 @@ router.get("/notifications-summary", async (_req, res, next) => {
   }
 });
 
+router.get("/disputes", async (req, res, next) => {
+  try {
+    const limit = qsInt(req.query.limit, 40, 1, 100);
+    const skip = qsInt(req.query.skip, 0, 0, 50000);
+    const filter = {};
+    if (req.query.status) {
+      filter.status = String(req.query.status);
+    }
+    const [total, rows] = await Promise.all([
+      Dispute.countDocuments(filter),
+      Dispute.find(filter)
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("buyerUser", "name email")
+        .populate("order", "totalAmount paymentStatus orderStatus")
+        .lean(),
+    ]);
+    const items = rows.map((d) => {
+      const base = formatDispute(d);
+      const bu = d.buyerUser && typeof d.buyerUser === "object" ? d.buyerUser : null;
+      const ord = d.order && typeof d.order === "object" ? d.order : null;
+      return {
+        ...base,
+        buyer_name: bu ? bu.name || "—" : "—",
+        buyer_email: bu ? bu.email || "" : "",
+        order_total_inr: ord ? ord.totalAmount : null,
+        order_payment_status: ord ? ord.paymentStatus : null,
+        order_status: ord ? ord.orderStatus : null,
+      };
+    });
+    return res.json({ total, items });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/disputes/:disputeId", async (req, res, next) => {
+  try {
+    const id = req.params.disputeId;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ error: "Invalid dispute id" });
+    }
+    const { status, resolution_notes } = req.body || {};
+    const allowed = ["open", "under_review", "resolved_refund", "resolved_denied", "closed"];
+    if (!status || !allowed.includes(status)) {
+      return res.status(400).json({ error: "status must be one of: " + allowed.join(", ") });
+    }
+    const doc = await Dispute.findById(id);
+    if (!doc) {
+      return res.status(404).json({ error: "Dispute not found" });
+    }
+    doc.status = status;
+    if (resolution_notes != null) {
+      doc.resolutionNotes = String(resolution_notes).slice(0, 8000);
+    }
+    doc.events.push({
+      at: new Date(),
+      message: `Status set to ${status}` + (doc.resolutionNotes ? ` — ${doc.resolutionNotes.slice(0, 500)}` : ""),
+      authorRole: "admin",
+      authorUser: req.user.id,
+    });
+    await doc.save();
+    return res.json(formatDispute(doc.toObject()));
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/analytics-events", async (req, res, next) => {
+  try {
+    const limit = qsInt(req.query.limit, 50, 1, 200);
+    const skip = qsInt(req.query.skip, 0, 0, 50000);
+    const days = qsInt(req.query.since_days, 7, 1, 90);
+    const since = new Date(Date.now() - days * 86400000);
+    const filter = { createdAt: { $gte: since } };
+    if (req.query.type) {
+      filter.type = String(req.query.type);
+    }
+    const [total, rows] = await Promise.all([
+      AnalyticsEvent.countDocuments(filter),
+      AnalyticsEvent.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    ]);
+    return res.json({
+      total,
+      items: rows.map((r) => ({
+        id: String(r._id),
+        type: r.type,
+        user_id: r.user ? String(r.user) : null,
+        order_id: r.order ? String(r.order) : null,
+        meta: r.meta || {},
+        created_at: r.createdAt,
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/analytics-rollup", async (req, res, next) => {
+  try {
+    const days = qsInt(req.query.since_days, 7, 1, 90);
+    const since = new Date(Date.now() - days * 86400000);
+    const rows = await AnalyticsEvent.aggregate([
+      { $match: { createdAt: { $gte: since } } },
+      { $group: { _id: "$type", n: { $sum: 1 } } },
+      { $sort: { n: -1 } },
+    ]);
+    return res.json({
+      since: since.toISOString(),
+      days,
+      by_type: Object.fromEntries(rows.map((x) => [x._id, x.n])),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 /** Orders that may need ops attention (not a full dispute model). */
 router.get("/dispute-signals", async (_req, res, next) => {
   try {
@@ -388,25 +528,6 @@ router.get("/dispute-signals", async (_req, res, next) => {
   }
 });
 
-router.get("/sales-pipeline", async (_req, res, next) => {
-  try {
-    const [sellers, verified, buyers] = await Promise.all([
-      Seller.countDocuments(),
-      Seller.countDocuments({ isVerified: true }),
-      User.countDocuments({ role: "buyer" }),
-    ]);
-    return res.json({
-      sellers_total: sellers,
-      sellers_verified: verified,
-      sellers_pending_verify: sellers - verified,
-      buyers_total: buyers,
-      note: "Lightweight pipeline counts; extend with visits/leads when you add that data.",
-    });
-  } catch (err) {
-    return next(err);
-  }
-});
-
 router.get("/platform-modules", (_req, res) => {
   return res.json({
     modules: [
@@ -414,12 +535,12 @@ router.get("/platform-modules", (_req, res) => {
       { id: "catalog_cart", label: "Catalog, cart, saved", status: "live" },
       { id: "payments", label: "Razorpay checkout + webhook", status: "partial", detail: "API present; polish buyer/seller payment UX." },
       { id: "delivery", label: "Delivery pool, KYC, DigiLocker", status: "partial", detail: "See /api/delivery, admin-delivery, delivery-kyc.html" },
-      { id: "disputes", label: "Disputes / chargebacks", status: "planned", detail: "Use dispute-signals until a Dispute model exists." },
+      { id: "disputes", label: "Disputes / chargebacks", status: "live", detail: "GET /api/disputes, /api/admin/disputes; dispute-signals for payment flags." },
       { id: "city_ops", label: "City coverage & heatmaps", status: "planned" },
-      { id: "field_sales", label: "Field sales CRM", status: "planned" },
+      { id: "field_sales", label: "Field sales CRM", status: "live", detail: "GET/POST/PATCH /api/leads (admin + sales)." },
       { id: "notifications", label: "Notification centre & rules", status: "partial", detail: "Admin summary endpoint only." },
-      { id: "analytics", label: "Warehouse analytics", status: "planned" },
-      { id: "team_2fa", label: "Team portal + 2FA", status: "planned" },
+      { id: "analytics", label: "Warehouse analytics", status: "live", detail: "AnalyticsEvent + /api/admin/analytics-*." },
+      { id: "team_2fa", label: "Team portal + 2FA + OIDC", status: "live", detail: "TOTP for admin/sales; /api/auth/oidc/team/* when OIDC_* env set." },
     ],
   });
 });

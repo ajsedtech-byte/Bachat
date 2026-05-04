@@ -6,7 +6,15 @@
 (function () {
   var active = (document.body && document.body.getAttribute("data-bachat-admin")) || "analytics";
 
-  var items = [
+  var me = {};
+  try {
+    me = JSON.parse(localStorage.getItem("ajs_user") || "{}");
+  } catch (e) {
+    me = {};
+  }
+  var isSales = me.role === "sales";
+
+  var rawItems = [
     { id: "dashboard", label: "Dashboard", href: "/AdminDashboard.html", icon: "M4 6h16M4 12h16M4 18h7" },
     { id: "analytics", label: "Analytics", href: "/admin-analytics.html", icon: "M11 3v18M6 8l5-5 5 5M17 16l-5 5-5-5" },
     { id: "requests", label: "Requests", href: "/admin-requests.html", icon: "M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
@@ -24,6 +32,17 @@
     { id: "reports", label: "Reports", href: "/admin-analytics.html", icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
     { id: "settings", label: "Settings", href: "#", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
   ];
+
+  var items = isSales
+    ? [
+        {
+          id: "sales",
+          label: "Field sales & leads",
+          href: "/admin-sales.html",
+          icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+        },
+      ]
+    : rawItems;
 
   function iconSvg(d) {
     return '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="' + d + '"/></svg>';

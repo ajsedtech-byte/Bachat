@@ -29,15 +29,17 @@
       <h2 class="text-xl font-extrabold text-center text-slate-900">Welcome back</h2>
       <p class="text-sm text-slate-500 text-center mt-1">Sign in to your Bachat account</p>
       <p id="err" class="hidden mt-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+      <p id="oidc-row" class="hidden mt-4">
+        <a id="oidc-btn" href="#" class="block w-full text-center rounded-xl border-2 border-[#0056d2] text-[#0056d2] font-bold py-3 hover:bg-[#e8f1fc]">Continue with company SSO</a>
+      </p>
       <form id="team-login-form" class="mt-6 space-y-4">
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase mb-2">Select role</p>
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" data-role-tab="buyer" class="role-tab rounded-xl border-2 border-[#0056d2] bg-[#e8f1fc] py-2 text-xs font-bold text-[#0056d2]">Sales</button>
-            <button type="button" data-role-tab="seller" class="role-tab rounded-xl border border-[#e5e7eb] py-2 text-xs font-bold text-slate-500">Ops</button>
-            <button type="button" data-role-tab="admin" class="role-tab rounded-xl border border-[#e5e7eb] py-2 text-xs font-bold text-slate-500">Admin</button>
+          <p class="text-xs font-bold text-slate-500 uppercase mb-2">Portal</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" data-role-tab="sales" class="role-tab rounded-xl border border-[#e5e7eb] py-2 text-xs font-bold text-slate-500">Field sales</button>
+            <button type="button" data-role-tab="admin" class="role-tab rounded-xl border-2 border-[#0056d2] bg-[#e8f1fc] py-2 text-xs font-bold text-[#0056d2]">Operations</button>
           </div>
-          <input type="hidden" name="role" id="team-role" value="buyer" />
+          <input type="hidden" name="role" id="team-role" value="admin" />
         </div>
         <div>
           <label class="text-xs font-bold text-slate-500 uppercase">Work email</label>
@@ -49,12 +51,38 @@
         </div>
         <button type="submit" class="w-full rounded-xl bg-[#0056d2] text-white font-bold py-3 hover:bg-[#0044a8]">Continue</button>
       </form>
-      <p class="text-xs text-slate-400 text-center mt-6">2FA &amp; SSO can be wired to your IdP.</p>
+      <form id="team-mfa-form" class="hidden mt-6 space-y-4">
+        <p class="text-sm text-slate-600">Enter the 6-digit code from your authenticator app.</p>
+        <input type="hidden" id="mfa-token" value="" />
+        <div>
+          <label class="text-xs font-bold text-slate-500 uppercase">Authenticator code</label>
+          <input id="mfa-code" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="8" required class="mt-1 w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-sm tracking-widest font-mono outline-none focus:ring-2 focus:ring-[#0056d2]/25" placeholder="000000" />
+        </div>
+        <button type="submit" class="w-full rounded-xl bg-[#0056d2] text-white font-bold py-3 hover:bg-[#0044a8]">Verify &amp; sign in</button>
+        <button type="button" id="mfa-cancel" class="w-full text-sm font-semibold text-slate-500">Back</button>
+      </form>
+      <p class="text-xs text-slate-400 text-center mt-6">Team TOTP MFA: enroll via API after first login. OIDC when OIDC_* env is set.</p>
     </div>
     <p class="text-center text-[11px] text-slate-400 mt-8">Internal use — same credentials as <a href="/login.html" class="text-[#0056d2] font-semibold">customer login</a> for demo.</p>
   </div>
   <script>
     (function () {
+      var params = new URLSearchParams(location.search);
+      var errMap = {
+        oidc_disabled: "SSO is not configured on this server.",
+        oidc_state: "SSO session expired — try again.",
+        oidc_no_email: "Your IdP did not return an email claim.",
+        oidc_no_team_user: "No admin/sales account matches that email.",
+        oidc_mismatch: "This IdP account is linked to a different user.",
+        oidc_callback: "SSO sign-in failed.",
+      };
+      var preErr = params.get("err");
+      if (preErr && errMap[preErr]) {
+        var pe = document.getElementById("err");
+        pe.textContent = errMap[preErr];
+        pe.classList.remove("hidden");
+      }
+
       var roleIn = document.getElementById("team-role");
       document.querySelectorAll(".role-tab").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -62,33 +90,115 @@
             b.className = "role-tab rounded-xl border border-[#e5e7eb] py-2 text-xs font-bold text-slate-500";
           });
           btn.className = "role-tab rounded-xl border-2 border-[#0056d2] bg-[#e8f1fc] py-2 text-xs font-bold text-[#0056d2]";
-          roleIn.value = btn.getAttribute("data-role-tab") || "buyer";
+          roleIn.value = btn.getAttribute("data-role-tab") || "admin";
         });
       });
+
+      fetch("/api/auth/oidc/team/status")
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d && d.team_oidc_enabled) {
+            document.getElementById("oidc-row").classList.remove("hidden");
+            document.getElementById("oidc-btn").href = "/api/auth/oidc/team/start";
+          }
+        })
+        .catch(function () {});
+
+      if (params.get("oidc") === "1" && params.get("code")) {
+        fetch("/api/auth/oidc/team/exchange", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: params.get("code") }),
+        })
+          .then(function (r) { return r.json().then(function (j) { return { r: r, j: j }; }); })
+          .then(function (_ref) {
+            var r = _ref.r;
+            var data = _ref.j;
+            if (!r.ok) throw new Error(data.error || "SSO exchange failed");
+            if (data.mfa_required && data.mfa_token) {
+              document.getElementById("team-login-form").classList.add("hidden");
+              document.getElementById("team-mfa-form").classList.remove("hidden");
+              document.getElementById("mfa-token").value = data.mfa_token;
+              history.replaceState({}, "", "/team-login.html");
+              return;
+            }
+            if (data.token) {
+              localStorage.setItem("ajs_token", data.token);
+              localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
+              var role = (data.user && data.user.role) || "admin";
+              location.href = role === "sales" ? "/admin-sales.html" : "/AdminDashboard.html";
+            }
+          })
+          .catch(function (e) {
+            var err = document.getElementById("err");
+            err.textContent = e.message || "SSO error";
+            err.classList.remove("hidden");
+          });
+      }
+
+      function finishSession(data) {
+        localStorage.setItem("ajs_token", data.token);
+        localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
+        var actual = data.user && data.user.role;
+        if (actual === "sales") location.href = "/admin-sales.html";
+        else location.href = "/AdminDashboard.html";
+      }
+
       document.getElementById("team-login-form").addEventListener("submit", async function (e) {
         e.preventDefault();
         var err = document.getElementById("err");
         err.classList.add("hidden");
         var fd = new FormData(e.target);
-        var role = String(fd.get("role") || "buyer");
+        var role = String(fd.get("role") || "admin");
         var body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || "") };
         try {
           var res = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
           var data = await res.json().catch(function () { return {}; });
           if (!res.ok) throw new Error(data.error || "Login failed");
+          if (data.mfa_required && data.mfa_token) {
+            var actualPre = data.user && data.user.role;
+            if (role === "admin" && actualPre !== "admin") throw new Error("Not an operations (admin) account.");
+            if (role === "sales" && actualPre !== "sales") throw new Error("Not a field sales account.");
+            document.getElementById("team-login-form").classList.add("hidden");
+            document.getElementById("team-mfa-form").classList.remove("hidden");
+            document.getElementById("mfa-token").value = data.mfa_token;
+            return;
+          }
           var actual = data.user && data.user.role;
-          if (role === "admin" && actual !== "admin") throw new Error("Not an admin account.");
-          if (role === "seller" && actual !== "seller") throw new Error("Not a shopkeeper account.");
-          if (role === "buyer" && actual !== "buyer" && actual !== "admin") throw new Error("Not a buyer account.");
-          localStorage.setItem("ajs_token", data.token);
-          localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
-          if (actual === "admin") location.href = "/AdminDashboard.html";
-          else if (actual === "seller") location.href = "/ShopkeeperDashboard.html";
-          else location.href = "/UserDashboard.html";
+          if (role === "admin" && actual !== "admin") throw new Error("Not an operations (admin) account.");
+          if (role === "sales" && actual !== "sales") throw new Error("Not a field sales account.");
+          finishSession(data);
         } catch (x) {
           err.textContent = x.message || "Error";
           err.classList.remove("hidden");
         }
+      });
+
+      document.getElementById("team-mfa-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var err = document.getElementById("err");
+        err.classList.add("hidden");
+        var mfa_token = document.getElementById("mfa-token").value;
+        var code = String(document.getElementById("mfa-code").value || "").trim();
+        try {
+          var res = await fetch("/api/auth/login/mfa", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mfa_token: mfa_token, code: code }),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok) throw new Error(data.error || "MFA failed");
+          finishSession(data);
+        } catch (x) {
+          err.textContent = x.message || "Error";
+          err.classList.remove("hidden");
+        }
+      });
+
+      document.getElementById("mfa-cancel").addEventListener("click", function () {
+        document.getElementById("team-mfa-form").classList.add("hidden");
+        document.getElementById("team-login-form").classList.remove("hidden");
+        document.getElementById("mfa-code").value = "";
       });
     })();
   </script>

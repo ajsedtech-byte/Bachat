@@ -12,6 +12,7 @@ const { formatOrder, formatDeliveryPrivate } = require("../lib/format");
 const { buyerDisplayPrice, buyerMaxListedPrice } = require("../lib/buyerPrice");
 const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
 const { claimTimeoutMs, normalizeAddressPart } = require("../lib/delivery");
+const { recordEvent } = require("../lib/analytics");
 
 const router = express.Router();
 
@@ -100,6 +101,11 @@ router.post(
         session.endSession();
       }
 
+      recordEvent("order_created", {
+        userId: req.user.id,
+        orderId: createdOrder._id,
+        meta: { order_type: "quote" },
+      });
       return res.status(201).json(formatOrder(createdOrder));
     } catch (err) {
       return next(err);
@@ -209,6 +215,11 @@ router.post(
         session.endSession();
       }
 
+      recordEvent("order_created", {
+        userId: req.user.id,
+        orderId: createdOrder._id,
+        meta: { order_type: "catalog" },
+      });
       return res.status(201).json(formatOrder(createdOrder));
     } catch (err) {
       return next(err);

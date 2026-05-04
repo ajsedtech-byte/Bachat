@@ -770,10 +770,37 @@
         }
         ordersCache.forEach((o) => {
           const d = document.createElement("div");
-          d.className = "rounded-lg border border-[#e5e7eb] bg-white p-4";
+          d.className = "rounded-lg border border-[#e5e7eb] bg-white p-4 space-y-2";
           d.innerHTML = `<p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
             <p class="text-sm text-[#0056d2] font-bold mt-1">${rupee(o.total_amount != null ? o.total_amount : o.final_price)} · ${escapeHtml(o.order_status || "")} · ${escapeHtml(o.payment_status || "")}</p>
-            <p class="text-xs text-slate-400 mt-1">${escapeHtml((o.created_at || "").slice(0, 16))}</p>`;
+            <p class="text-xs text-slate-400">${escapeHtml((o.created_at || "").slice(0, 16))}</p>
+            <details class="text-xs"><summary class="cursor-pointer font-semibold text-slate-800">Dispute</summary>
+            <div class="mt-2 space-y-2">
+              <select class="w-full rounded border border-slate-200 px-2 py-1 sk-disp-reason">
+                <option value="item_not_received">Item not received</option>
+                <option value="damaged">Damaged</option>
+                <option value="wrong_item">Wrong item</option>
+                <option value="quality">Quality</option>
+                <option value="other">Other</option>
+              </select>
+              <textarea class="w-full rounded border border-slate-200 px-2 py-1 sk-disp-desc" rows="2" placeholder="Notes"></textarea>
+              <button type="button" class="sk-disp-btn rounded bg-amber-700 text-white font-bold px-3 py-1">Open dispute</button>
+            </div></details>`;
+          const oid = o.order_id;
+          d.querySelector(".sk-disp-btn")?.addEventListener("click", async () => {
+            const reason = d.querySelector(".sk-disp-reason")?.value || "other";
+            const description = String(d.querySelector(".sk-disp-desc")?.value || "").trim();
+            try {
+              await api("POST", "/api/disputes", {
+                order_id: oid,
+                reason_code: reason,
+                description: description || "—",
+              });
+              showToast("Dispute recorded.");
+            } catch (err) {
+              showToast(err.message || "Failed", true);
+            }
+          });
           box.appendChild(d);
         });
       } catch (e) {

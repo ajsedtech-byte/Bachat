@@ -22,6 +22,9 @@ function requireAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, secret);
+    if (payload.purpose === "mfa_pending") {
+      return unauthorized(res, "Complete MFA verification — this token cannot access the API");
+    }
     req.user = {
       id: payload.sub ? String(payload.sub) : null,
       role: payload.role || null,

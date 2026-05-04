@@ -45,7 +45,9 @@
     throw lastErr || new Error("Failed to fetch");
   }
 
-  async function guardAdminPage() {
+  /** @param {string[]} allowedRoles e.g. ["admin"] or ["admin","sales"] */
+  async function guardOpsPage(allowedRoles) {
+    var roles = Array.isArray(allowedRoles) && allowedRoles.length ? allowedRoles : ["admin"];
     var t = localStorage.getItem("ajs_token");
     if (!t) {
       location.href = "/team-login.html";
@@ -55,12 +57,17 @@
     var data = await res.json().catch(function () {
       return {};
     });
-    if (!res.ok || !data.user || data.user.role !== "admin") {
+    var okRole = data.user && roles.indexOf(data.user.role) >= 0;
+    if (!res.ok || !okRole) {
       location.href = "/team-login.html";
       return false;
     }
     return true;
   }
 
-  global.BachatAdminRuntime = { adminFetch, authHeaders, guardAdminPage };
+  async function guardAdminPage() {
+    return guardOpsPage(["admin"]);
+  }
+
+  global.BachatAdminRuntime = { adminFetch, authHeaders, guardAdminPage, guardOpsPage };
 })(window);

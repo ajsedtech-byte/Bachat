@@ -6,6 +6,7 @@ const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest } = require("../lib/format");
 const { CATEGORY_SET, sellerCategoryList } = require("../lib/categories");
+const { recordEvent } = require("../lib/analytics");
 
 const router = express.Router();
 
@@ -34,6 +35,10 @@ router.post("/", requireAuth, requireRole("buyer"), async (req, res, next) => {
       city: String(user.city || "").trim(),
       region: String(user.region || "").trim(),
       status: "open",
+    });
+    recordEvent("request_created", {
+      userId: user._id,
+      meta: { request_id: String(doc._id), category: cat },
     });
     return res.status(201).json(formatRequest(doc));
   } catch (err) {

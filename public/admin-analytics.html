@@ -53,6 +53,13 @@
           </div>
         </div>
         <div class="rounded-xl bg-white border border-[#e5e7eb] shadow-sm overflow-hidden mb-6">
+          <div class="px-5 py-4 border-b border-[#e5e7eb] font-bold">Event warehouse (last 7 days)</div>
+          <p id="wh-err" class="hidden mx-5 mt-3 text-sm text-red-700"></p>
+          <div id="wh-rollup" class="p-5 text-sm text-slate-700 font-mono"></div>
+          <div class="px-5 py-2 border-t border-[#e5e7eb] text-xs font-bold text-slate-500 uppercase">Recent events</div>
+          <div id="wh-events" class="p-5 text-xs text-slate-600 max-h-56 overflow-y-auto space-y-1 font-mono"></div>
+        </div>
+        <div class="rounded-xl bg-white border border-[#e5e7eb] shadow-sm overflow-hidden mb-6">
           <div class="px-5 py-4 border-b border-[#e5e7eb] font-bold">Platform roadmap (API)</div>
           <div id="modules" class="p-5 text-sm text-slate-600 space-y-2"></div>
         </div>
@@ -102,6 +109,45 @@
             (m.detail ? " — " + m.detail : "");
           box.appendChild(p);
         });
+
+        var werr = document.getElementById("wh-err");
+        var res3 = await BachatAdminRuntime.adminFetch("/api/admin/analytics-rollup?since_days=7", {
+          headers: BachatAdminRuntime.authHeaders(),
+        });
+        var roll = await res3.json().catch(function () {
+          return {};
+        });
+        if (!res3.ok) {
+          werr.textContent = roll.error || "Warehouse rollup failed";
+          werr.classList.remove("hidden");
+        } else {
+          var lines = Object.keys(roll.by_type || {}).map(function (k) {
+            return k + ": " + roll.by_type[k];
+          });
+          document.getElementById("wh-rollup").textContent = lines.length ? lines.join(" · ") : "No events yet.";
+        }
+        var res4 = await BachatAdminRuntime.adminFetch("/api/admin/analytics-events?limit=25&since_days=14", {
+          headers: BachatAdminRuntime.authHeaders(),
+        });
+        var ev = await res4.json().catch(function () {
+          return {};
+        });
+        var evBox = document.getElementById("wh-events");
+        evBox.innerHTML = "";
+        if (res4.ok && ev.items && ev.items.length) {
+          ev.items.forEach(function (r) {
+            var p = document.createElement("p");
+            p.textContent =
+              (r.created_at || "").slice(0, 19) +
+              "  " +
+              r.type +
+              (r.user_id ? " user=" + r.user_id : "") +
+              (r.order_id ? " order=" + r.order_id : "");
+            evBox.appendChild(p);
+          });
+        } else {
+          evBox.textContent = res4.ok ? "No rows." : ev.error || "Events failed";
+        }
       })();
     })();
   </script>

@@ -10,6 +10,7 @@
     "start": "node src/index.js",
     "migrate": "node scripts/migrate.js",
     "create-admin": "node scripts/create-admin.js",
+    "create-sales": "node scripts/create-sales.js",
     "create-delivery": "node scripts/create-delivery.js",
     "test": "node --test test/*.mjs"
   },
@@ -24,6 +25,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.0",
     "nodemailer": "^6.9.15",
+    "openid-client": "^5.7.1",
+    "otplib": "^13.4.0",
     "razorpay": "^2.9.4"
   }
 }

@@ -28,6 +28,7 @@ Open **http://localhost:3000** (or the port printed in the terminal). Static pag
 | `npm start` | Production-style start (no watch) |
 | `npm run migrate` | Run DB migrations |
 | `npm run create-admin` | Create admin user (see script / env vars) |
+| `npm run create-sales` | Create **sales** role user for field leads (`admin-sales.html`) |
 
 ### Env vars
 
@@ -41,7 +42,7 @@ See `.env.example` for all options. **Never commit `.env`** — it is gitignored
 - Configure **SMTP** so registration, login OTP, password reset, and phone-on-profile confirmation emails deliver.
 - Set **Razorpay** keys when taking payments; configure webhook URL and secret.
 - **Monitoring:** attach your platform’s health checks to `GET /health` and log aggregation for the Node process.
-- Ops UI: sign in as **`admin`** (see `npm run create-admin`), then open `/AdminDashboard.html` and linked `admin-*.html` pages.
+- Ops UI: sign in as **`admin`** (see `npm run create-admin`) at `/team-login.html` (Operations), then open `/AdminDashboard.html` and linked `admin-*.html` pages. Field sales uses **`npm run create-sales`** and the same team login (Field sales tab) → `/admin-sales.html`.
 
 ### Docs
 

@@ -14,10 +14,28 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <h1 class="text-2xl font-extrabold">Dispute signals</h1>
-        <p class="text-slate-500 text-sm mt-1 max-w-3xl">Until a dedicated dispute model exists, this list surfaces orders with <strong>failed/refunded</strong> payments or <strong>cancelled</strong> fulfilment — <code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/dispute-signals</code></p>
+        <h1 class="text-2xl font-extrabold">Disputes</h1>
+        <p class="text-slate-500 text-sm mt-1 max-w-3xl">Formal cases: <code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/disputes</code>. Payment / fulfilment flags: <code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/dispute-signals</code></p>
         <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
-        <div class="mt-6 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+        <h2 class="text-lg font-bold mt-8 mb-3">Casefile</h2>
+        <div class="overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+          <table class="w-full text-sm text-left min-w-[900px]">
+            <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+              <tr>
+                <th class="px-4 py-3">Dispute</th>
+                <th class="px-4 py-3">Order</th>
+                <th class="px-4 py-3">Buyer</th>
+                <th class="px-4 py-3">Reason</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-cases" class="divide-y divide-[#e5e7eb]"></tbody>
+          </table>
+        </div>
+        <h2 class="text-lg font-bold mt-10 mb-3">Payment &amp; fulfilment signals</h2>
+        <p class="text-slate-500 text-sm mb-3">Orders with failed/refunded payment or cancelled fulfilment (quick triage).</p>
+        <div class="overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
           <table class="w-full text-sm text-left min-w-[800px]">
             <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
               <tr>
@@ -28,7 +46,7 @@
                 <th class="px-4 py-3">Order status</th>
               </tr>
             </thead>
-            <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+            <tbody id="tbody-signals" class="divide-y divide-[#e5e7eb]"></tbody>
           </table>
         </div>
       </main>
@@ -46,22 +64,85 @@
       function inr(n) {
         return "₹" + (Number(n) || 0).toLocaleString("en-IN");
       }
-      (async function () {
-        if (!(await BachatAdminRuntime.guardAdminPage())) return;
+      var statuses = ["open", "under_review", "resolved_refund", "resolved_denied", "closed"];
+      async function patchDispute(id, status) {
         var err = document.getElementById("err");
+        err.classList.add("hidden");
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/disputes/" + encodeURIComponent(id), {
+          method: "PATCH",
+          headers: BachatAdminRuntime.authHeaders(),
+          body: JSON.stringify({ status: status, resolution_notes: "Updated from ops console" }),
+        });
+        var d = await res.json().catch(function () {
+          return {};
+        });
+        if (!res.ok) {
+          err.textContent = d.error || "Update failed";
+          err.classList.remove("hidden");
+          return;
+        }
+        await loadCases();
+      }
+      async function loadCases() {
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/disputes?limit=50", { headers: BachatAdminRuntime.authHeaders() });
+        var data = await res.json().catch(function () {
+          return {};
+        });
+        var tb = document.getElementById("tbody-cases");
+        tb.innerHTML = "";
+        if (!res.ok) {
+          tb.innerHTML =
+            '<tr><td colspan="6" class="px-4 py-8 text-center text-red-600">' +
+            esc(data.error || "Failed to load disputes") +
+            "</td></tr>";
+          return;
+        }
+        if (!(data.items && data.items.length)) {
+          tb.innerHTML =
+            '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No disputes in the casefile yet.</td></tr>';
+          return;
+        }
+        data.items.forEach(function (row) {
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-[#f8f9fb]";
+          var opts = statuses
+            .map(function (s) {
+              return "<option" + (s === row.status ? " selected" : "") + ">" + s + "</option>";
+            })
+            .join("");
+          tr.innerHTML =
+            "<td class=\"px-4 py-3 font-mono text-xs\">" +
+            esc(row.dispute_id) +
+            "</td><td class=\"px-4 py-3 font-mono text-xs\">" +
+            esc(row.order_id) +
+            "</td><td class=\"px-4 py-3\">" +
+            esc(row.buyer_name) +
+            "</td><td class=\"px-4 py-3 text-xs\">" +
+            esc(row.reason_code) +
+            "</td><td class=\"px-4 py-3\"><select data-did=\"" +
+            esc(row.dispute_id) +
+            "\" class=\"rounded border border-slate-200 px-2 py-1 text-xs font-bold\">" +
+            opts +
+            "</select></td><td class=\"px-4 py-3 text-xs text-slate-500\">" +
+            esc((row.updated_at || "").slice(0, 16)) +
+            "</td>";
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll("select[data-did]").forEach(function (sel) {
+          sel.addEventListener("change", function () {
+            patchDispute(sel.getAttribute("data-did"), sel.value);
+          });
+        });
+      }
+      async function loadSignals() {
         var res = await BachatAdminRuntime.adminFetch("/api/admin/dispute-signals", { headers: BachatAdminRuntime.authHeaders() });
         var data = await res.json().catch(function () {
           return {};
         });
-        if (!res.ok) {
-          err.textContent = data.error || "Failed";
-          err.classList.remove("hidden");
-          return;
-        }
-        var tb = document.getElementById("tbody");
+        var tb = document.getElementById("tbody-signals");
         tb.innerHTML = "";
-        if (!(data.items && data.items.length)) {
-          tb.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">No flagged orders right now.</td></tr>';
+        if (!res.ok || !(data.items && data.items.length)) {
+          tb.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">No flagged orders.</td></tr>';
           return;
         }
         data.items.forEach(function (o) {
@@ -81,6 +162,11 @@
             "</td>";
           tb.appendChild(tr);
         });
+      }
+      (async function () {
+        if (!(await BachatAdminRuntime.guardAdminPage())) return;
+        await loadCases();
+        await loadSignals();
       })();
     })();
   </script>

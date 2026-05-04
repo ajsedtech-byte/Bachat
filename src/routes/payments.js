@@ -7,6 +7,7 @@ const Payment = require("../models/Payment");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatOrder } = require("../lib/format");
 const { notifyOrderPaid } = require("../services/orderEmails");
+const { recordEvent } = require("../lib/analytics");
 
 const router = express.Router();
 
@@ -32,6 +33,7 @@ async function markOrderPaid(orderId, paymentId, payload) {
     order.paymentStatus = "paid";
     await order.save();
     await notifyOrderPaid(order);
+    recordEvent("order_paid", { userId: order.user, orderId: order._id, meta: { provider: "razorpay" } });
   }
   await Payment.findOneAndUpdate(
     { order: order._id, provider: "razorpay" },

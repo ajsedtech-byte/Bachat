@@ -16,6 +16,9 @@ const { router: paymentRoutes, handleRazorpayWebhook } = require("./routes/payme
 const { CATEGORIES } = require("./lib/categories");
 const geoRoutes = require("./routes/geo");
 const digilockerRoutes = require("./routes/digilocker");
+const disputesRoutes = require("./routes/disputes");
+const leadsRoutes = require("./routes/leads");
+const oidcTeamRoutes = require("./routes/oidcTeam");
 
 const app = express();
 const publicDir = path.join(__dirname, "..", "public");
@@ -81,6 +84,9 @@ app.use("/api/geo", geoRoutes);
 app.use("/api/digilocker", digilockerRoutes);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/auth/oidc", oidcTeamRoutes);
+app.use("/api/disputes", disputesRoutes);
+app.use("/api/leads", leadsRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/quotes", quoteRoutes);
 app.use("/api/orders", orderRoutes);

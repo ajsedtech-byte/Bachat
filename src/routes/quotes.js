@@ -5,6 +5,7 @@ const Request = require("../models/Request");
 const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatQuote } = require("../lib/format");
+const { recordEvent } = require("../lib/analytics");
 
 const router = express.Router();
 
@@ -50,6 +51,11 @@ router.post("/", requireAuth, requireRole("seller"), async (req, res, next) => {
       reqDoc.status = "quoted";
       await reqDoc.save();
     }
+
+    recordEvent("quote_sent", {
+      userId: req.user.id,
+      meta: { request_id: String(reqDoc._id), seller_id: String(seller._id), quote_id: String(doc._id) },
+    });
 
     return res.status(201).json(formatQuote(doc, seller));
   } catch (err) {

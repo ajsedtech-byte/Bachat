@@ -52,9 +52,17 @@ const userSchema = new mongoose.Schema(
     region: { type: String, required: true },
     role: {
       type: String,
-      enum: ["buyer", "seller", "admin", "delivery"],
+      enum: ["buyer", "seller", "admin", "sales", "delivery"],
       default: "buyer",
     },
+    /** TOTP second factor for team roles (admin, sales) — secret stored encrypted. */
+    mfaTotpEnabled: { type: Boolean, default: false },
+    mfaTotpEnc: { type: String, default: "" },
+    mfaTotpVerifiedAt: { type: Date, default: null },
+    mfaTotpPendingEnc: { type: String, default: "" },
+    /** Linked IdP subject (team OIDC) — pair with oidcIssuer. */
+    oidcSubject: { type: String, default: "", trim: true },
+    oidcIssuer: { type: String, default: "", trim: true },
     emailVerifiedAt: { type: Date, default: null },
     /** Buyer wishlist — product ObjectIds */
     savedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
@@ -67,5 +75,15 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ role: 1, "deliveryKyc.status": 1 });
+userSchema.index(
+  { oidcIssuer: 1, oidcSubject: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      oidcIssuer: { $exists: true, $type: "string", $ne: "" },
+      oidcSubject: { $exists: true, $type: "string", $ne: "" },
+    },
+  }
+);
 
 module.exports = mongoose.model("User", userSchema);
