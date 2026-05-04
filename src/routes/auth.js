@@ -13,7 +13,7 @@ const { normalizeSellerCategories } = require("../lib/categories");
 const { ensureReferralCode } = require("../lib/referralCode");
 const { normalizePhone10India, maskPhoneIndia } = require("../lib/phone");
 const { encryptUtf8, decryptUtf8 } = require("../lib/mfaCrypto");
-const { generateSecret, verifySync, generateURI } = require("otplib");
+const { authenticator } = require("otplib");
 
 const router = express.Router();
 
@@ -372,8 +372,11 @@ router.post("/login/mfa", async (req, res, next) => {
     } catch {
       return res.status(500).json({ error: "MFA configuration error" });
     }
-    const check = verifySync({ token: String(code).replace(/\s+/g, ""), secret: secret32 });
-    if (!check || !check.valid) {
+    const okTotp = authenticator.verify({
+      token: String(code).replace(/\s+/g, ""),
+      secret: secret32,
+    });
+    if (!okTotp) {
       return res.status(401).json({ error: "Invalid authenticator code" });
     }
     const fresh = await User.findById(user._id).lean();
@@ -396,10 +399,10 @@ router.post(
       if (user.mfaTotpEnabled) {
         return res.status(400).json({ error: "MFA is already enabled" });
       }
-      const secret = generateSecret();
+      const secret = authenticator.generateSecret();
       user.mfaTotpPendingEnc = encryptUtf8(secret);
       await user.save();
-      const otpauth_url = generateURI({ issuer: "Bachat Ops", label: user.email, secret });
+      const otpauth_url = authenticator.keyuri(user.email, "Bachat Ops", secret);
       return res.json({ otpauth_url });
     } catch (err) {
       return next(err);
@@ -433,8 +436,11 @@ router.post(
       } catch {
         return res.status(500).json({ error: "MFA pending secret corrupted — start again" });
       }
-      const check = verifySync({ token: String(code).replace(/\s+/g, ""), secret: secret32 });
-      if (!check || !check.valid) {
+      const okEnroll = authenticator.verify({
+        token: String(code).replace(/\s+/g, ""),
+        secret: secret32,
+      });
+      if (!okEnroll) {
         return res.status(400).json({ error: "Invalid code — try again" });
       }
       user.mfaTotpEnc = user.mfaTotpPendingEnc;
@@ -479,8 +485,11 @@ router.post(
         return res.json({ message: "MFA disabled (secret was reset)" });
       }
       if (code) {
-        const check = verifySync({ token: String(code).replace(/\s+/g, ""), secret: secret32 });
-        if (!check || !check.valid) {
+        const okDisable = authenticator.verify({
+          token: String(code).replace(/\s+/g, ""),
+          secret: secret32,
+        });
+        if (!okDisable) {
           return res.status(400).json({ error: "Invalid authenticator code" });
         }
       }
