@@ -2,6 +2,7 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const { connectDb } = require("./db/connection");
 const app = require("./bachatApp");
+const { startDeliveryRouteCleanupJob } = require("./jobs/deliveryRouteCleanup");
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -26,6 +27,7 @@ const startServer = (initialPort) => {
 connectDb()
   .then(() => {
     startServer(port);
+    startDeliveryRouteCleanupJob();
   })
   .catch((err) => {
     console.error("Failed to connect to MongoDB:", err.message);

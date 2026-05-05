@@ -6,6 +6,7 @@
   <title>Bachat — Shopkeeper</title>
   <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -307,6 +308,41 @@
     </div>
   </div>
 
+  <div id="gps-modal-sk" class="hidden fixed inset-0 z-[80] bg-black/40 p-4">
+    <div class="mx-auto mt-8 max-w-2xl rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+        <p class="font-bold text-slate-900">Confirm shop location pin</p>
+        <button type="button" id="gps-sk-close" class="text-slate-500 hover:text-slate-900">✕</button>
+      </div>
+      <div id="gps-map-sk" class="h-80"></div>
+      <div class="px-4 py-3 text-xs text-slate-600 border-t border-slate-200">Drag pin and confirm exact pickup location.</div>
+      <div class="px-4 pb-4 flex justify-end gap-2">
+        <button type="button" id="gps-sk-cancel" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Cancel</button>
+        <button type="button" id="gps-sk-confirm" class="rounded-lg bg-[#0056d2] px-4 py-2 text-sm font-bold text-white">Confirm pin</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="seller-map-modal" class="hidden fixed inset-0 z-[85] bg-black/40 p-4">
+    <div class="mx-auto mt-6 max-w-3xl rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <p class="font-bold text-slate-900">Delivery route</p>
+          <span id="seller-map-meta" class="text-xs text-slate-500">—</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="inline-flex items-center gap-2 text-xs text-slate-600">
+            <input id="seller-map-follow" type="checkbox" class="rounded border-slate-300" />
+            Follow driver
+          </label>
+          <button type="button" id="seller-map-close" class="text-slate-500 hover:text-slate-900">✕</button>
+        </div>
+      </div>
+      <div id="seller-map" class="h-80"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const token = localStorage.getItem("ajs_token");
     if (!token) location.href = "/login.html";
@@ -319,6 +355,7 @@
     let openRequestsCache = [];
     let quotesCache = [];
     let ordersCache = [];
+    const sellerTrack = { map: null, layers: [], orderId: "", timer: null };
 
     function showToast(text, isErr) {
       const el = document.getElementById("toast");
@@ -331,6 +368,60 @@
 
     function listCount(x) {
       return Array.isArray(x) ? x.length : 0;
+    }
+
+    const skGps = { map: null, marker: null };
+    function setShopGps(lat, lng, acc) {
+      const la = document.getElementById("shop-lat");
+      const ln = document.getElementById("shop-lng");
+      const ac = document.getElementById("shop-acc");
+      const ca = document.getElementById("shop-captured-at");
+      if (la) la.value = String(lat);
+      if (ln) ln.value = String(lng);
+      if (ac) ac.value = acc != null ? String(acc) : "";
+      if (ca) ca.value = new Date().toISOString();
+      const s = document.getElementById("shop-coords");
+      if (s) s.textContent = `GPS: ${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`;
+    }
+
+    async function reverseGeo(lat, lng) {
+      try {
+        return (await api("GET", "/api/geo/reverse?lat=" + encodeURIComponent(lat) + "&lng=" + encodeURIComponent(lng))) || {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function openShopMap(lat, lng) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById("gps-modal-sk");
+        const close = () => {
+          modal.classList.add("hidden");
+          resolve(null);
+        };
+        document.getElementById("gps-sk-close").onclick = close;
+        document.getElementById("gps-sk-cancel").onclick = close;
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          if (!skGps.map) {
+            skGps.map = L.map("gps-map-sk");
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+              maxZoom: 19,
+              attribution: "&copy; OpenStreetMap",
+            }).addTo(skGps.map);
+          }
+          skGps.map.setView([lat, lng], 16);
+          if (skGps.marker) skGps.map.removeLayer(skGps.marker);
+          skGps.marker = L.marker([lat, lng], { draggable: true }).addTo(skGps.map);
+          skGps.map.invalidateSize();
+        }, 60);
+        document.getElementById("gps-sk-confirm").onclick = () => {
+          if (!skGps.marker) return;
+          const p = skGps.marker.getLatLng();
+          modal.classList.add("hidden");
+          resolve({ lat: p.lat, lng: p.lng });
+        };
+      });
     }
 
     async function fetchApi(path, init) {
@@ -424,6 +515,71 @@
       const x = Number(n);
       if (!Number.isFinite(x)) return "—";
       return "₹" + Math.round(x).toLocaleString("en-IN");
+    }
+
+    function clearSellerTrackLayers() {
+      if (!sellerTrack.map) return;
+      sellerTrack.layers.forEach((l) => {
+        try { sellerTrack.map.removeLayer(l); } catch (_) {}
+      });
+      sellerTrack.layers = [];
+    }
+
+    function stopSellerFollow() {
+      if (sellerTrack.timer) {
+        clearInterval(sellerTrack.timer);
+        sellerTrack.timer = null;
+      }
+    }
+
+    async function paintSellerMap(orderId) {
+      const tr = await api("GET", "/api/delivery/track/" + encodeURIComponent(orderId));
+      const d = tr.delivery || {};
+      if (!sellerTrack.map) {
+        sellerTrack.map = L.map("seller-map");
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap",
+        }).addTo(sellerTrack.map);
+      }
+      clearSellerTrackLayers();
+      const pts = Array.isArray(d.route_points) ? d.route_points : [];
+      const pickup = d.pickup || {};
+      const dropoff = d.dropoff || {};
+      const bounds = [];
+      if (Number.isFinite(pickup.lat) && Number.isFinite(pickup.lng)) {
+        const m = L.marker([pickup.lat, pickup.lng], { title: "Pickup" }).addTo(sellerTrack.map).bindPopup("Pickup");
+        sellerTrack.layers.push(m); bounds.push([pickup.lat, pickup.lng]);
+      }
+      if (Number.isFinite(dropoff.lat) && Number.isFinite(dropoff.lng)) {
+        const m = L.marker([dropoff.lat, dropoff.lng], { title: "Dropoff" }).addTo(sellerTrack.map).bindPopup("Dropoff");
+        sellerTrack.layers.push(m); bounds.push([dropoff.lat, dropoff.lng]);
+      }
+      if (pts.length > 1) {
+        const latlngs = pts.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)).map((p) => [p.lat, p.lng]);
+        if (latlngs.length > 1) {
+          const line = L.polyline(latlngs, { color: "#0056d2", weight: 4, opacity: 0.9 }).addTo(sellerTrack.map);
+          sellerTrack.layers.push(line);
+          latlngs.forEach((x) => bounds.push(x));
+        }
+      }
+      if (Number.isFinite(tr.driver_last_lat) && Number.isFinite(tr.driver_last_lng)) {
+        const dm = L.circleMarker([tr.driver_last_lat, tr.driver_last_lng], {
+          radius: 7, color: "#dc2626", fillColor: "#ef4444", fillOpacity: 0.95,
+        }).addTo(sellerTrack.map).bindPopup("Driver last location");
+        sellerTrack.layers.push(dm);
+        bounds.push([tr.driver_last_lat, tr.driver_last_lng]);
+      }
+      if (bounds.length) sellerTrack.map.fitBounds(bounds, { padding: [20, 20], maxZoom: 15 });
+      else sellerTrack.map.setView([22.7196, 75.8577], 12);
+      sellerTrack.map.invalidateSize();
+      document.getElementById("seller-map-meta").textContent = (d.status || "—") + " · points: " + String(pts.length);
+    }
+
+    async function openSellerMap(orderId) {
+      sellerTrack.orderId = orderId;
+      document.getElementById("seller-map-modal").classList.remove("hidden");
+      await paintSellerMap(orderId);
     }
 
     function readFileAsDataURL(file) {
@@ -769,6 +925,7 @@
           return;
         }
         ordersCache.forEach((o) => {
+          const oid = o.order_id;
           const d = document.createElement("div");
           d.className = "rounded-lg border border-[#e5e7eb] bg-white p-4 space-y-2";
           d.innerHTML = `<p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
@@ -786,7 +943,19 @@
               <textarea class="w-full rounded border border-slate-200 px-2 py-1 sk-disp-desc" rows="2" placeholder="Notes"></textarea>
               <button type="button" class="sk-disp-btn rounded bg-amber-700 text-white font-bold px-3 py-1">Open dispute</button>
             </div></details>`;
-          const oid = o.order_id;
+          if (o.delivery && o.delivery.route_points && o.delivery.route_points.length) {
+            const row = document.createElement("div");
+            row.className = "pt-1";
+            row.innerHTML = '<button type="button" class="sk-map-btn rounded-lg border border-slate-300 text-slate-700 font-bold px-3 py-1.5 text-xs">View route map</button>';
+            row.querySelector(".sk-map-btn")?.addEventListener("click", async () => {
+              try {
+                await openSellerMap(oid);
+              } catch (e) {
+                showToast(e.message || "Could not load map", true);
+              }
+            });
+            d.appendChild(row);
+          }
           d.querySelector(".sk-disp-btn")?.addEventListener("click", async () => {
             const reason = d.querySelector(".sk-disp-reason")?.value || "other";
             const description = String(d.querySelector(".sk-disp-desc")?.value || "").trim();
@@ -877,14 +1046,100 @@
         return;
       }
       const s = cachedMe.seller;
+      const loc = (cachedMe.user && cachedMe.user.location) || (s && s.location) || {};
       box.innerHTML = `
         <p><span class="font-bold text-slate-500">Name:</span> ${escapeHtml(cachedMe.user.name)}</p>
         <p><span class="font-bold text-slate-500">Email:</span> ${escapeHtml(cachedMe.user.email)}</p>
         <p><span class="font-bold text-slate-500">Shop:</span> ${escapeHtml(s && s.shop_name)}</p>
         <p><span class="font-bold text-slate-500">Area:</span> ${escapeHtml(s && s.city)}, ${escapeHtml(s && s.region)}</p>
         <p><span class="font-bold text-slate-500">Categories:</span> ${escapeHtml((s && s.categories && s.categories.join(", ")) || "")}</p>
+        <form id="shop-location-form" class="mt-3 grid sm:grid-cols-2 gap-3 rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Shop address</label>
+            <textarea id="shop-address-text" rows="2" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Street, locality">${escapeHtml(loc.address_text || "")}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Landmark</label>
+            <input id="shop-landmark" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value="${escapeHtml(loc.landmark || "")}" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Pincode</label>
+            <input id="shop-pincode" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value="${escapeHtml(loc.pincode || "")}" />
+          </div>
+          <div class="sm:col-span-2 flex flex-wrap items-center gap-2">
+            <button type="button" id="shop-use-gps" class="rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-3 py-1.5 text-xs">Use current location</button>
+            <button type="button" id="shop-pin-map" class="rounded-lg border border-slate-300 text-slate-700 font-bold px-3 py-1.5 text-xs">Adjust pin on map</button>
+            <span id="shop-coords" class="text-xs text-slate-500">GPS not confirmed</span>
+            <input type="hidden" id="shop-lat" value="${escapeHtml(String(loc.lat ?? ""))}" />
+            <input type="hidden" id="shop-lng" value="${escapeHtml(String(loc.lng ?? ""))}" />
+            <input type="hidden" id="shop-acc" value="${escapeHtml(String(loc.accuracy_m ?? ""))}" />
+            <input type="hidden" id="shop-captured-at" value="${escapeHtml(String(loc.captured_at || ""))}" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="inline-flex items-center gap-2 text-xs text-slate-600">
+              <input id="shop-consent" type="checkbox" class="rounded border-slate-300" />
+              I consent to use this GPS location as pickup point for deliveries.
+            </label>
+          </div>
+          <div class="sm:col-span-2">
+            <button type="submit" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm">Save shop location</button>
+          </div>
+        </form>
         <p class="text-xs text-slate-500 pt-2">To change categories, use API PATCH /api/auth/seller/categories or contact support.</p>
       `;
+      if (loc.lat != null && loc.lng != null) setShopGps(loc.lat, loc.lng, loc.accuracy_m);
+      var form = document.getElementById("shop-location-form");
+      form?.addEventListener("submit", async function (ev) {
+        ev.preventDefault();
+        const lat = Number(document.getElementById("shop-lat")?.value);
+        const lng = Number(document.getElementById("shop-lng")?.value);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return showToast("Confirm GPS location first.", true);
+        if (!document.getElementById("shop-consent")?.checked) return showToast("Please accept GPS consent.", true);
+        try {
+          await api("PATCH", "/api/auth/profile", {
+            location: {
+              address_text: String(document.getElementById("shop-address-text")?.value || "").trim(),
+              landmark: String(document.getElementById("shop-landmark")?.value || "").trim(),
+              pincode: String(document.getElementById("shop-pincode")?.value || "").trim(),
+              lat,
+              lng,
+              accuracy_m: Number(document.getElementById("shop-acc")?.value || 0) || null,
+              captured_at: document.getElementById("shop-captured-at")?.value || new Date().toISOString(),
+              consent_accepted_at: new Date().toISOString(),
+            },
+          });
+          showToast("Shop location saved.");
+          cachedMe = await api("GET", "/api/auth/me");
+          renderMe();
+        } catch (e) {
+          showToast(e.message || "Save failed", true);
+        }
+      });
+      document.getElementById("shop-use-gps")?.addEventListener("click", () => {
+        if (!navigator.geolocation) return showToast("Geolocation unsupported.", true);
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            setShopGps(lat, lng, pos.coords.accuracy);
+            const rv = await reverseGeo(lat, lng);
+            if (rv.address_text && !document.getElementById("shop-address-text").value) document.getElementById("shop-address-text").value = rv.address_text;
+            if (rv.pincode && !document.getElementById("shop-pincode").value) document.getElementById("shop-pincode").value = rv.pincode;
+          },
+          () => showToast("Could not fetch GPS.", true),
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
+        );
+      });
+      document.getElementById("shop-pin-map")?.addEventListener("click", async () => {
+        const lat = Number(document.getElementById("shop-lat")?.value) || 22.7196;
+        const lng = Number(document.getElementById("shop-lng")?.value) || 75.8577;
+        const out = await openShopMap(lat, lng);
+        if (!out) return;
+        setShopGps(out.lat, out.lng, null);
+        const rv = await reverseGeo(out.lat, out.lng);
+        if (rv.address_text) document.getElementById("shop-address-text").value = rv.address_text;
+        if (rv.pincode) document.getElementById("shop-pincode").value = rv.pincode;
+      });
     }
 
     document.getElementById("product-form").addEventListener("submit", async (e) => {
@@ -971,6 +1226,20 @@
     document.getElementById("refer-tip-sk")?.addEventListener("click", () =>
       showToast("Respond within minutes and add delivery time to your quotes.", false)
     );
+    document.getElementById("seller-map-close")?.addEventListener("click", () => {
+      document.getElementById("seller-map-modal").classList.add("hidden");
+      const f = document.getElementById("seller-map-follow");
+      if (f) f.checked = false;
+      stopSellerFollow();
+    });
+    document.getElementById("seller-map-follow")?.addEventListener("change", function () {
+      stopSellerFollow();
+      if (this.checked && sellerTrack.orderId) {
+        sellerTrack.timer = setInterval(() => {
+          paintSellerMap(sellerTrack.orderId).catch(() => {});
+        }, 5000);
+      }
+    });
 
     (async function boot() {
       try {
