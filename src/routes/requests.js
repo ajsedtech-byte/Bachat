@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Request = require("../models/Request");
 const Seller = require("../models/Seller");
 const User = require("../models/User");
+const Order = require("../models/Order");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest } = require("../lib/format");
 const { CATEGORY_SET, sellerCategoryList } = require("../lib/categories");
@@ -89,6 +90,30 @@ router.get("/:requestId", requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: "Forbidden" });
     }
     return res.json(formatRequest(doc));
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.delete("/:requestId", requireAuth, requireRole("buyer"), async (req, res, next) => {
+  try {
+    const rid = req.params.requestId;
+    if (!mongoose.isValidObjectId(rid)) return res.status(404).json({ error: "Not found" });
+    const doc = await Request.findById(rid);
+    if (!doc) return res.status(404).json({ error: "Not found" });
+    if (String(doc.user) !== String(req.user.id)) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const st = String(doc.status || "").toLowerCase();
+    if (st === "closed") {
+      return res.status(409).json({ error: "Closed requests cannot be deleted" });
+    }
+    const hasOrder = await Order.exists({ request: doc._id });
+    if (hasOrder) {
+      return res.status(409).json({ error: "Request already has an order and cannot be deleted" });
+    }
+    await doc.deleteOne();
+    return res.json({ ok: true });
   } catch (err) {
     return next(err);
   }
