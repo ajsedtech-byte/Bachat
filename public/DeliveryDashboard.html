@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Delivery dashboard — Bachat</title>
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -29,6 +30,13 @@
 
     <section id="sec-assign" class="hidden">
       <h2 class="text-sm font-black uppercase tracking-wide text-slate-500 mb-3">My active deliveries</h2>
+      <div id="route-card" class="hidden mb-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-xs font-bold uppercase text-slate-500">Route map</p>
+          <p id="route-meta" class="text-xs text-slate-600"></p>
+        </div>
+        <div id="route-map" class="h-64 rounded-xl border border-slate-200"></div>
+      </div>
       <div id="assignments" class="space-y-4"></div>
     </section>
 
@@ -46,6 +54,7 @@
     </section>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     async function apiFetch(path, options) {
       const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
@@ -96,6 +105,8 @@
     let kycVerified = false;
     let locWatch = null;
     let locInterval = null;
+    let routeMap = null;
+    let routeLayers = [];
 
     function stopLocationShare() {
       if (locWatch != null && navigator.geolocation) {
@@ -317,6 +328,11 @@
           '" class="rounded border-slate-300" /> Share GPS</label></div>';
         root.appendChild(card);
       }
+      if (items.length) {
+        paintRouteMap(items[0]);
+      } else {
+        document.getElementById("route-card").classList.add("hidden");
+      }
 
       root.querySelectorAll("button[data-act]").forEach((btn) => {
         btn.addEventListener("click", async () => {
@@ -345,6 +361,54 @@
           else stopLocationShare();
         });
       });
+    }
+
+    function clearRouteLayers() {
+      routeLayers.forEach((x) => routeMap && routeMap.removeLayer(x));
+      routeLayers = [];
+    }
+
+    function paintRouteMap(row) {
+      const card = document.getElementById("route-card");
+      card.classList.remove("hidden");
+      if (!routeMap) {
+        routeMap = L.map("route-map");
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap",
+        }).addTo(routeMap);
+      }
+      clearRouteLayers();
+      const d = row.delivery || {};
+      const p = d.pickup || {};
+      const t = d.dropoff || {};
+      const pts = Array.isArray(d.route_points) ? d.route_points : [];
+      const bounds = [];
+      if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) {
+        bounds.push([p.lat, p.lng]);
+        routeLayers.push(L.marker([p.lat, p.lng]).addTo(routeMap).bindPopup("Pickup"));
+      }
+      if (Number.isFinite(t.lat) && Number.isFinite(t.lng)) {
+        bounds.push([t.lat, t.lng]);
+        routeLayers.push(L.marker([t.lat, t.lng]).addTo(routeMap).bindPopup("Dropoff"));
+      }
+      if (pts.length > 1) {
+        const line = pts
+          .filter((x) => Number.isFinite(x.lat) && Number.isFinite(x.lng))
+          .map((x) => [x.lat, x.lng]);
+        if (line.length > 1) {
+          bounds.push(...line);
+          routeLayers.push(L.polyline(line, { color: "#0056d2", weight: 4, opacity: 0.85 }).addTo(routeMap));
+        }
+      }
+      if (!bounds.length && Number.isFinite(d.driver_last_lat) && Number.isFinite(d.driver_last_lng)) {
+        bounds.push([d.driver_last_lat, d.driver_last_lng]);
+      }
+      if (bounds.length === 1) routeMap.setView(bounds[0], 15);
+      if (bounds.length > 1) routeMap.fitBounds(bounds, { padding: [20, 20] });
+      routeMap.invalidateSize();
+      document.getElementById("route-meta").textContent =
+        "Status: " + humanStatus(d.status || "") + " · points: " + (pts.length || 0);
     }
 
     function renderJobs(items) {

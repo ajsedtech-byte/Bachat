@@ -26,6 +26,18 @@ function formatUser(u) {
     referral_code: o.referralCode || null,
     saved_product_count: Array.isArray(saved) ? saved.length : 0,
   };
+  if (o.location) {
+    base.location = {
+      address_text: o.location.addressText || "",
+      landmark: o.location.landmark || "",
+      pincode: o.location.pincode || "",
+      lat: o.location.lat ?? null,
+      lng: o.location.lng ?? null,
+      accuracy_m: o.location.accuracyM ?? null,
+      captured_at: o.location.capturedAt || null,
+      consent_accepted_at: o.location.consentAcceptedAt || null,
+    };
+  }
   if (o.role === "delivery") {
     const k = o.deliveryKyc || {};
     base.delivery_kyc = {
@@ -79,6 +91,18 @@ function formatSeller(s) {
     kyc_gst_registry_active: Boolean(kyc.gstRegistryActive),
     kyc_digilocker_linked_at: kyc.digilockerLinkedAt || null,
     needs_kyc_completion: sellerTradeBlocked(o),
+    location: o.location
+      ? {
+          address_text: o.location.addressText || "",
+          landmark: o.location.landmark || "",
+          pincode: o.location.pincode || "",
+          lat: o.location.lat ?? null,
+          lng: o.location.lng ?? null,
+          accuracy_m: o.location.accuracyM ?? null,
+          captured_at: o.location.capturedAt || null,
+          consent_accepted_at: o.location.consentAcceptedAt || null,
+        }
+      : null,
     created_at: o.createdAt,
   };
 }
@@ -136,6 +160,7 @@ function formatDeliveryPublic(d) {
       driver_location_at: d?.driverLocationAt || null,
       dropoff_city: d?.dropoffCity != null ? d.dropoffCity : "",
       dropoff_region: d?.dropoffRegion != null ? d.dropoffRegion : "",
+      route_points: [],
     };
   }
   const dropPhone = d.dropoff?.contactPhone ? maskPhone(d.dropoff.contactPhone) : "";
@@ -153,20 +178,31 @@ function formatDeliveryPublic(d) {
     driver_location_at: d.driverLocationAt || null,
     pickup: {
       address: d.pickup?.address || "",
+      address_text: d.pickup?.addressText || d.pickup?.address || "",
       landmark: d.pickup?.landmark || "",
+      pincode: d.pickup?.pincode || "",
       lat: d.pickup?.lat ?? null,
       lng: d.pickup?.lng ?? null,
+      accuracy_m: d.pickup?.accuracyM ?? null,
+      captured_at: d.pickup?.capturedAt || null,
       contact_phone_masked: pickupPhone,
     },
     dropoff: {
       address: d.dropoff?.address || "",
+      address_text: d.dropoff?.addressText || d.dropoff?.address || "",
       landmark: d.dropoff?.landmark || "",
+      pincode: d.dropoff?.pincode || "",
       lat: d.dropoff?.lat ?? null,
       lng: d.dropoff?.lng ?? null,
+      accuracy_m: d.dropoff?.accuracyM ?? null,
+      captured_at: d.dropoff?.capturedAt || null,
       contact_phone_masked: dropPhone,
     },
     dropoff_city: d.dropoffCity || "",
     dropoff_region: d.dropoffRegion || "",
+    route_points: Array.isArray(d.routePoints)
+      ? d.routePoints.map((p) => ({ lat: p.lat, lng: p.lng, at: p.at, status: p.status || "" }))
+      : [],
   };
 }
 

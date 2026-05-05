@@ -14,6 +14,19 @@
   }
   var isSales = me.role === "sales";
 
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  var dispName = (me.name && String(me.name).trim()) || (me.email && String(me.email).split("@")[0]) || "Team user";
+  var dispEmail = me.email ? String(me.email) : "";
+  var dispRole =
+    me.role === "sales" ? "Field sales" : me.role === "admin" ? "Operations" : me.role ? String(me.role) : "Team";
+
   var rawItems = [
     { id: "dashboard", label: "Dashboard", href: "/AdminDashboard.html", icon: "M4 6h16M4 12h16M4 18h7" },
     { id: "analytics", label: "Analytics", href: "/admin-analytics.html", icon: "M11 3v18M6 8l5-5 5 5M17 16l-5 5-5-5" },
@@ -92,9 +105,15 @@
       '<div class="flex items-center gap-3 mt-4 px-1">' +
       '<div class="w-9 h-9 rounded-full bg-slate-200 shrink-0"></div>' +
       '<div class="min-w-0">' +
-      '<p class="text-sm font-bold text-slate-900 truncate">Arjun Singh</p>' +
-      '<p class="text-[11px] text-slate-500">Support Agent</p>' +
-      "</div></div></div></div>";
+      '<p class="text-sm font-bold text-slate-900 truncate">' +
+      esc(dispName) +
+      "</p>" +
+      '<p class="text-[11px] text-slate-500 truncate">' +
+      esc(dispRole) +
+      (dispEmail ? " · " + esc(dispEmail) : "") +
+      "</p></div></div>" +
+      '<button type="button" id="bachat-admin-logout-sidebar" class="mt-3 w-full py-2 rounded-lg border border-slate-200 text-slate-700 text-xs font-bold hover:bg-red-50 hover:border-red-200 hover:text-red-700">Log out</button>' +
+      "</div></div>";
     sb.innerHTML = navHtml;
   }
 
@@ -122,9 +141,28 @@
       '<span class="absolute top-1 right-1 w-4 h-4 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">8</span></button>' +
       '<div class="flex items-center gap-2 pl-2 border-l border-slate-200">' +
       '<div class="w-9 h-9 rounded-full bg-slate-200"></div>' +
-      '<div class="hidden sm:block">' +
-      '<p class="text-sm font-bold text-slate-900 leading-tight">Arjun Singh</p>' +
-      '<p class="text-[11px] text-slate-500">Support Agent</p>' +
+      '<div class="hidden sm:block min-w-0">' +
+      '<p class="text-sm font-bold text-slate-900 leading-tight truncate">' +
+      esc(dispName) +
+      "</p>" +
+      '<p class="text-[11px] text-slate-500 truncate">' +
+      esc(dispRole) +
+      "</p></div>" +
+      '<button type="button" id="bachat-admin-logout" class="text-xs font-bold text-red-700 px-3 py-2 rounded-xl border border-red-200 hover:bg-red-50 shrink-0" title="Sign out">Log out</button>' +
       "</div></div></div>";
   }
+
+  function bachatAdminLogout() {
+    try {
+      localStorage.removeItem("ajs_token");
+      localStorage.removeItem("ajs_user");
+      localStorage.removeItem("ajs_seller");
+    } catch (e) {}
+    location.href = "/team-login.html";
+  }
+
+  var lo = document.getElementById("bachat-admin-logout");
+  if (lo) lo.addEventListener("click", bachatAdminLogout);
+  var lo2 = document.getElementById("bachat-admin-logout-sidebar");
+  if (lo2) lo2.addEventListener("click", bachatAdminLogout);
 })();

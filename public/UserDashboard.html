@@ -6,6 +6,7 @@
   <title>Bachat — Your dashboard</title>
   <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -343,6 +344,33 @@
               <input name="region" id="addr-region" required class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" />
             </div>
             <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Address</label>
+              <textarea name="address_text" id="addr-text" rows="2" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" placeholder="House no, street, locality"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Landmark</label>
+              <input name="landmark" id="addr-landmark" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pincode</label>
+              <input name="pincode" id="addr-pincode" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25" />
+            </div>
+            <div class="sm:col-span-2 flex flex-wrap items-center gap-3">
+              <button type="button" id="addr-use-gps" class="rounded-xl border border-[#0056d2] text-[#0056d2] font-bold text-sm px-4 py-2">Use current location</button>
+              <button type="button" id="addr-pin-map" class="rounded-xl border border-slate-300 text-slate-700 font-bold text-sm px-4 py-2">Adjust pin on map</button>
+              <span id="addr-coords" class="text-xs text-slate-500">GPS not confirmed</span>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="inline-flex items-center gap-2 text-xs text-slate-600">
+                <input id="addr-consent" type="checkbox" class="rounded border-slate-300" />
+                I consent to use GPS location for pickup/drop and live delivery tracking.
+              </label>
+              <input type="hidden" id="addr-lat" />
+              <input type="hidden" id="addr-lng" />
+              <input type="hidden" id="addr-accuracy" />
+              <input type="hidden" id="addr-captured-at" />
+            </div>
+            <div class="sm:col-span-2">
               <button type="submit" id="addr-save" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold text-sm px-6 py-2.5 disabled:opacity-50">Save address</button>
             </div>
           </form>
@@ -444,6 +472,38 @@
     </div>
   </div>
 
+  <div id="gps-modal" class="hidden fixed inset-0 z-[80] bg-black/40 p-4">
+    <div class="mx-auto mt-8 max-w-2xl rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+        <p class="font-bold text-slate-900">Confirm location pin</p>
+        <button type="button" id="gps-close" class="text-slate-500 hover:text-slate-900">✕</button>
+      </div>
+      <div id="gps-map" class="h-80"></div>
+      <div class="px-4 py-3 text-xs text-slate-600 border-t border-slate-200">
+        Drag pin to your exact address and click confirm.
+      </div>
+      <div class="px-4 pb-4 flex justify-end gap-2">
+        <button type="button" id="gps-cancel" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Cancel</button>
+        <button type="button" id="gps-confirm" class="rounded-lg bg-[#0056d2] px-4 py-2 text-sm font-bold text-white">Confirm pin</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="track-map-modal" class="hidden fixed inset-0 z-[85] bg-black/40 p-4">
+    <div class="mx-auto mt-6 max-w-3xl rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+        <p class="font-bold text-slate-900">Delivery route</p>
+        <button type="button" id="track-map-close" class="text-slate-500 hover:text-slate-900">✕</button>
+      </div>
+      <div class="px-4 py-2 text-xs text-slate-600 flex items-center justify-between gap-2">
+        <span id="track-map-meta">—</span>
+        <label class="inline-flex items-center gap-2"><input id="track-follow" type="checkbox" class="rounded border-slate-300" /> Follow driver</label>
+      </div>
+      <div id="track-map" class="h-80 border-t border-slate-200"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const token = localStorage.getItem("ajs_token");
     if (!token) location.href = "/login.html";
@@ -463,6 +523,125 @@
 
     function listCount(x) {
       return Array.isArray(x) ? x.length : 0;
+    }
+
+    const gpsState = { map: null, marker: null, resolver: null };
+    const trackState = { map: null, layers: [], timer: null, orderId: null };
+    function setGpsFields(lat, lng, accuracyM) {
+      const latEl = document.getElementById("addr-lat");
+      const lngEl = document.getElementById("addr-lng");
+      const accEl = document.getElementById("addr-accuracy");
+      const capEl = document.getElementById("addr-captured-at");
+      if (latEl) latEl.value = String(lat);
+      if (lngEl) lngEl.value = String(lng);
+      if (accEl) accEl.value = accuracyM != null ? String(accuracyM) : "";
+      if (capEl) capEl.value = new Date().toISOString();
+      const co = document.getElementById("addr-coords");
+      if (co) co.textContent = `GPS: ${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`;
+    }
+
+    async function reverseGeocode(lat, lng) {
+      try {
+        const x = await api("GET", "/api/geo/reverse?lat=" + encodeURIComponent(lat) + "&lng=" + encodeURIComponent(lng));
+        return x || {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function openGpsModal(lat, lng) {
+      return new Promise((resolve, reject) => {
+        const modal = document.getElementById("gps-modal");
+        const close = () => {
+          modal.classList.add("hidden");
+          resolve(null);
+        };
+        document.getElementById("gps-close").onclick = close;
+        document.getElementById("gps-cancel").onclick = close;
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          if (!gpsState.map) {
+            gpsState.map = L.map("gps-map");
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+              maxZoom: 19,
+              attribution: "&copy; OpenStreetMap",
+            }).addTo(gpsState.map);
+          }
+          gpsState.map.setView([lat, lng], 16);
+          if (gpsState.marker) gpsState.map.removeLayer(gpsState.marker);
+          gpsState.marker = L.marker([lat, lng], { draggable: true }).addTo(gpsState.map);
+          gpsState.map.invalidateSize();
+        }, 60);
+        document.getElementById("gps-confirm").onclick = () => {
+          if (!gpsState.marker) return;
+          const p = gpsState.marker.getLatLng();
+          modal.classList.add("hidden");
+          resolve({ lat: p.lat, lng: p.lng });
+        };
+      });
+    }
+
+    function clearTrackLayers() {
+      trackState.layers.forEach((x) => trackState.map && trackState.map.removeLayer(x));
+      trackState.layers = [];
+    }
+
+    function stopTrackFollow() {
+      if (trackState.timer) clearInterval(trackState.timer);
+      trackState.timer = null;
+    }
+
+    async function paintTrackMap(orderId) {
+      const t = await api("GET", "/api/delivery/track/" + encodeURIComponent(orderId));
+      const d = t.delivery || {};
+      if (!trackState.map) {
+        trackState.map = L.map("track-map");
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap",
+        }).addTo(trackState.map);
+      }
+      clearTrackLayers();
+      const bounds = [];
+      const pu = d.pickup || {};
+      const dr = d.dropoff || {};
+      if (Number.isFinite(pu.lat) && Number.isFinite(pu.lng)) {
+        bounds.push([pu.lat, pu.lng]);
+        trackState.layers.push(L.marker([pu.lat, pu.lng]).addTo(trackState.map).bindPopup("Pickup"));
+      }
+      if (Number.isFinite(dr.lat) && Number.isFinite(dr.lng)) {
+        bounds.push([dr.lat, dr.lng]);
+        trackState.layers.push(L.marker([dr.lat, dr.lng]).addTo(trackState.map).bindPopup("Dropoff"));
+      }
+      const pts = Array.isArray(d.route_points) ? d.route_points : [];
+      const line = pts.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)).map((p) => [p.lat, p.lng]);
+      if (line.length > 1) {
+        bounds.push.apply(bounds, line);
+        trackState.layers.push(L.polyline(line, { color: "#0056d2", weight: 4 }).addTo(trackState.map));
+      }
+      if (Number.isFinite(t.driver_last_lat) && Number.isFinite(t.driver_last_lng)) {
+        bounds.push([t.driver_last_lat, t.driver_last_lng]);
+        trackState.layers.push(
+          L.circleMarker([t.driver_last_lat, t.driver_last_lng], { radius: 6, color: "#16a34a", fillOpacity: 0.9 })
+            .addTo(trackState.map)
+            .bindPopup("Driver")
+        );
+      }
+      if (bounds.length === 1) trackState.map.setView(bounds[0], 15);
+      if (bounds.length > 1) trackState.map.fitBounds(bounds, { padding: [20, 20] });
+      trackState.map.invalidateSize();
+      const etaPick = t.eta_to_pickup_min != null ? `ETA pickup: ${t.eta_to_pickup_min}m` : "";
+      const etaDrop = t.eta_to_dropoff_min != null ? `ETA drop: ${t.eta_to_dropoff_min}m` : "";
+      document.getElementById("track-map-meta").textContent = [deliveryStatusHelp(d.status || ""), etaPick, etaDrop]
+        .filter(Boolean)
+        .join(" · ");
+    }
+
+    async function openTrackMap(orderId) {
+      trackState.orderId = orderId;
+      const modal = document.getElementById("track-map-modal");
+      modal.classList.remove("hidden");
+      await paintTrackMap(orderId);
     }
 
     async function fetchApi(path, init) {
@@ -690,6 +869,16 @@
       if (ct) ct.value = (me.user.city || "").trim();
       const rg = document.getElementById("addr-region");
       if (rg) rg.value = (me.user.region || "").trim();
+      const loc = me.user.location || {};
+      const at = document.getElementById("addr-text");
+      if (at) at.value = (loc.address_text || "").trim();
+      const al = document.getElementById("addr-landmark");
+      if (al) al.value = (loc.landmark || "").trim();
+      const ap = document.getElementById("addr-pincode");
+      if (ap) ap.value = (loc.pincode || "").trim();
+      if (loc.lat != null && loc.lng != null) {
+        setGpsFields(loc.lat, loc.lng, loc.accuracy_m);
+      }
       return me;
     }
 
@@ -1077,6 +1266,14 @@
               <label class="block text-slate-500">Landmark
                 <input type="text" class="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1" data-del-land placeholder="Optional" />
               </label>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" class="rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-2 py-1" data-del-use-gps>Use current GPS</button>
+                <button type="button" class="rounded-lg border border-slate-300 text-slate-700 font-bold px-2 py-1" data-del-pin>Pin on map</button>
+                <span class="text-[11px] text-slate-500" data-del-coords>No GPS</span>
+                <input type="hidden" data-del-lat />
+                <input type="hidden" data-del-lng />
+                <input type="hidden" data-del-acc />
+              </div>
               <button type="button" data-del-req class="rounded-lg bg-[#0056d2] text-white font-bold px-3 py-1.5 text-xs">Request delivery</button>`;
           } else {
             const help = escapeHtml(deliveryStatusHelp(dStatus));
@@ -1084,7 +1281,7 @@
             delRow.innerHTML =
               `<p class="text-slate-700"><span class="font-semibold text-slate-900">Delivery:</span> ${help}</p>` +
               (trackable
-                ? '<button type="button" class="del-track-btn rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-2 py-1">Refresh delivery status</button>'
+                ? '<div class="flex flex-wrap items-center gap-2"><button type="button" class="del-track-btn rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-2 py-1">Refresh delivery status</button><button type="button" class="del-map-btn rounded-lg border border-slate-300 text-slate-700 font-bold px-2 py-1">View route map</button></div>'
                 : "");
           }
           wrap.appendChild(delRow);
@@ -1130,13 +1327,27 @@
               btn.addEventListener("click", async () => {
                 const addr = String(delRow.querySelector("[data-del-addr]")?.value || "").trim();
                 const land = String(delRow.querySelector("[data-del-land]")?.value || "").trim();
+                const lat = Number(delRow.querySelector("[data-del-lat]")?.value);
+                const lng = Number(delRow.querySelector("[data-del-lng]")?.value);
                 if (!addr) {
                   showToast("Enter a drop-off address.", true);
                   return;
                 }
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                  showToast("Confirm GPS coordinates for drop-off.", true);
+                  return;
+                }
                 try {
                   await api("POST", "/api/orders/" + encodeURIComponent(o.order_id) + "/delivery-request", {
-                    dropoff: { address: addr, landmark: land || undefined },
+                    dropoff: {
+                      address_text: addr,
+                      landmark: land || undefined,
+                      pincode: String(document.getElementById("addr-pincode")?.value || "").trim(),
+                      lat,
+                      lng,
+                      accuracy_m: Number(delRow.querySelector("[data-del-acc]")?.value || 0) || null,
+                      consent_accepted_at: new Date().toISOString(),
+                    },
                   });
                   showToast("Delivery requested — partners can claim this job.");
                   await loadOrders();
@@ -1145,8 +1356,45 @@
                 }
               });
             }
+            const useGpsBtn = delRow.querySelector("[data-del-use-gps]");
+            if (useGpsBtn) {
+              useGpsBtn.addEventListener("click", () => {
+                if (!navigator.geolocation) return showToast("Geolocation unsupported.", true);
+                navigator.geolocation.getCurrentPosition(
+                  async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    delRow.querySelector("[data-del-lat]").value = String(lat);
+                    delRow.querySelector("[data-del-lng]").value = String(lng);
+                    delRow.querySelector("[data-del-acc]").value = String(pos.coords.accuracy || "");
+                    delRow.querySelector("[data-del-coords]").textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    const rv = await reverseGeocode(lat, lng);
+                    if (rv.address_text) delRow.querySelector("[data-del-addr]").value = rv.address_text;
+                    if (rv.pincode && document.getElementById("addr-pincode")) document.getElementById("addr-pincode").value = rv.pincode;
+                  },
+                  () => showToast("Could not fetch GPS.", true),
+                  { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
+                );
+              });
+            }
+            const pinBtn = delRow.querySelector("[data-del-pin]");
+            if (pinBtn) {
+              pinBtn.addEventListener("click", async () => {
+                const lat = Number(delRow.querySelector("[data-del-lat]")?.value) || Number(document.getElementById("addr-lat")?.value) || 22.7196;
+                const lng = Number(delRow.querySelector("[data-del-lng]")?.value) || Number(document.getElementById("addr-lng")?.value) || 75.8577;
+                const out = await openGpsModal(lat, lng);
+                if (!out) return;
+                delRow.querySelector("[data-del-lat]").value = String(out.lat);
+                delRow.querySelector("[data-del-lng]").value = String(out.lng);
+                delRow.querySelector("[data-del-coords]").textContent = `${out.lat.toFixed(5)}, ${out.lng.toFixed(5)}`;
+                const rv = await reverseGeocode(out.lat, out.lng);
+                if (rv.address_text) delRow.querySelector("[data-del-addr]").value = rv.address_text;
+                if (rv.pincode && document.getElementById("addr-pincode")) document.getElementById("addr-pincode").value = rv.pincode;
+              });
+            }
           } else if (payOk) {
             const trb = delRow.querySelector(".del-track-btn");
+            const tmb = delRow.querySelector(".del-map-btn");
             if (trb) {
               trb.addEventListener("click", async () => {
                 try {
@@ -1156,6 +1404,15 @@
                   await loadOrders();
                 } catch (e) {
                   showToast(e.message || "Track failed", true);
+                }
+              });
+            }
+            if (tmb) {
+              tmb.addEventListener("click", async () => {
+                try {
+                  await openTrackMap(o.order_id);
+                } catch (e) {
+                  showToast(e.message || "Could not load map", true);
                 }
               });
             }
@@ -1443,11 +1700,30 @@
       btn.disabled = true;
       try {
         const fd = new FormData(e.target);
+        const lat = Number(document.getElementById("addr-lat")?.value);
+        const lng = Number(document.getElementById("addr-lng")?.value);
+        const consent = !!document.getElementById("addr-consent")?.checked;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          throw new Error("Please confirm GPS location first.");
+        }
+        if (!consent) {
+          throw new Error("Please accept GPS consent to save address.");
+        }
         await api("PATCH", "/api/auth/profile", {
           name: String(fd.get("name") || "").trim(),
           phone: String(fd.get("phone") || "").trim(),
           city: String(fd.get("city") || "").trim(),
           region: String(fd.get("region") || "").trim(),
+          location: {
+            address_text: String(fd.get("address_text") || "").trim(),
+            landmark: String(fd.get("landmark") || "").trim(),
+            pincode: String(fd.get("pincode") || "").trim(),
+            lat,
+            lng,
+            accuracy_m: Number(document.getElementById("addr-accuracy")?.value || 0) || null,
+            captured_at: document.getElementById("addr-captured-at")?.value || new Date().toISOString(),
+            consent_accepted_at: new Date().toISOString(),
+          },
         });
         showToast("Address saved");
         await loadMe();
@@ -1456,6 +1732,57 @@
       } finally {
         btn.disabled = false;
       }
+    });
+
+    document.getElementById("addr-use-gps")?.addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        showToast("Geolocation is not supported in this browser.", true);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setGpsFields(lat, lng, pos.coords.accuracy);
+          const rv = await reverseGeocode(lat, lng);
+          if (rv.address_text && !document.getElementById("addr-text")?.value) document.getElementById("addr-text").value = rv.address_text;
+          if (rv.pincode && !document.getElementById("addr-pincode")?.value) document.getElementById("addr-pincode").value = rv.pincode;
+          if (rv.city && !document.getElementById("addr-city")?.value) document.getElementById("addr-city").value = rv.city;
+          if (rv.region && !document.getElementById("addr-region")?.value) document.getElementById("addr-region").value = rv.region;
+          showToast("GPS location captured. You can adjust pin on map.");
+        },
+        () => showToast("Could not fetch current location.", true),
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
+      );
+    });
+
+    document.getElementById("addr-pin-map")?.addEventListener("click", async () => {
+      const lat = Number(document.getElementById("addr-lat")?.value);
+      const lng = Number(document.getElementById("addr-lng")?.value);
+      const seedLat = Number.isFinite(lat) ? lat : 22.7196;
+      const seedLng = Number.isFinite(lng) ? lng : 75.8577;
+      const out = await openGpsModal(seedLat, seedLng);
+      if (!out) return;
+      setGpsFields(out.lat, out.lng, null);
+      const rv = await reverseGeocode(out.lat, out.lng);
+      if (rv.address_text) document.getElementById("addr-text").value = rv.address_text;
+      if (rv.pincode) document.getElementById("addr-pincode").value = rv.pincode;
+      if (rv.city && !document.getElementById("addr-city")?.value) document.getElementById("addr-city").value = rv.city;
+      if (rv.region && !document.getElementById("addr-region")?.value) document.getElementById("addr-region").value = rv.region;
+      showToast("Pin confirmed.");
+    });
+
+    document.getElementById("track-map-close")?.addEventListener("click", () => {
+      document.getElementById("track-map-modal").classList.add("hidden");
+      document.getElementById("track-follow").checked = false;
+      stopTrackFollow();
+    });
+    document.getElementById("track-follow")?.addEventListener("change", function () {
+      stopTrackFollow();
+      if (!this.checked || !trackState.orderId) return;
+      trackState.timer = setInterval(() => {
+        paintTrackMap(trackState.orderId).catch(() => {});
+      }, 8000);
     });
 
     const profileMenu = document.getElementById("profile-menu");

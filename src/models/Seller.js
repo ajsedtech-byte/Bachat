@@ -73,6 +73,20 @@ const sellerKycSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const preciseLocationSchema = new mongoose.Schema(
+  {
+    addressText: { type: String, default: "", trim: true, maxlength: 300 },
+    landmark: { type: String, default: "", trim: true, maxlength: 160 },
+    pincode: { type: String, default: "", trim: true, maxlength: 12 },
+    lat: { type: Number, default: null, min: -90, max: 90 },
+    lng: { type: Number, default: null, min: -180, max: 180 },
+    accuracyM: { type: Number, default: null, min: 0, max: 50000 },
+    capturedAt: { type: Date, default: null },
+    consentAcceptedAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const sellerSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
@@ -91,6 +105,7 @@ const sellerSchema = new mongoose.Schema(
     category: { type: String, default: null },
     city: { type: String, required: true, trim: true },
     region: { type: String, required: true, trim: true },
+    location: { type: preciseLocationSchema, default: undefined },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     isVerified: { type: Boolean, default: false },
     /** Shopkeeper eKYC (new signups). Legacy rows omit this — trade is not blocked by KYC gate. */

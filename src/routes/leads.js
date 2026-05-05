@@ -20,6 +20,10 @@ function qsInt(v, def, min, max) {
   return Math.min(max, Math.max(min, n));
 }
 
+function escapeRegExp(s) {
+  return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function listFilter(req) {
   if (req.user.role === "admin") {
     return {};
@@ -40,6 +44,12 @@ router.get("/", async (req, res, next) => {
     }
     if (req.query.type) {
       filter.type = String(req.query.type);
+    }
+    const q = String(req.query.q || "")
+      .trim()
+      .slice(0, 120);
+    if (q) {
+      filter.title = new RegExp(escapeRegExp(q), "i");
     }
     const [total, rows] = await Promise.all([
       Lead.countDocuments(filter),

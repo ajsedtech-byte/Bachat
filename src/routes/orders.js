@@ -14,11 +14,28 @@ const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
 const { claimTimeoutMs, normalizeAddressPart } = require("../lib/delivery");
 const { recordEvent } = require("../lib/analytics");
 const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
+const { inIndiaBounds, normalizePreciseLocation, reverseGeocodeCoords, areaMatches } = require("../lib/location");
 
 const router = express.Router();
 
 function badRequest(res, message) {
   return res.status(400).json({ error: message });
+}
+
+function requireValidPlace(res, label, place) {
+  if (!place || place.lat == null || place.lng == null) {
+    badRequest(res, `${label}.lat and ${label}.lng are required`);
+    return false;
+  }
+  if (!inIndiaBounds(place.lat, place.lng)) {
+    badRequest(res, `${label} must be inside supported India bounds`);
+    return false;
+  }
+  if (!String(place.addressText || place.address || "").trim()) {
+    badRequest(res, `${label}.address_text is required`);
+    return false;
+  }
+  return true;
 }
 
 function platformFeeForPrice() {
@@ -419,17 +436,40 @@ router.post(
       }
 
       const { dropoff, pickup: pickupOverride, fee } = req.body || {};
-      const addr = normalizeAddressPart(dropoff?.address);
-      if (!addr) {
-        return badRequest(res, "dropoff.address is required");
-      }
 
       const buyer = await User.findById(req.user.id).lean();
       const sellerDoc = await Seller.findById(order.seller).lean();
       if (!sellerDoc) return res.status(404).json({ error: "Seller not found" });
-
-      const defaultPickupAddr = `${sellerDoc.shopName}, ${sellerDoc.city}, ${sellerDoc.region}`;
-      const pickupAddr = normalizeAddressPart(pickupOverride?.address) || defaultPickupAddr;
+      const buyerLoc = normalizePreciseLocation(dropoff || buyer?.location || {});
+      const sellerLoc = normalizePreciseLocation(pickupOverride || sellerDoc?.location || {});
+      if (!buyerLoc.capturedAt) buyerLoc.capturedAt = new Date();
+      if (!sellerLoc.capturedAt) sellerLoc.capturedAt = new Date();
+      if (!requireValidPlace(res, "dropoff", buyerLoc)) return;
+      if (!requireValidPlace(res, "pickup", sellerLoc)) return;
+      let revBuyer;
+      let revSeller;
+      try {
+        [revBuyer, revSeller] = await Promise.all([
+          reverseGeocodeCoords(buyerLoc.lat, buyerLoc.lng),
+          reverseGeocodeCoords(sellerLoc.lat, sellerLoc.lng),
+        ]);
+      } catch (e) {
+        return res.status(502).json({ error: "Could not validate GPS area. Please try again." });
+      }
+      if (!areaMatches(buyer?.city, buyer?.region, revBuyer)) {
+        return badRequest(
+          res,
+          "Dropoff GPS does not match your profile city/region. Update profile area or move pin."
+        );
+      }
+      if (!areaMatches(sellerDoc?.city, sellerDoc?.region, revSeller)) {
+        return badRequest(
+          res,
+          "Pickup GPS does not match seller service area. Ask shopkeeper to update location."
+        );
+      }
+      if (!buyerLoc.pincode && revBuyer && revBuyer.pincode) buyerLoc.pincode = revBuyer.pincode;
+      if (!sellerLoc.pincode && revSeller && revSeller.pincode) sellerLoc.pincode = revSeller.pincode;
 
       const dropPhone = normalizeAddressPart(dropoff?.contactPhone) || normalizeAddressPart(buyer?.phone) || "";
       const pickPhone = normalizeAddressPart(pickupOverride?.contactPhone) || "";
@@ -447,26 +487,29 @@ router.post(
       order.delivery.driverLastLat = null;
       order.delivery.driverLastLng = null;
       order.delivery.driverLocationAt = null;
+      order.delivery.routePoints = [];
       order.delivery.dropoffCity = normalizeAddressPart(buyer?.city) || "";
       order.delivery.dropoffRegion = normalizeAddressPart(buyer?.region) || "";
       order.delivery.dropoff = {
-        address: addr,
-        landmark: normalizeAddressPart(dropoff?.landmark),
-        lat: dropoff?.lat != null && Number.isFinite(Number(dropoff.lat)) ? Number(dropoff.lat) : null,
-        lng: dropoff?.lng != null && Number.isFinite(Number(dropoff.lng)) ? Number(dropoff.lng) : null,
+        address: buyerLoc.addressText,
+        addressText: buyerLoc.addressText,
+        landmark: buyerLoc.landmark,
+        pincode: buyerLoc.pincode,
+        lat: buyerLoc.lat,
+        lng: buyerLoc.lng,
+        accuracyM: buyerLoc.accuracyM,
+        capturedAt: buyerLoc.capturedAt,
         contactPhone: dropPhone,
       };
       order.delivery.pickup = {
-        address: pickupAddr,
-        landmark: normalizeAddressPart(pickupOverride?.landmark),
-        lat:
-          pickupOverride?.lat != null && Number.isFinite(Number(pickupOverride.lat))
-            ? Number(pickupOverride.lat)
-            : null,
-        lng:
-          pickupOverride?.lng != null && Number.isFinite(Number(pickupOverride.lng))
-            ? Number(pickupOverride.lng)
-            : null,
+        address: sellerLoc.addressText,
+        addressText: sellerLoc.addressText,
+        landmark: sellerLoc.landmark,
+        pincode: sellerLoc.pincode,
+        lat: sellerLoc.lat,
+        lng: sellerLoc.lng,
+        accuracyM: sellerLoc.accuracyM,
+        capturedAt: sellerLoc.capturedAt,
         contactPhone: pickPhone,
       };
 
@@ -506,14 +549,22 @@ router.post(
 
       const { pickup } = req.body || {};
       if (pickup) {
-        if (pickup.address != null) order.delivery.pickup.address = normalizeAddressPart(pickup.address);
-        if (pickup.landmark != null) order.delivery.pickup.landmark = normalizeAddressPart(pickup.landmark);
-        if (pickup.lat != null && Number.isFinite(Number(pickup.lat))) order.delivery.pickup.lat = Number(pickup.lat);
-        if (pickup.lng != null && Number.isFinite(Number(pickup.lng))) order.delivery.pickup.lng = Number(pickup.lng);
+        const nextPickup = normalizePreciseLocation(pickup);
+        if (nextPickup.addressText) {
+          order.delivery.pickup.address = nextPickup.addressText;
+          order.delivery.pickup.addressText = nextPickup.addressText;
+        }
+        if (nextPickup.landmark != null) order.delivery.pickup.landmark = nextPickup.landmark;
+        if (nextPickup.pincode != null) order.delivery.pickup.pincode = nextPickup.pincode;
+        if (nextPickup.lat != null && Number.isFinite(Number(nextPickup.lat))) order.delivery.pickup.lat = Number(nextPickup.lat);
+        if (nextPickup.lng != null && Number.isFinite(Number(nextPickup.lng))) order.delivery.pickup.lng = Number(nextPickup.lng);
+        if (nextPickup.accuracyM != null) order.delivery.pickup.accuracyM = nextPickup.accuracyM;
+        if (nextPickup.capturedAt) order.delivery.pickup.capturedAt = nextPickup.capturedAt;
         if (pickup.contactPhone != null) {
           order.delivery.pickup.contactPhone = normalizeAddressPart(pickup.contactPhone);
         }
       }
+      if (!requireValidPlace(res, "pickup", order.delivery.pickup)) return;
       order.delivery.readyForPickupAt = new Date();
       await order.save();
       return res.json({ order: formatOrder(order) });

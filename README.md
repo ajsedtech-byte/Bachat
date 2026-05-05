@@ -27,8 +27,9 @@ Open **http://localhost:3000** (or the port printed in the terminal). Static pag
 | `npm run dev` | API + static files with auto-restart |
 | `npm start` | Production-style start (no watch) |
 | `npm run migrate` | Run DB migrations |
-| `npm run create-admin` | Create admin user (see script / env vars) |
-| `npm run create-sales` | Create **sales** role user for field leads (`admin-sales.html`) |
+| `npm run create-admin` | Create or update one **admin** user (env / argv) |
+| `npm run create-sales` | Create or update one **sales** user (env / argv) |
+| `npm run sync-team` | Upsert **Admin + Ops + Sales** from `ADMIN_*`, `OPS_*`, `SALES_*` in `.env` |
 
 ### Env vars
 
@@ -42,7 +43,7 @@ See `.env.example` for all options. **Never commit `.env`** — it is gitignored
 - Configure **SMTP** so registration, login OTP, password reset, and phone-on-profile confirmation emails deliver.
 - Set **Razorpay** keys when taking payments; configure webhook URL and secret.
 - **Monitoring:** attach your platform’s health checks to `GET /health` and log aggregation for the Node process.
-- Ops UI: sign in as **`admin`** (see `npm run create-admin`) at `/team-login.html` (Operations), then open `/AdminDashboard.html` and linked `admin-*.html` pages. Field sales uses **`npm run create-sales`** and the same team login (Field sales tab) → `/admin-sales.html`.
+- Team UI: run **`npm run sync-team`** once (or after password changes), then sign in at **`/team-login.html`**: **Sales** → `admin-sales.html`; **Ops** and **Admin** → `AdminDashboard.html` (both use `role: admin`; use separate emails from `.env`).
 - **Seller eKYC:** New shopkeepers verify at `/seller-kyc.html` (field visit or document upload). Approve or reject from **`/admin-seller-kyc.html`** (`GET/PATCH /api/admin/seller-kyc/*`). Approved sellers receive a completion email and full access to `ShopkeeperDashboard.html`.
 
 ### Docs

@@ -7,6 +7,7 @@ const Quote = require("../models/Quote");
 const Order = require("../models/Order");
 const Dispute = require("../models/Dispute");
 const AnalyticsEvent = require("../models/AnalyticsEvent");
+const Lead = require("../models/Lead");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest, formatOrder, formatDispute, formatSeller } = require("../lib/format");
 const { sendMail } = require("../services/email");
@@ -129,19 +130,34 @@ router.patch("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales")
   }
 });
 
-router.get("/sales-pipeline", requireAuth, requireRole("admin", "sales"), async (_req, res, next) => {
+router.get("/sales-pipeline", requireAuth, requireRole("admin", "sales"), async (req, res, next) => {
   try {
-    const [sellers, verified, buyers] = await Promise.all([
+    const leadBase =
+      req.user.role === "admin"
+        ? {}
+        : { $or: [{ ownerUser: null }, { ownerUser: req.user.id }] };
+    const [sellers, verified, buyers, leads_total, stageAgg] = await Promise.all([
       Seller.countDocuments(),
       Seller.countDocuments({ isVerified: true }),
       User.countDocuments({ role: "buyer" }),
+      Lead.countDocuments(leadBase),
+      Lead.aggregate([
+        { $match: leadBase },
+        { $group: { _id: "$stage", n: { $sum: 1 } } },
+      ]),
     ]);
+    const leads_by_stage = {};
+    stageAgg.forEach((row) => {
+      if (row && row._id) leads_by_stage[row._id] = row.n;
+    });
     return res.json({
       sellers_total: sellers,
       sellers_verified: verified,
       sellers_pending_verify: sellers - verified,
       buyers_total: buyers,
-      note: "Lightweight pipeline counts; CRM leads live under /api/leads.",
+      leads_total,
+      leads_by_stage,
+      note: "Pipeline + CRM lead counts for your access scope.",
     });
   } catch (err) {
     return next(err);

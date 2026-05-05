@@ -5,6 +5,7 @@
   <title>Orders — Bachat Ops</title>
   <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -27,6 +28,7 @@
                 <th class="px-4 py-3">Amount</th>
                 <th class="px-4 py-3">Payment</th>
                 <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Delivery</th>
                 <th class="px-4 py-3">Created</th>
               </tr>
             </thead>
@@ -40,12 +42,27 @@
       </main>
     </div>
   </div>
+  <div id="ord-map-modal" class="hidden fixed inset-0 z-[80] bg-black/40 p-4">
+    <div class="mx-auto mt-8 max-w-3xl rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+        <p class="font-bold text-slate-900">Order delivery route</p>
+        <button type="button" id="ord-map-close" class="text-slate-500 hover:text-slate-900">✕</button>
+      </div>
+      <div class="px-4 py-2 text-xs text-slate-600 flex items-center justify-between gap-2">
+        <span id="ord-map-meta">—</span>
+        <label class="inline-flex items-center gap-2"><input id="ord-follow" type="checkbox" class="rounded border-slate-300" /> Follow driver</label>
+      </div>
+      <div id="ord-map" class="h-80 border-t border-slate-200"></div>
+    </div>
+  </div>
   <script src="/js/bachat-admin-shell.js"></script>
   <script src="/js/bachat-admin-runtime.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     (function () {
       var skip = 0;
       var limit = 40;
+      var mapState = { map: null, layers: [], timer: null, orderId: null };
       function esc(s) {
         var t = document.createElement("div");
         t.textContent = s == null ? "" : String(s);
@@ -53,6 +70,77 @@
       }
       function inr(n) {
         return "₹" + (Number(n) || 0).toLocaleString("en-IN");
+      }
+      function clearMapLayers() {
+        mapState.layers.forEach(function (x) {
+          if (mapState.map) mapState.map.removeLayer(x);
+        });
+        mapState.layers = [];
+      }
+      function stopFollow() {
+        if (mapState.timer) clearInterval(mapState.timer);
+        mapState.timer = null;
+      }
+      async function paintMap(orderId) {
+        var tr = await BachatAdminRuntime.adminFetch("/api/delivery/track/" + encodeURIComponent(orderId), {
+          headers: BachatAdminRuntime.authHeaders(),
+        });
+        var td = await tr.json().catch(function () {
+          return {};
+        });
+        if (!tr.ok) throw new Error(td.error || "Could not load track");
+        var d = td.delivery || {};
+        if (!mapState.map) {
+          mapState.map = L.map("ord-map");
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap",
+          }).addTo(mapState.map);
+        }
+        clearMapLayers();
+        var bounds = [];
+        var p = d.pickup || {};
+        var q = d.dropoff || {};
+        if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) {
+          bounds.push([p.lat, p.lng]);
+          mapState.layers.push(L.marker([p.lat, p.lng]).addTo(mapState.map).bindPopup("Pickup"));
+        }
+        if (Number.isFinite(q.lat) && Number.isFinite(q.lng)) {
+          bounds.push([q.lat, q.lng]);
+          mapState.layers.push(L.marker([q.lat, q.lng]).addTo(mapState.map).bindPopup("Dropoff"));
+        }
+        var pts = Array.isArray(d.route_points) ? d.route_points : [];
+        var line = pts
+          .filter(function (x) {
+            return Number.isFinite(x.lat) && Number.isFinite(x.lng);
+          })
+          .map(function (x) {
+            return [x.lat, x.lng];
+          });
+        if (line.length > 1) {
+          bounds = bounds.concat(line);
+          mapState.layers.push(L.polyline(line, { color: "#0056d2", weight: 4 }).addTo(mapState.map));
+        }
+        if (Number.isFinite(td.driver_last_lat) && Number.isFinite(td.driver_last_lng)) {
+          bounds.push([td.driver_last_lat, td.driver_last_lng]);
+          mapState.layers.push(
+            L.circleMarker([td.driver_last_lat, td.driver_last_lng], { radius: 6, color: "#16a34a", fillOpacity: 0.9 })
+              .addTo(mapState.map)
+              .bindPopup("Driver")
+          );
+        }
+        if (bounds.length === 1) mapState.map.setView(bounds[0], 15);
+        if (bounds.length > 1) mapState.map.fitBounds(bounds, { padding: [20, 20] });
+        mapState.map.invalidateSize();
+        document.getElementById("ord-map-meta").textContent =
+          [d.status || "", td.eta_to_pickup_min != null ? "ETA pickup " + td.eta_to_pickup_min + "m" : "", td.eta_to_dropoff_min != null ? "ETA drop " + td.eta_to_dropoff_min + "m" : ""]
+            .filter(Boolean)
+            .join(" · ");
+      }
+      async function openMap(orderId) {
+        mapState.orderId = orderId;
+        document.getElementById("ord-map-modal").classList.remove("hidden");
+        await paintMap(orderId);
       }
       async function load() {
         var err = document.getElementById("err");
@@ -88,10 +176,22 @@
             esc(o.payment_status) +
             "</td><td class=\"px-4 py-3\">" +
             esc(o.order_status) +
+            "</td><td class=\"px-4 py-3 text-xs\">" +
+            ((o.delivery && o.delivery.status && o.delivery.status !== "none")
+              ? '<button type="button" class="ord-map rounded-lg border border-slate-300 px-2 py-1 font-bold text-slate-700" data-oid="' + esc(o.order_id) + '">Map</button>'
+              : "—") +
             "</td><td class=\"px-4 py-3 text-xs text-slate-500\">" +
             esc((o.created_at || "").toString().slice(0, 16)) +
             "</td>";
           tb.appendChild(tr);
+        });
+        tb.querySelectorAll("button.ord-map").forEach(function (b) {
+          b.addEventListener("click", function () {
+            openMap(b.getAttribute("data-oid")).catch(function (e) {
+              err.textContent = e.message || "Map failed";
+              err.classList.remove("hidden");
+            });
+          });
         });
         document.getElementById("prev").disabled = skip < 1;
         document.getElementById("next").disabled = !data.items || data.items.length < limit;
@@ -108,6 +208,18 @@
         if (!(await BachatAdminRuntime.guardAdminPage())) return;
         load();
       })();
+      document.getElementById("ord-map-close").addEventListener("click", function () {
+        document.getElementById("ord-map-modal").classList.add("hidden");
+        document.getElementById("ord-follow").checked = false;
+        stopFollow();
+      });
+      document.getElementById("ord-follow").addEventListener("change", function () {
+        stopFollow();
+        if (!this.checked || !mapState.orderId) return;
+        mapState.timer = setInterval(function () {
+          paintMap(mapState.orderId).catch(function () {});
+        }, 8000);
+      });
     })();
   </script>
 </body>

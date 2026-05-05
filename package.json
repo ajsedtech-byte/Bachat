@@ -11,6 +11,7 @@
     "migrate": "node scripts/migrate.js",
     "create-admin": "node scripts/create-admin.js",
     "create-sales": "node scripts/create-sales.js",
+    "sync-team": "node scripts/sync-team-users.js",
     "create-delivery": "node scripts/create-delivery.js",
     "test": "node --test test/*.mjs"
   },

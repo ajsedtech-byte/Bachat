@@ -11,6 +11,7 @@ const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatUser, formatSeller, maskEmail } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
 const { ensureReferralCode } = require("../lib/referralCode");
+const { normalizePreciseLocation, inIndiaBounds } = require("../lib/location");
 const { normalizePhone10India, maskPhoneIndia } = require("../lib/phone");
 const { encryptUtf8, decryptUtf8 } = require("../lib/mfaCrypto");
 const { authenticator } = require("otplib");
@@ -674,7 +675,7 @@ router.get("/me", requireAuth, async (req, res, next) => {
 
 router.patch("/profile", requireAuth, async (req, res, next) => {
   try {
-    const { name, phone, city, region } = req.body || {};
+    const { name, phone, city, region, location } = req.body || {};
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -693,6 +694,23 @@ router.patch("/profile", requireAuth, async (req, res, next) => {
     }
     if (city != null) user.city = String(city).trim() || user.city;
     if (region != null) user.region = String(region).trim() || user.region;
+    if (location != null) {
+      const loc = normalizePreciseLocation(location);
+      if (loc.lat == null || loc.lng == null) {
+        return badRequest(res, "location.lat and location.lng are required");
+      }
+      if (!inIndiaBounds(loc.lat, loc.lng)) {
+        return badRequest(res, "location must be inside supported India bounds");
+      }
+      if (!loc.addressText) {
+        return badRequest(res, "location.address_text is required");
+      }
+      if (!loc.consentAcceptedAt) {
+        return badRequest(res, "location consent is required");
+      }
+      if (!loc.capturedAt) loc.capturedAt = new Date();
+      user.location = loc;
+    }
     if (!user.city || !user.region) {
       return badRequest(res, "city and region are required");
     }
@@ -702,6 +720,18 @@ router.patch("/profile", requireAuth, async (req, res, next) => {
       if (seller) {
         seller.city = user.city;
         seller.region = user.region;
+        if (user.location) {
+          seller.location = {
+            addressText: user.location.addressText || "",
+            landmark: user.location.landmark || "",
+            pincode: user.location.pincode || "",
+            lat: user.location.lat ?? null,
+            lng: user.location.lng ?? null,
+            accuracyM: user.location.accuracyM ?? null,
+            capturedAt: user.location.capturedAt || null,
+            consentAcceptedAt: user.location.consentAcceptedAt || null,
+          };
+        }
         await seller.save();
       }
     }

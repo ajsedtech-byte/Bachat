@@ -4,10 +4,21 @@
  *   node scripts/create-sales.js <email> <password> "Display Name"
  */
 const path = require("path");
+const crypto = require("crypto");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const User = require("../src/models/User");
+
+function randomReferralCode() {
+  const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const buf = crypto.randomBytes(8);
+  let code = "";
+  for (let i = 0; i < 8; i += 1) {
+    code += ALPHABET[buf[i % buf.length] % ALPHABET.length];
+  }
+  return code;
+}
 
 async function main() {
   const email = process.argv[2] || process.env.SALES_EMAIL;
@@ -46,7 +57,7 @@ async function main() {
         phone: process.env.SALES_PHONE || "",
         phoneVerifiedAt: process.env.SALES_PHONE ? new Date() : null,
       },
-      $setOnInsert: { email: emailNorm },
+      $setOnInsert: { email: emailNorm, referralCode: randomReferralCode() },
     },
     { upsert: true, new: true, runValidators: true }
   );

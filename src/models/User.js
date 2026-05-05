@@ -40,6 +40,20 @@ const deliveryKycSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const preciseLocationSchema = new mongoose.Schema(
+  {
+    addressText: { type: String, default: "", trim: true, maxlength: 300 },
+    landmark: { type: String, default: "", trim: true, maxlength: 160 },
+    pincode: { type: String, default: "", trim: true, maxlength: 12 },
+    lat: { type: Number, default: null, min: -90, max: 90 },
+    lng: { type: Number, default: null, min: -180, max: 180 },
+    accuracyM: { type: Number, default: null, min: 0, max: 50000 },
+    capturedAt: { type: Date, default: null },
+    consentAcceptedAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -69,6 +83,7 @@ const userSchema = new mongoose.Schema(
     /** Unique invite code for Refer & Earn */
     referralCode: { type: String, default: null, unique: true, sparse: true, trim: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    location: { type: preciseLocationSchema, default: undefined },
     deliveryKyc: { type: deliveryKycSchema, default: undefined },
   },
   { timestamps: true }

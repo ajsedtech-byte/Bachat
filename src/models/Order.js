@@ -3,11 +3,26 @@ const mongoose = require("mongoose");
 const deliveryPlaceSchema = new mongoose.Schema(
   {
     address: { type: String, default: "" },
+    addressText: { type: String, default: "" },
     landmark: { type: String, default: "" },
+    pincode: { type: String, default: "" },
     lat: { type: Number, default: null },
     lng: { type: Number, default: null },
+    accuracyM: { type: Number, default: null },
+    capturedAt: { type: Date, default: null },
     /** Shown to assigned driver only; pool listings use masked phone. */
     contactPhone: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+const routePointSchema = new mongoose.Schema(
+  {
+    lat: { type: Number, required: true, min: -90, max: 90 },
+    lng: { type: Number, required: true, min: -180, max: 180 },
+    at: { type: Date, default: () => new Date() },
+    accuracyM: { type: Number, default: null, min: 0, max: 50000 },
+    status: { type: String, default: "" },
   },
   { _id: false }
 );
@@ -71,6 +86,7 @@ const orderSchema = new mongoose.Schema(
       driverLastLat: { type: Number, default: null },
       driverLastLng: { type: Number, default: null },
       driverLocationAt: { type: Date, default: null },
+      routePoints: { type: [routePointSchema], default: [] },
       /** Shopkeeper confirms order is ready for driver pickup. */
       readyForPickupAt: { type: Date, default: null },
       pickedUpAt: { type: Date, default: null },
