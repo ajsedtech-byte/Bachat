@@ -9,86 +9,115 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-slate-900">
-  <main class="max-w-4xl mx-auto px-4 py-10">
-    <header class="mb-8">
-      <a href="/" class="inline-flex items-center gap-2 text-[#0056d2] font-bold">← Back to Bachat</a>
-      <h1 class="text-3xl font-extrabold mt-4">Privacy Policy</h1>
-      <p class="text-sm text-slate-500 mt-2">Last updated: May 6, 2026</p>
-    </header>
+  <header class="border-b border-slate-200 bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="/" class="inline-flex items-center gap-2">
+        <img src="/assets/bachat-logo.svg" alt="Bachat" class="h-8 w-auto" />
+      </a>
+      <a href="/" class="text-sm font-semibold text-[#0056d2] hover:underline">Back to Home</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-10">
+    <section class="rounded-2xl bg-gradient-to-r from-[#e8f1fc] to-white border border-[#cfe1ff] p-6 mb-6">
+      <h1 class="text-3xl font-extrabold">Bachat Privacy Policy</h1>
+      <p class="text-sm text-slate-600 mt-2">
+        Effective date: May 6, 2026
+      </p>
+      <p class="text-sm text-slate-700 mt-3 max-w-3xl">
+        Bachat helps buyers discover local prices from sellers and complete purchases with delivery tracking.
+        This policy explains how we collect, use, share, and protect your personal data across buyer, seller,
+        delivery, and team/admin experiences.
+      </p>
+    </section>
 
     <section class="space-y-6 text-sm leading-6 bg-white border border-slate-200 rounded-2xl p-6">
-      <p>
-        Bachat ("we", "our", "us") operates a local commerce platform for buyers, sellers, delivery partners,
-        and team users. This Privacy Policy explains what data we collect, how we use it, and your rights.
-      </p>
-
       <div>
-        <h2 class="text-lg font-bold">1. Information We Collect</h2>
+        <h2 class="text-lg font-bold">1) Data We Collect</h2>
         <ul class="list-disc pl-5 mt-2 space-y-1">
-          <li>Account data: name, email, phone, role, city/region.</li>
-          <li>Order and transaction data: requests, quotes, orders, payments, disputes.</li>
-          <li>Location data (with consent): address text, GPS coordinates, and delivery route points.</li>
-          <li>Device and usage data required for app security, diagnostics, and fraud prevention.</li>
+          <li><strong>Profile data:</strong> name, email, phone, city/region, account role.</li>
+          <li><strong>Commerce data:</strong> requests, quotes, orders, payment status, disputes, and support records.</li>
+          <li><strong>Location data (consent-based):</strong> address text, pincode, latitude/longitude, delivery route points.</li>
+          <li><strong>Technical/security data:</strong> device/browser details, session and authentication logs.</li>
         </ul>
       </div>
 
       <div>
-        <h2 class="text-lg font-bold">2. How We Use Information</h2>
+        <h2 class="text-lg font-bold">2) Why We Use Data</h2>
         <ul class="list-disc pl-5 mt-2 space-y-1">
-          <li>Provide marketplace features (request, quote, order, delivery tracking).</li>
-          <li>Authenticate users and secure accounts.</li>
-          <li>Enable customer support and issue resolution.</li>
-          <li>Comply with legal and regulatory obligations.</li>
+          <li>To run the Bachat marketplace and complete request-to-order workflows.</li>
+          <li>To provide delivery and route tracking features for relevant parties.</li>
+          <li>To protect accounts, prevent abuse/fraud, and maintain platform safety.</li>
+          <li>To meet legal, tax, regulatory, and grievance-handling obligations.</li>
         </ul>
       </div>
 
       <div>
-        <h2 class="text-lg font-bold">3. Location Data</h2>
+        <h2 class="text-lg font-bold">3) Location and Delivery Tracking</h2>
         <p class="mt-2">
-          We collect precise location only when you explicitly confirm or share location in app flows
-          (for example, saving address or delivery tracking). You can stop sharing by disabling location
-          permission in your device settings.
+          Precise location is collected only when you explicitly provide it in app flows (for example, saving address,
+          confirming map pin, or delivery tracking). Location visibility is role-limited (buyer/seller/delivery/admin
+          as required for order fulfillment). You can control location permission in device settings.
         </p>
       </div>
 
       <div>
-        <h2 class="text-lg font-bold">4. Data Sharing</h2>
+        <h2 class="text-lg font-bold">4) Sharing of Data</h2>
         <p class="mt-2">
-          We share only what is necessary with relevant parties in the transaction flow (buyer, seller,
-          delivery partner, admin/ops) and service providers used for app operations (for example, hosting,
-          email, and payment processing).
+          We share data only as necessary to operate the service:
+        </p>
+        <ul class="list-disc pl-5 mt-2 space-y-1">
+          <li>Between transaction participants (buyer, seller, delivery partner) when needed.</li>
+          <li>With trusted service providers (hosting, notifications/email, payment processors).</li>
+          <li>With authorities where legally required.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-bold">5) Data Retention</h2>
+        <p class="mt-2">
+          We retain personal data only for as long as needed for operations, legal compliance, dispute handling,
+          and security. Delivery route history is retained for a limited period per system policy.
         </p>
       </div>
 
       <div>
-        <h2 class="text-lg font-bold">5. Data Retention</h2>
+        <h2 class="text-lg font-bold">6) Security Practices</h2>
         <p class="mt-2">
-          We retain data as needed for service operation, legal compliance, dispute handling, and security.
-          Delivery route/location history is retained for limited periods based on system policy.
+          We use reasonable technical and organizational safeguards (access controls, authentication checks,
+          and secure infrastructure practices). No system is 100% risk-free, but we continuously improve controls.
         </p>
       </div>
 
       <div>
-        <h2 class="text-lg font-bold">6. Security</h2>
+        <h2 class="text-lg font-bold">7) Your Choices and Rights</h2>
+        <ul class="list-disc pl-5 mt-2 space-y-1">
+          <li>Update your profile information in the app.</li>
+          <li>Request correction/deletion subject to business and legal requirements.</li>
+          <li>Withdraw location permission from device settings at any time.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-bold">8) Children's Privacy</h2>
         <p class="mt-2">
-          We use reasonable technical and organizational controls to protect your information. No method of
-          transmission or storage is 100% secure.
+          Bachat is not intended for children under the age required by applicable law to consent independently.
         </p>
       </div>
 
       <div>
-        <h2 class="text-lg font-bold">7. Your Rights</h2>
+        <h2 class="text-lg font-bold">9) Contact and Grievance</h2>
         <p class="mt-2">
-          You may request access, correction, or deletion of your personal data, subject to legal/business
-          requirements.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-lg font-bold">8. Contact</h2>
-        <p class="mt-2">
-          For privacy-related requests, contact us at:
+          For privacy questions or requests, contact:
           <a class="text-[#0056d2] font-semibold" href="mailto:privacy@seekhen.com">privacy@seekhen.com</a>
+        </p>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-bold">10) Policy Updates</h2>
+        <p class="mt-2">
+          We may update this Privacy Policy from time to time. Updated versions will be posted on this page with
+          a revised effective date.
         </p>
       </div>
     </section>
