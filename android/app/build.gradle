@@ -1,14 +1,38 @@
 apply plugin: 'com.android.application'
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+def bachatVersionCode = (project.findProperty("BACHAT_VERSION_CODE") ?: "2").toInteger()
+def bachatVersionName = project.findProperty("BACHAT_VERSION_NAME") ?: "1.0.1"
+def bachatStoreFile = project.findProperty("BACHAT_UPLOAD_STORE_FILE") ?: keystoreProperties["BACHAT_UPLOAD_STORE_FILE"] ?: System.getenv("BACHAT_UPLOAD_STORE_FILE")
+def bachatStorePassword = project.findProperty("BACHAT_UPLOAD_STORE_PASSWORD") ?: keystoreProperties["BACHAT_UPLOAD_STORE_PASSWORD"] ?: System.getenv("BACHAT_UPLOAD_STORE_PASSWORD")
+def bachatKeyAlias = project.findProperty("BACHAT_UPLOAD_KEY_ALIAS") ?: keystoreProperties["BACHAT_UPLOAD_KEY_ALIAS"] ?: System.getenv("BACHAT_UPLOAD_KEY_ALIAS")
+def bachatKeyPassword = project.findProperty("BACHAT_UPLOAD_KEY_PASSWORD") ?: keystoreProperties["BACHAT_UPLOAD_KEY_PASSWORD"] ?: System.getenv("BACHAT_UPLOAD_KEY_PASSWORD")
+def hasReleaseSigning = bachatStoreFile && bachatStorePassword && bachatKeyAlias && bachatKeyPassword
+
 android {
     namespace "in.bachat.app"
     compileSdk rootProject.ext.compileSdkVersion
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile rootProject.file(bachatStoreFile)
+                storePassword bachatStorePassword
+                keyAlias bachatKeyAlias
+                keyPassword bachatKeyPassword
+            }
+        }
+    }
     defaultConfig {
         applicationId "in.bachat.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode bachatVersionCode
+        versionName bachatVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -19,6 +43,9 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

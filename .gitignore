@@ -3,6 +3,7 @@ www/
 .env
 .env.local
 .vercel
+android/keystore.properties
 *.log
 .DS_Store
 

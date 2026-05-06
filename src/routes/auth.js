@@ -100,6 +100,7 @@ router.post("/register", async (req, res, next) => {
       }
     }
 
+    const normalizedEmail = String(email).toLowerCase().trim();
     const passwordHash = await bcrypt.hash(password, 10);
     const code = generateSixDigitCode();
     const codeHash = await hashOtp(code);
@@ -119,29 +120,53 @@ router.post("/register", async (req, res, next) => {
     let createdUser;
     try {
       await session.withTransaction(async () => {
-        const [user] = await User.create(
-          [
-            {
-              email: String(email).toLowerCase().trim(),
-              passwordHash,
-              name,
-              phone: phone10,
-              phoneVerifiedAt: null,
-              city,
-              region,
-              role,
-              referredBy: referredById || undefined,
-            },
-          ],
-          { session }
-        );
+        let user = await User.findOne({ email: normalizedEmail }).session(session);
+        if (user) {
+          if (user.emailVerifiedAt) {
+            const verifiedErr = new Error("Email already registered");
+            verifiedErr.status = 409;
+            throw verifiedErr;
+          }
+          if (!["buyer", "seller"].includes(user.role)) {
+            const roleErr = new Error("This email is already reserved for another account type");
+            roleErr.status = 409;
+            throw roleErr;
+          }
+
+          user.passwordHash = passwordHash;
+          user.name = name;
+          user.phone = phone10;
+          user.phoneVerifiedAt = null;
+          user.city = city;
+          user.region = region;
+          user.role = role;
+          user.referredBy = referredById || null;
+          await user.save({ session });
+        } else {
+          [user] = await User.create(
+            [
+              {
+                email: normalizedEmail,
+                passwordHash,
+                name,
+                phone: phone10,
+                phoneVerifiedAt: null,
+                city,
+                region,
+                role,
+                referredBy: referredById || undefined,
+              },
+            ],
+            { session }
+          );
+        }
         createdUser = user;
 
         if (role === "seller") {
-          await Seller.create(
-            [
-              {
-                user: user._id,
+          await Seller.findOneAndUpdate(
+            { user: user._id },
+            {
+              $set: {
                 shopName: shop_name,
                 categories: sellerCategories,
                 category: sellerCategories[0],
@@ -155,9 +180,11 @@ router.post("/register", async (req, res, next) => {
                   gstNumber: "",
                 },
               },
-            ],
-            { session }
+            },
+            { new: true, upsert: true, session, setDefaultsOnInsert: true }
           );
+        } else {
+          await Seller.deleteOne({ user: user._id }).session(session);
         }
 
         await EmailOtp.create(
@@ -189,6 +216,9 @@ router.post("/register", async (req, res, next) => {
       session.endSession();
     }
   } catch (err) {
+    if (err.status === 409) {
+      return res.status(409).json({ error: err.message });
+    }
     if (err.code === 11000) {
       return res.status(409).json({ error: "Email already registered" });
     }
@@ -776,6 +806,7 @@ router.post("/delivery/register", async (req, res, next) => {
       return badRequest(res, "Valid 10-digit Indian mobile number is required");
     }
 
+    const normalizedEmail = String(email).toLowerCase().trim();
     const passwordHash = await bcrypt.hash(password, 10);
     const code = generateSixDigitCode();
     const codeHash = await hashOtp(code);
@@ -785,22 +816,44 @@ router.post("/delivery/register", async (req, res, next) => {
     let createdUser;
     try {
       await session.withTransaction(async () => {
-        const [user] = await User.create(
-          [
-            {
-              email: String(email).toLowerCase().trim(),
-              passwordHash,
-              name,
-              phone: phone10,
-              phoneVerifiedAt: null,
-              city,
-              region,
-              role: "delivery",
-              deliveryKyc: { status: "not_started" },
-            },
-          ],
-          { session }
-        );
+        let user = await User.findOne({ email: normalizedEmail }).session(session);
+        if (user) {
+          if (user.emailVerifiedAt) {
+            const verifiedErr = new Error("Email already registered");
+            verifiedErr.status = 409;
+            throw verifiedErr;
+          }
+          if (user.role !== "delivery") {
+            const roleErr = new Error("This email is already reserved for another account type");
+            roleErr.status = 409;
+            throw roleErr;
+          }
+          user.passwordHash = passwordHash;
+          user.name = name;
+          user.phone = phone10;
+          user.phoneVerifiedAt = null;
+          user.city = city;
+          user.region = region;
+          if (!user.deliveryKyc) user.deliveryKyc = { status: "not_started" };
+          await user.save({ session });
+        } else {
+          [user] = await User.create(
+            [
+              {
+                email: normalizedEmail,
+                passwordHash,
+                name,
+                phone: phone10,
+                phoneVerifiedAt: null,
+                city,
+                region,
+                role: "delivery",
+                deliveryKyc: { status: "not_started" },
+              },
+            ],
+            { session }
+          );
+        }
         createdUser = user;
         await EmailOtp.create(
           [{ user: user._id, codeHash, purpose: "email_verify", expiresAt }],
@@ -830,6 +883,9 @@ router.post("/delivery/register", async (req, res, next) => {
       )
     );
   } catch (err) {
+    if (err.status === 409) {
+      return res.status(409).json({ error: err.message });
+    }
     if (err.code === 11000) {
       return res.status(409).json({ error: "Email already registered" });
     }
