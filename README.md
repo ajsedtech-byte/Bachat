@@ -30,6 +30,11 @@ Open **http://localhost:3000** (or the port printed in the terminal). Static pag
 | `npm run create-admin` | Create or update one **admin** user (env / argv) |
 | `npm run create-sales` | Create or update one **sales** user (env / argv) |
 | `npm run sync-team` | Upsert **Admin + Ops + Sales** from `ADMIN_*`, `OPS_*`, `SALES_*` in `.env` |
+| `npm run mobile:sync` | Build `www/` from `public/` and sync **Capacitor** Android/iOS projects |
+| `npm run mobile:open:android` | Open Android Studio (after `mobile:sync`) |
+| `npm run mobile:open:ios` | Open Xcode on macOS (after `mobile:sync`) |
+
+**Play Store / App Store:** see [`docs/MOBILE-STORES.md`](docs/MOBILE-STORES.md).
 
 ### Env vars
 

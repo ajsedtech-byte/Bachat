@@ -13,12 +13,17 @@
     "create-sales": "node scripts/create-sales.js",
     "sync-team": "node scripts/sync-team-users.js",
     "create-delivery": "node scripts/create-delivery.js",
-    "test": "node --test test/*.mjs"
+    "test": "node --test test/*.mjs",
+    "mobile:prepare": "node scripts/prepare-mobile-web.js",
+    "mobile:sync": "npm run mobile:prepare && npx cap sync",
+    "mobile:open:android": "npx cap open android",
+    "mobile:open:ios": "npx cap open ios"
   },
   "engines": {
     "node": "20.x"
   },
   "dependencies": {
+    "@capacitor/core": "^6.2.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -29,5 +34,10 @@
     "openid-client": "^5.7.1",
     "otplib": "^12.0.1",
     "razorpay": "^2.9.4"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/ios": "^6.2.0"
   }
 }

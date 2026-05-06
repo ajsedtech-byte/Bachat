@@ -1,0 +1,14 @@
+{
+  "appId": "in.bachat.app",
+  "appName": "Bachat",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "ios": {
+    "contentInset": "automatic"
+  }
+}
