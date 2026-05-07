@@ -89,14 +89,31 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">City</label>
-            <input name="city" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="Indore">
+            <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Region</label>
+            <select
+              name="region"
+              id="sel-region"
+              required
+              class="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600"
+            >
+              <option value="">Select state / union territory</option>
+            </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Region</label>
-            <input name="region" required class="w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600" placeholder="MP">
+            <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">City</label>
+            <select
+              name="city"
+              id="sel-city"
+              required
+              disabled
+              class="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-600 disabled:bg-neutral-100 disabled:text-neutral-500"
+            >
+              <option value="">Select region first</option>
+            </select>
           </div>
         </div>
+        <p id="loc-hint" class="hidden text-[11px] text-neutral-500 -mt-2"></p>
+        <p id="loc-err" class="hidden text-xs text-red-600 -mt-2"></p>
         <div id="seller-fields" class="hidden space-y-4 border-t border-neutral-100 pt-4">
           <div>
             <label class="block text-xs font-bold text-neutral-500 uppercase mb-1">Shop name</label>
@@ -188,8 +205,73 @@
             '<p class="text-sm text-red-600 px-1">Could not load categories. Start the server (<code class="bg-neutral-100 px-1 rounded text-xs">npm start</code>) and refresh.</p>';
         });
     }
+
+    let geoData = null;
+
+    function fillCitiesForRegion(region) {
+      const citySelect = document.getElementById("sel-city");
+      const hint = document.getElementById("loc-hint");
+      if (!citySelect || !hint) return;
+
+      citySelect.innerHTML = "";
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = region ? "Select city" : "Select region first";
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      citySelect.appendChild(placeholder);
+
+      if (!region || !geoData || !geoData.citiesByState) {
+        citySelect.disabled = true;
+        hint.classList.add("hidden");
+        return;
+      }
+
+      const cities = geoData.citiesByState[region] || [];
+      cities.forEach((city) => {
+        const option = document.createElement("option");
+        option.value = city;
+        option.textContent = city;
+        citySelect.appendChild(option);
+      });
+
+      citySelect.disabled = false;
+      hint.textContent = `${cities.length} cities in ${region}`;
+      hint.classList.remove("hidden");
+    }
+
+    async function initLocationDropdowns() {
+      const regionSelect = document.getElementById("sel-region");
+      const citySelect = document.getElementById("sel-city");
+      const locErr = document.getElementById("loc-err");
+      if (!regionSelect || !citySelect || !locErr) return;
+
+      regionSelect.addEventListener("change", () => {
+        fillCitiesForRegion(String(regionSelect.value || "").trim());
+      });
+
+      try {
+        const res = await apiFetch("/api/geo/india-states-cities");
+        if (!res.ok) throw new Error("Could not load locations");
+        const data = await res.json();
+        geoData = data;
+        locErr.classList.add("hidden");
+        (data.states || []).forEach((region) => {
+          const option = document.createElement("option");
+          option.value = region;
+          option.textContent = region;
+          regionSelect.appendChild(option);
+        });
+      } catch (_err) {
+        locErr.textContent =
+          "Could not load state/city list. Start the Bachat server (npm run dev) and refresh.";
+        locErr.classList.remove("hidden");
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       fillShopCategories();
+      initLocationDropdowns();
       const ref = new URLSearchParams(location.search).get("ref");
       const inp = document.getElementById("referral_code_input");
       if (ref && inp) inp.value = String(ref).trim().toUpperCase().slice(0, 16);
@@ -264,13 +346,20 @@
         err.classList.add("hidden");
         const fd = new FormData(e.target);
         const role = fd.get("role");
+        const city = String(fd.get("city") || "").trim();
+        const region = String(fd.get("region") || "").trim();
+        if (!region || !city) {
+          err.textContent = "Please select your state or union territory and city.";
+          err.classList.remove("hidden");
+          return;
+        }
         const body = {
           email: String(fd.get("email") || "").trim(),
           password: String(fd.get("password") || ""),
           name: String(fd.get("name") || "").trim(),
           phone: String(fd.get("phone") || "").trim(),
-          city: String(fd.get("city") || "").trim(),
-          region: String(fd.get("region") || "").trim(),
+          city,
+          region,
           role,
         };
         const refCode = String(fd.get("referral_code") || "").trim();

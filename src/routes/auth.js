@@ -22,6 +22,43 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
+function duplicateKeyPayload(err) {
+  const keyPattern = err && err.keyPattern ? err.keyPattern : {};
+  const keyValue = err && err.keyValue ? err.keyValue : {};
+  const fields = Object.keys(keyPattern);
+  const field = fields[0] || Object.keys(keyValue)[0] || "";
+
+  if (field === "email") {
+    return { error: "Email already registered", duplicate_field: field, duplicate_value: keyValue[field] || "" };
+  }
+
+  if (field) {
+    const pretty = field
+      .replace(/\./g, " ")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (ch) => ch.toUpperCase());
+    return {
+      error: `${pretty} already registered`,
+      duplicate_field: field,
+      duplicate_value: keyValue[field] || "",
+    };
+  }
+
+  return { error: "A record with these details already exists" };
+}
+
+async function ensureReferralCodeBestEffort(User, user) {
+  try {
+    await ensureReferralCode(User, user);
+  } catch (err) {
+    console.warn(
+      "Referral code allocation skipped for user",
+      user && user._id ? String(user._id) : "(unknown)",
+      err && err.message ? `- ${err.message}` : ""
+    );
+  }
+}
+
 function jwtSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -116,84 +153,77 @@ router.post("/register", async (req, res, next) => {
       }
     }
 
-    const session = await mongoose.startSession();
     let createdUser;
-    try {
-      await session.withTransaction(async () => {
-        let user = await User.findOne({ email: normalizedEmail }).session(session);
-        if (user) {
-          if (user.emailVerifiedAt) {
-            const verifiedErr = new Error("Email already registered");
-            verifiedErr.status = 409;
-            throw verifiedErr;
-          }
-          if (!["buyer", "seller"].includes(user.role)) {
-            const roleErr = new Error("This email is already reserved for another account type");
-            roleErr.status = 409;
-            throw roleErr;
-          }
-
-          user.passwordHash = passwordHash;
-          user.name = name;
-          user.phone = phone10;
-          user.phoneVerifiedAt = null;
-          user.city = city;
-          user.region = region;
-          user.role = role;
-          user.referredBy = referredById || null;
-          await user.save({ session });
-        } else {
-          [user] = await User.create(
-            [
-              {
-                email: normalizedEmail,
-                passwordHash,
-                name,
-                phone: phone10,
-                phoneVerifiedAt: null,
-                city,
-                region,
-                role,
-                referredBy: referredById || undefined,
-              },
-            ],
-            { session }
-          );
+      let user = await User.findOne({ email: normalizedEmail });
+      if (user) {
+        if (user.emailVerifiedAt) {
+          const verifiedErr = new Error("Email already registered");
+          verifiedErr.status = 409;
+          throw verifiedErr;
         }
-        createdUser = user;
+        if (!["buyer", "seller"].includes(user.role)) {
+          const roleErr = new Error("This email is already reserved for another account type");
+          roleErr.status = 409;
+          throw roleErr;
+        }
 
-        if (role === "seller") {
-          await Seller.findOneAndUpdate(
-            { user: user._id },
-            {
-              $set: {
-                shopName: shop_name,
-                categories: sellerCategories,
-                category: sellerCategories[0],
-                city,
-                region,
-                isVerified: false,
-                sellerKyc: {
-                  status: "awaiting_path",
-                  path: "",
-                  documents: [],
-                  gstNumber: "",
-                },
+        user.passwordHash = passwordHash;
+        user.name = name;
+        user.phone = phone10;
+        user.phoneVerifiedAt = null;
+        user.city = city;
+        user.region = region;
+        user.role = role;
+        user.referredBy = referredById || null;
+        await user.save();
+      } else {
+        user = await User.create({
+          email: normalizedEmail,
+          passwordHash,
+          name,
+          phone: phone10,
+          phoneVerifiedAt: null,
+          city,
+          region,
+          role,
+          referredBy: referredById || undefined,
+        });
+      }
+      createdUser = user;
+
+      if (role === "seller") {
+        await Seller.findOneAndUpdate(
+          { user: user._id },
+          {
+            $set: {
+              shopName: shop_name,
+              categories: sellerCategories,
+              category: sellerCategories[0],
+              city,
+              region,
+              isVerified: false,
+              sellerKyc: {
+                status: "awaiting_path",
+                path: "",
+                documents: [],
+                gstNumber: "",
               },
             },
-            { new: true, upsert: true, session, setDefaultsOnInsert: true }
-          );
-        } else {
-          await Seller.deleteOne({ user: user._id }).session(session);
-        }
-
-        await EmailOtp.create(
-          [{ user: user._id, codeHash, purpose: "email_verify", expiresAt }],
-          { session }
+          },
+          { new: true, upsert: true, setDefaultsOnInsert: true }
         );
+      } else {
+        await Seller.deleteOne({ user: user._id });
+      }
+
+      await EmailOtp.create({
+        user: user._id,
+        codeHash,
+        purpose: "email_verify",
+        expiresAt,
       });
 
-      await ensureReferralCode(User, createdUser);
+      await ensureReferralCodeBestEffort(User, createdUser);
 
       await sendMail({
         to: createdUser.email,
@@ -212,15 +242,13 @@ router.post("/register", async (req, res, next) => {
           code
         )
       );
-    } finally {
-      session.endSession();
     }
-  } catch (err) {
+  catch (err) {
     if (err.status === 409) {
       return res.status(409).json({ error: err.message });
     }
     if (err.code === 11000) {
-      return res.status(409).json({ error: "Email already registered" });
+      return res.status(409).json(duplicateKeyPayload(err));
     }
     return next(err);
   }
@@ -261,7 +289,7 @@ router.post("/verify-email", async (req, res, next) => {
     await otp.save();
     user.emailVerifiedAt = new Date();
     await user.save();
-    await ensureReferralCode(User, user);
+    await ensureReferralCodeBestEffort(User, user);
 
     if (user.role === "delivery") {
       await User.updateOne({ _id: user._id }, { $set: { "deliveryKyc.status": "awaiting_submit" } });
@@ -676,7 +704,7 @@ router.post("/phone-otp/verify", requireAuth, async (req, res, next) => {
     await otp.save();
     user.phoneVerifiedAt = new Date();
     await user.save();
-    await ensureReferralCode(User, user);
+    await ensureReferralCodeBestEffort(User, user);
 
     const fresh = await User.findById(user._id).lean();
     return res.json(await jsonWithSellerToken(fresh));
@@ -691,7 +719,7 @@ router.get("/me", requireAuth, async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    await ensureReferralCode(User, user);
+    await ensureReferralCodeBestEffort(User, user);
     let seller = null;
     if (user.role === "seller") {
       const s = await Seller.findOne({ user: user._id });
@@ -765,7 +793,7 @@ router.patch("/profile", requireAuth, async (req, res, next) => {
         await seller.save();
       }
     }
-    await ensureReferralCode(User, user);
+    await ensureReferralCodeBestEffort(User, user);
     let sellerOut = null;
     if (user.role === "seller") {
       const s = await Seller.findOne({ user: user._id });
@@ -812,58 +840,47 @@ router.post("/delivery/register", async (req, res, next) => {
     const codeHash = await hashOtp(code);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    const session = await mongoose.startSession();
     let createdUser;
-    try {
-      await session.withTransaction(async () => {
-        let user = await User.findOne({ email: normalizedEmail }).session(session);
-        if (user) {
-          if (user.emailVerifiedAt) {
-            const verifiedErr = new Error("Email already registered");
-            verifiedErr.status = 409;
-            throw verifiedErr;
-          }
-          if (user.role !== "delivery") {
-            const roleErr = new Error("This email is already reserved for another account type");
-            roleErr.status = 409;
-            throw roleErr;
-          }
-          user.passwordHash = passwordHash;
-          user.name = name;
-          user.phone = phone10;
-          user.phoneVerifiedAt = null;
-          user.city = city;
-          user.region = region;
-          if (!user.deliveryKyc) user.deliveryKyc = { status: "not_started" };
-          await user.save({ session });
-        } else {
-          [user] = await User.create(
-            [
-              {
-                email: normalizedEmail,
-                passwordHash,
-                name,
-                phone: phone10,
-                phoneVerifiedAt: null,
-                city,
-                region,
-                role: "delivery",
-                deliveryKyc: { status: "not_started" },
-              },
-            ],
-            { session }
-          );
+      let user = await User.findOne({ email: normalizedEmail });
+      if (user) {
+        if (user.emailVerifiedAt) {
+          const verifiedErr = new Error("Email already registered");
+          verifiedErr.status = 409;
+          throw verifiedErr;
         }
-        createdUser = user;
-        await EmailOtp.create(
-          [{ user: user._id, codeHash, purpose: "email_verify", expiresAt }],
-          { session }
-        );
+        if (user.role !== "delivery") {
+          const roleErr = new Error("This email is already reserved for another account type");
+          roleErr.status = 409;
+          throw roleErr;
+        }
+        user.passwordHash = passwordHash;
+        user.name = name;
+        user.phone = phone10;
+        user.phoneVerifiedAt = null;
+        user.city = city;
+        user.region = region;
+        if (!user.deliveryKyc) user.deliveryKyc = { status: "not_started" };
+        await user.save();
+      } else {
+        user = await User.create({
+          email: normalizedEmail,
+          passwordHash,
+          name,
+          phone: phone10,
+          phoneVerifiedAt: null,
+          city,
+          region,
+          role: "delivery",
+          deliveryKyc: { status: "not_started" },
+        });
+      }
+      createdUser = user;
+      await EmailOtp.create({
+        user: user._id,
+        codeHash,
+        purpose: "email_verify",
+        expiresAt,
       });
-    } finally {
-      session.endSession();
-    }
-
     await sendMail({
       to: createdUser.email,
       subject: "Verify your email – Bachat delivery",
@@ -882,12 +899,13 @@ router.post("/delivery/register", async (req, res, next) => {
         code
       )
     );
-  } catch (err) {
+    }
+  catch (err) {
     if (err.status === 409) {
       return res.status(409).json({ error: err.message });
     }
     if (err.code === 11000) {
-      return res.status(409).json({ error: "Email already registered" });
+      return res.status(409).json(duplicateKeyPayload(err));
     }
     return next(err);
   }

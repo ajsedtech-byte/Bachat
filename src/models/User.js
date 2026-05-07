@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema(
     /** Buyer wishlist — product ObjectIds */
     savedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
     /** Unique invite code for Refer & Earn */
-    referralCode: { type: String, default: null, unique: true, sparse: true, trim: true },
+    referralCode: { type: String, default: undefined, unique: true, sparse: true, trim: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     location: { type: preciseLocationSchema, default: undefined },
     deliveryKyc: { type: deliveryKycSchema, default: undefined },
