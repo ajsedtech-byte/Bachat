@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
+const User = require("../models/User");
+const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
@@ -64,6 +66,20 @@ router.post("/items", async (req, res, next) => {
     const product = await Product.findOne({ _id: product_id, isActive: true }).lean();
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
+    }
+
+    const user = await User.findById(req.user.id).lean();
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const seller = await Seller.findById(product.seller).lean();
+    const city = String(user.city || "").trim();
+    const region = String(user.region || "").trim();
+    if (!city || !region) {
+      return badRequest(res, "Set your city and region on your profile to add local items.");
+    }
+    if (!seller || seller.city !== city || seller.region !== region) {
+      return res.status(400).json({ error: "This product is not available in your current city." });
     }
 
     const cart = await getOrCreateCart(req.user.id);

@@ -16,6 +16,7 @@
     <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
       <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
       <nav id="user-sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
+        <a href="#shopping-home" data-section="shopping-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>&#127968;</span> Home</a>
         <a href="#dashboard-home" data-section="dashboard-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#e8f1fc] text-[#0056d2] border-l-4 border-[#0056d2]"><span>📊</span> Dashboard</a>
         <a href="#requests-section" data-section="requests-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📄</span> Requests &amp; Quotes</a>
         <a href="#orders-section" data-section="orders-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📦</span> My Orders</a>
@@ -54,7 +55,7 @@
     <div class="flex-1 flex flex-col min-w-0">
       <div class="sticky top-0 z-30 shrink-0 bg-white shadow-sm">
       <header class="bg-white border-b border-[#e5e7eb] px-3 sm:px-5 py-2.5 sm:py-3 flex flex-wrap items-center gap-2 sm:gap-3">
-        <button type="button" id="header-city" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e5e7eb] text-sm font-semibold text-slate-700 shrink-0">
+        <button type="button" id="header-city" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e5e7eb] bg-white text-sm font-semibold text-slate-700 shrink-0 hover:border-[#0056d2]/30 hover:bg-[#f8fbff]" aria-label="Change city">
           <svg class="w-4 h-4 text-[#0056d2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           <span id="header-city-label">Indore</span>
         </button>
@@ -82,7 +83,7 @@
         </div>
       </header>
 
-      <nav id="departments-nav" class="bg-[#232f3e] text-white border-t border-white/10 text-sm" aria-label="Shop by category">
+      <nav id="departments-nav" class="hidden bg-[#232f3e] text-white border-t border-white/10 text-sm" aria-label="Shop by category" hidden>
         <div class="flex items-stretch gap-0 px-1 sm:px-2 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/25">
           <button type="button" id="dept-all" class="shrink-0 px-3 sm:px-4 py-2.5 font-semibold text-white hover:bg-white/10 whitespace-nowrap border-r border-white/10">All</button>
           <details name="shop-dept" class="relative group shrink-0 border-r border-white/10 min-w-0">
@@ -175,6 +176,7 @@
       </nav>
 
       <nav id="user-mobile-nav" class="lg:hidden flex gap-2 overflow-x-auto px-3 py-2 bg-white border-b border-[#e5e7eb] text-xs font-bold text-slate-600 shrink-0">
+        <a href="#shopping-home" data-section="shopping-home" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Home</a>
         <a href="#dashboard-home" data-section="dashboard-home" class="whitespace-nowrap px-3 py-1.5 rounded-lg bg-[#e8f1fc] text-[#0056d2]">Dashboard</a>
         <a href="#requests-section" data-section="requests-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Requests &amp; Quotes</a>
         <a href="#orders-section" data-section="orders-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Orders</a>
@@ -186,9 +188,108 @@
       </nav>
       </div>
 
-      <main class="flex-1 p-4 lg:p-6 overflow-auto space-y-8">
+      <main class="flex-1 overflow-auto space-y-8 bg-[linear-gradient(180deg,#f5f8fc_0%,#eef4fb_28%,#f8fbff_100%)] p-4 lg:p-6">
         <p id="toast" class="hidden rounded-xl border border-[#e8f1fc] bg-[#e8f1fc] text-[#0044a8] text-sm font-semibold px-4 py-3"></p>
         <p id="msg" class="text-sm text-slate-500 hidden"></p>
+
+        <section id="shopping-home" class="space-y-8">
+          <div class="relative overflow-hidden rounded-[34px] border border-[#d4deec] bg-[linear-gradient(100deg,#0b2247_0%,#193763_36%,#496b98_72%,#6787b0_100%)] px-6 py-7 text-white shadow-[0_26px_80px_-44px_rgba(15,23,42,0.62)] lg:px-8 lg:py-8">
+            <div class="absolute inset-y-0 left-0 w-[52%] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.06),_transparent_48%)]"></div>
+            <div class="relative grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_360px] xl:items-start">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.28em] text-blue-100/90">Bachat Home</p>
+                <h1 class="mt-4 max-w-4xl text-4xl font-black leading-[0.95] tracking-[-0.045em] text-white sm:text-5xl lg:text-[4.1rem]">Everything local in one place for <span id="shopping-home-city" class="text-[#8ec1ff]">your city</span>.</h1>
+                <p class="mt-5 max-w-3xl text-base leading-8 text-blue-50/92 sm:text-lg">Browse shops and products across everyday shopping, quick essentials, food categories, and trusted neighborhood stores, all filtered to the city you selected above.</p>
+                <div class="mt-7 grid max-w-3xl gap-3 sm:grid-cols-3">
+                  <div class="rounded-[22px] border border-white/14 bg-white/10 px-5 py-4 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100/80">Local shops</p>
+                    <p id="shopping-home-shop-count" class="mt-3 text-4xl font-black leading-none text-white">0</p>
+                    <p class="mt-2 text-xs text-blue-100/72">Trusted stores ready in your city</p>
+                  </div>
+                  <div class="rounded-[22px] border border-white/14 bg-white/10 px-5 py-4 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100/80">Live products</p>
+                    <p id="shopping-home-product-count" class="mt-3 text-4xl font-black leading-none text-white">0</p>
+                    <p class="mt-2 text-xs text-blue-100/72">Updated listings from nearby sellers</p>
+                  </div>
+                  <div class="rounded-[22px] border border-white/14 bg-white/10 px-5 py-4 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100/80">Shopping modes</p>
+                    <p class="mt-3 text-4xl font-black leading-none text-white">4</p>
+                    <p class="mt-2 text-xs text-blue-100/72">Different ways to browse and buy</p>
+                  </div>
+                </div>
+              </div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Everyday shopping</p>
+                  <p class="mt-2 text-lg font-black leading-7 text-white">Electronics, fashion, home and everyday discovery.</p>
+                </div>
+                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Quick essentials</p>
+                  <p class="mt-2 text-lg font-black leading-7 text-white">Fast essentials, groceries, daily restocks and pharmacy.</p>
+                </div>
+                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Food and fresh picks</p>
+                  <p class="mt-2 text-lg font-black leading-7 text-white">Food, bakery, sweets, beverages and fresh local picks.</p>
+                </div>
+                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Bachat local</p>
+                  <p class="mt-2 text-lg font-black leading-7 text-white">Trusted neighborhood shops grouped by what you need now.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-[30px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.28)] backdrop-blur-sm sm:p-6">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.22em] text-[#0056d2]">Browse By Need</p>
+                <h2 class="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-900 sm:text-[2rem]">Jump into a shopping lane</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Pick a lane and we will show the shops and products available in your selected city. You can still use the top search and the full catalog below.</p>
+              </div>
+              <button type="button" id="shopping-home-see-all" class="rounded-full border border-[#d6e4fb] bg-[#f8fbff] px-5 py-2.5 text-sm font-black text-[#0056d2] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#e8f1fc]">See all products</button>
+            </div>
+            <div id="shopping-home-lanes" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4"></div>
+          </div>
+
+          <div class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_380px]">
+            <section class="rounded-[30px] border border-white/80 bg-white/92 p-5 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.28)] backdrop-blur-sm sm:p-6">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.22em] text-[#0056d2]">Shops Near You</p>
+                  <h2 class="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-900 sm:text-[2rem]">Local shops in <span id="shopping-home-shops-city">your city</span></h2>
+                </div>
+                <span class="rounded-full border border-[#d6e4fb] bg-[#f8fbff] px-3 py-1 text-xs font-black text-[#0056d2]">City-aware</span>
+              </div>
+              <div id="shopping-home-shop-grid" class="mt-6 grid gap-4 md:grid-cols-2"></div>
+            </section>
+
+            <section class="rounded-[30px] border border-white/80 bg-white/92 p-5 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.28)] backdrop-blur-sm sm:p-6">
+              <p class="text-xs font-black uppercase tracking-[0.22em] text-[#0056d2]">Why It Feels Familiar</p>
+              <h2 class="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-900">One app, many shopping patterns</h2>
+              <div class="mt-5 space-y-4">
+                <div class="rounded-[24px] border border-[#dbeafe] bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+                  <p class="text-sm font-black text-slate-900">Marketplace discovery</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Scroll broad categories like electronics, home, fashion, and gifts the way you would on a big marketplace.</p>
+                </div>
+                <div class="rounded-[24px] border border-[#dcfce7] bg-[linear-gradient(180deg,#f9fff8_0%,#effbf1_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.84)]">
+                  <p class="text-sm font-black text-slate-900">Quick daily essentials</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Jump straight to groceries, fruits, pharmacy, tea, snacks, and household refill items from nearby stores.</p>
+                </div>
+                <div class="rounded-[24px] border border-[#ffedd5] bg-[linear-gradient(180deg,#fff8f1_0%,#fff2e2_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
+                  <p class="text-sm font-black text-slate-900">Food-led browsing</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Open food, bakery, sweets, beverages, and meat categories like a food-first ordering experience.</p>
+                </div>
+                <div class="rounded-[24px] border border-[#ede9fe] bg-[linear-gradient(180deg,#faf5ff_0%,#f4edff_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
+                  <p class="text-sm font-black text-slate-900">Request anything else</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">If you do not find a listing, switch to Dashboard or Requests and ask local sellers to quote for it.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div id="shopping-home-sections" class="space-y-6"></div>
+          <p id="shopping-home-empty" class="hidden rounded-[28px] border border-dashed border-slate-300 bg-white/90 px-5 py-12 text-center text-sm text-slate-500 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.24)] backdrop-blur-sm">No products are live in this city yet. Try another city from the location button above, or ask sellers to add listings.</p>
+        </section>
 
         <section id="dashboard-home" class="space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -519,6 +620,37 @@
     </div>
   </div>
 
+  <div id="city-modal" class="hidden fixed inset-0 z-[82] bg-black/40 p-4">
+    <div class="mx-auto mt-10 max-w-md rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+        <div>
+          <p class="font-bold text-slate-900">Choose delivery city</p>
+          <p class="text-xs text-slate-500 mt-0.5">Switch city when shopping for family or friends in another place.</p>
+        </div>
+        <button type="button" id="city-close" class="text-slate-500 hover:text-slate-900">×</button>
+      </div>
+      <div class="p-4 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">State / union territory</label>
+          <select id="city-region-select" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2]">
+            <option value="">Select state / union territory</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">City</label>
+          <select id="city-name-select" disabled class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] disabled:bg-slate-100 disabled:text-slate-500">
+            <option value="">Select state first</option>
+          </select>
+        </div>
+        <p id="city-modal-msg" class="hidden text-xs rounded-lg px-3 py-2"></p>
+      </div>
+      <div class="px-4 pb-4 flex justify-end gap-2">
+        <button type="button" id="city-cancel" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Cancel</button>
+        <button type="button" id="city-save" class="rounded-lg bg-[#0056d2] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">Use this city</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const token = localStorage.getItem("ajs_token");
@@ -835,11 +967,175 @@
     }
 
     let meUser = null;
+    let geoData = null;
     let selectedCategory = "";
     let nearbyCategoriesCache = [];
     let lastRequests = [];
     let selectedRequestId = null;
     let ordersByRequestId = {};
+    const SHOPPING_HOME_GROUPS = [
+      {
+        id: "marketplace",
+        badge: "Everyday shopping",
+        title: "Marketplace discovery",
+        subtitle: "Electronics, home, fashion, gifts and general browsing from local sellers.",
+        accent: "text-[#0056d2]",
+        panel: "border-[#cfe1ff] bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)]",
+        categories: [
+          "Electronics",
+          "Computer Parts",
+          "Computers & laptops",
+          "Mobile phones & accessories",
+          "TV & home entertainment",
+          "Home Appliances",
+          "Cameras & accessories",
+          "Smart wearables & gadgets",
+          "Fashion",
+          "Men's clothing",
+          "Women's clothing",
+          "Ethnic wear, sarees & kurtis",
+          "Footwear",
+          "Bags & luggage",
+          "Jewellery & watches",
+          "Kids & baby clothing",
+          "Innerwear & sleepwear",
+          "Eyewear",
+          "Books & media",
+          "General items",
+        ],
+      },
+      {
+        id: "essentials",
+        badge: "Quick essentials",
+        title: "Quick essentials",
+        subtitle: "Groceries, daily-use items, pharmacy and home refill products for fast local buying.",
+        accent: "text-green-700",
+        panel: "border-[#d6f5dc] bg-[linear-gradient(180deg,#f9fff8_0%,#effbf1_100%)]",
+        categories: [
+          "Groceries",
+          "Vegetables",
+          "Fruits",
+          "Atta, rice, dal & oil",
+          "Dairy & eggs",
+          "Snacks & namkeen",
+          "Tea, coffee & beverages",
+          "Cleaning & household",
+          "Organic & health foods",
+          "Beauty & personal care",
+          "Health & wellness",
+          "Pharmacy & OTC",
+          "Baby care",
+          "Mom & maternity",
+          "Pet supplies",
+          "Home & daily",
+        ],
+      },
+      {
+        id: "food",
+        badge: "Food and fresh picks",
+        title: "Food and fresh picks",
+        subtitle: "Ready-to-eat and fresh-local categories like food, bakery, sweets, meat and beverages.",
+        accent: "text-orange-700",
+        panel: "border-[#fed7aa] bg-[linear-gradient(180deg,#fff8f1_0%,#fff0de_100%)]",
+        categories: [
+          "Food",
+          "Bakery & cakes",
+          "Sweets & mithai",
+          "Meat, fish & poultry",
+          "Tea, coffee & beverages",
+          "Spices & masalas",
+        ],
+      },
+      {
+        id: "specialty",
+        badge: "Bachat local",
+        title: "Specialty stores and services",
+        subtitle: "Automotive, tools, stationery, festive items, repairs and the long tail of local demand.",
+        accent: "text-violet-700",
+        panel: "border-[#e9d5ff] bg-[linear-gradient(180deg,#faf5ff_0%,#f2ebff_100%)]",
+        categories: [
+          "Kitchen & dining",
+          "Kitchenware & cookware",
+          "Home decor",
+          "Furniture",
+          "Hardware, paint & electrical",
+          "Home furnishings & linen",
+          "Tools & DIY",
+          "Stationery & office supplies",
+          "Sports, toys & fitness",
+          "Automotive",
+          "Puja, festive & gifts",
+          "Agriculture & gardening",
+          "Services — repairs & more",
+          "Mobile Services",
+        ],
+      },
+    ];
+
+    function shoppingGroupForCategory(category) {
+      const cat = String(category || "").trim();
+      return (
+        SHOPPING_HOME_GROUPS.find((group) => group.categories.includes(cat)) ||
+        SHOPPING_HOME_GROUPS[SHOPPING_HOME_GROUPS.length - 1]
+      );
+    }
+
+    function setCityModalMessage(text, isErr) {
+      const el = document.getElementById("city-modal-msg");
+      if (!el) return;
+      if (!text) {
+        el.classList.add("hidden");
+        el.textContent = "";
+        el.classList.remove("bg-red-50", "text-red-700", "bg-blue-50", "text-blue-800");
+        return;
+      }
+      el.textContent = text;
+      el.classList.remove("hidden", "bg-red-50", "text-red-700", "bg-blue-50", "text-blue-800");
+      el.classList.add(isErr ? "bg-red-50" : "bg-blue-50", isErr ? "text-red-700" : "text-blue-800");
+    }
+
+    function fillCityOptions(region, selectedCity) {
+      const citySelect = document.getElementById("city-name-select");
+      if (!citySelect) return;
+      citySelect.innerHTML = "";
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = region ? "Select city" : "Select state first";
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      citySelect.appendChild(placeholder);
+      if (!region || !geoData || !geoData.citiesByState) {
+        citySelect.disabled = true;
+        return;
+      }
+      const cities = geoData.citiesByState[region] || [];
+      cities.forEach((city) => {
+        const option = document.createElement("option");
+        option.value = city;
+        option.textContent = city;
+        if (selectedCity && city === selectedCity) option.selected = true;
+        citySelect.appendChild(option);
+      });
+      citySelect.disabled = false;
+    }
+
+    async function ensureGeoData() {
+      if (geoData) return geoData;
+      const res = await fetchApi("/api/geo/india-states-cities", { headers: { Authorization: "Bearer " + token } });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) throw new Error((data && data.error) || "Could not load cities");
+      geoData = data;
+      const regionSelect = document.getElementById("city-region-select");
+      if (regionSelect && regionSelect.options.length <= 1) {
+        (data.states || []).forEach((region) => {
+          const option = document.createElement("option");
+          option.value = region;
+          option.textContent = region;
+          regionSelect.appendChild(option);
+        });
+      }
+      return geoData;
+    }
 
     function rupee(n) {
       const x = Number(n);
@@ -1002,9 +1298,9 @@
       const ph = document.getElementById("addr-phone");
       if (ph) ph.value = (me.user.phone || "").trim();
       const ct = document.getElementById("addr-city");
-      if (ct) ct.value = (me.user.city || "").trim();
+      if (ct) ct.value = city;
       const rg = document.getElementById("addr-region");
-      if (rg) rg.value = (me.user.region || "").trim();
+      if (rg) rg.value = region;
       const loc = me.user.location || {};
       const at = document.getElementById("addr-text");
       if (at) at.value = (loc.address_text || "").trim();
@@ -1016,6 +1312,41 @@
         setGpsFields(loc.lat, loc.lng, loc.accuracy_m);
       }
       return me;
+    }
+
+    function closeCityModal() {
+      document.getElementById("city-modal")?.classList.add("hidden");
+      setCityModalMessage("");
+    }
+
+    async function openCityModal() {
+      try {
+        await ensureGeoData();
+        const regionSelect = document.getElementById("city-region-select");
+        const citySelect = document.getElementById("city-name-select");
+        const currentRegion = (meUser && meUser.region) || "";
+        const currentCity = (meUser && meUser.city) || "";
+        if (regionSelect) regionSelect.value = currentRegion;
+        fillCityOptions(currentRegion, currentCity);
+        if (citySelect && currentCity) citySelect.value = currentCity;
+        setCityModalMessage("");
+        document.getElementById("city-modal")?.classList.remove("hidden");
+      } catch (err) {
+        showToast(err.message || "Could not load cities", true);
+      }
+    }
+
+    async function refreshBuyerCityContext() {
+      selectedCategory = "";
+      await loadMe();
+      await loadShoppingHome();
+      await loadNearbyCategoryPills();
+      await loadCatalog();
+      await refreshCart();
+      await loadOrders();
+      await loadRequests();
+      await loadLatestQuotesPreview();
+      await updateKpis();
     }
 
     async function loadAllCategories() {
@@ -1077,6 +1408,7 @@
       }
       paintCategoryPills();
       loadCatalog();
+      if (typeof openUserSection === "function") openUserSection("browse-section");
       document.querySelectorAll('#departments-nav details[name="shop-dept"]').forEach((d) => d.removeAttribute("open"));
       const browse = document.getElementById("browse-section");
       if (browse) browse.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1143,6 +1475,182 @@
       const d = document.createElement("div");
       d.textContent = s == null ? "" : String(s);
       return d.innerHTML;
+    }
+
+    function shopMonogram(name) {
+      return String(name || "Shop")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+    }
+
+    function makeHomeProductCard(p) {
+      const img =
+        p.images && p.images[0]
+          ? `<img src="${String(p.images[0]).replace(/"/g, "&quot;")}" alt="" class="h-44 w-full object-cover bg-slate-100 transition duration-500 group-hover:scale-[1.03]" />`
+          : `<div class="h-44 w-full bg-[radial-gradient(circle_at_top_left,_rgba(147,197,253,0.35),_transparent_38%),linear-gradient(135deg,#0b2348_0%,#123f82_50%,#0b2447_100%)] flex items-center justify-center font-black tracking-[0.18em] text-white text-xl">${escapeHtml(shopMonogram(p.shop_name || "Bachat"))}</div>`;
+      return (
+        `<article class="group overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_20px_55px_-34px_rgba(15,23,42,0.34)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_-36px_rgba(15,23,42,0.4)] flex flex-col">` +
+        `<div class="relative overflow-hidden">` +
+        img +
+        `<div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950/40 to-transparent"></div>
+          <div class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-slate-950/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-md">${escapeHtml(p.category || "Local pick")}</div>
+        </div>` +
+        `<div class="flex flex-1 flex-col p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="inline-flex items-center gap-2 text-[11px] font-bold text-slate-500"><span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#e8f1fc] text-[10px] font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.shop_name || "Shop"))}</span>${escapeHtml(p.shop_name || "Shop")}</span>
+            <span class="rounded-full ${p.seller_verified ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"} px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]">${p.seller_verified ? "Verified" : "Local"}</span>
+          </div>
+          <p class="mt-3 text-lg font-black leading-7 tracking-[-0.02em] text-slate-900 line-clamp-2">${escapeHtml(p.title)}</p>
+          <p class="mt-2 text-sm text-slate-500 line-clamp-1">${escapeHtml(p.city || "")}${p.region ? `, ${escapeHtml(p.region)}` : ""}</p>
+          <div class="mt-auto pt-5">
+            <div class="flex items-end justify-between gap-3">
+            <div>
+                <p class="text-2xl font-black tracking-[-0.03em] text-slate-900">${rupee(p.price)}</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Local city pricing</p>
+              </div>
+              <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-xl bg-[#0056d2] px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-white shadow-sm transition hover:bg-[#0044a8] home-add-cart">Add to basket</button>
+            </div>
+            <div class="mt-4 flex gap-2">
+              <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-xl border border-[#cfe1ff] bg-[#f8fbff] px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-[#0056d2] transition hover:bg-[#e8f1fc] home-save-catalog">Save for later</button>
+            </div>
+          </div>
+        </div>
+      </article>`
+      );
+    }
+
+    async function loadShoppingHome() {
+      const cityEl = document.getElementById("shopping-home-city");
+      const shopsCityEl = document.getElementById("shopping-home-shops-city");
+      const shopCountEl = document.getElementById("shopping-home-shop-count");
+      const productCountEl = document.getElementById("shopping-home-product-count");
+      const lanesEl = document.getElementById("shopping-home-lanes");
+      const shopGridEl = document.getElementById("shopping-home-shop-grid");
+      const sectionsEl = document.getElementById("shopping-home-sections");
+      const emptyEl = document.getElementById("shopping-home-empty");
+      if (!cityEl || !shopGridEl || !sectionsEl || !lanesEl || !emptyEl) return;
+
+      const city = (meUser && meUser.city) || "your city";
+      const region = (meUser && meUser.region) || "";
+      cityEl.textContent = city;
+      if (shopsCityEl) shopsCityEl.textContent = city;
+
+      try {
+        const data = await api("GET", "/api/products/catalog");
+        const items = Array.isArray(data && data.items) ? data.items : [];
+        const shopMap = new Map();
+        const grouped = new Map(SHOPPING_HOME_GROUPS.map((group) => [group.id, []]));
+
+        items.forEach((item) => {
+          const group = shoppingGroupForCategory(item.category);
+          grouped.get(group.id).push(item);
+          const key = `${item.shop_name || "Shop"}|${item.city || ""}|${item.region || ""}`;
+          if (!shopMap.has(key)) {
+            shopMap.set(key, {
+              name: item.shop_name || "Shop",
+              city: item.city || city,
+              region: item.region || region,
+              verified: Boolean(item.seller_verified),
+              count: 0,
+              categories: new Set(),
+            });
+          }
+          const summary = shopMap.get(key);
+          summary.count += 1;
+          if (item.category) summary.categories.add(item.category);
+        });
+
+        const shops = [...shopMap.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+        if (shopCountEl) shopCountEl.textContent = String(shops.length);
+        if (productCountEl) productCountEl.textContent = String(items.length);
+
+        lanesEl.innerHTML = "";
+        sectionsEl.innerHTML = "";
+        shopGridEl.innerHTML = "";
+
+        if (!items.length) {
+          emptyEl.classList.remove("hidden");
+          return;
+        }
+        emptyEl.classList.add("hidden");
+
+        SHOPPING_HOME_GROUPS.forEach((group) => {
+          const list = grouped.get(group.id) || [];
+          const lane = document.createElement("button");
+          lane.type = "button";
+          lane.className = `group rounded-[24px] border px-4 py-4 text-left shadow-[0_16px_42px_-34px_rgba(15,23,42,0.18)] transition duration-300 hover:-translate-y-1 hover:border-[#bfd6fa] hover:shadow-[0_22px_48px_-34px_rgba(15,23,42,0.24)] ${group.panel}`;
+          lane.innerHTML = `<div class="flex items-start justify-between gap-3"><div><p class="text-[11px] font-black uppercase tracking-[0.18em] ${group.accent}">${escapeHtml(group.badge)}</p><p class="mt-2 text-lg font-black tracking-[-0.02em] text-slate-900">${escapeHtml(group.title)}</p></div><span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-slate-700 shadow-sm">${list.length}</span></div><p class="mt-3 text-sm leading-6 text-slate-600">${escapeHtml(group.subtitle)}</p><div class="mt-4 flex flex-wrap gap-2">${group.categories.slice(0, 2).map((category) => `<span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">${escapeHtml(category)}</span>`).join("")}</div>`;
+          lane.addEventListener("click", () => {
+            const section = document.getElementById(`shopping-home-group-${group.id}`);
+            if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+          lanesEl.appendChild(lane);
+
+          if (!list.length) return;
+          const familyShops = [...new Set(list.map((item) => item.shop_name || "Shop"))].slice(0, 6);
+          const section = document.createElement("section");
+          section.id = `shopping-home-group-${group.id}`;
+          section.className = "rounded-[28px] border border-white/85 bg-white/92 p-5 shadow-[0_18px_48px_-36px_rgba(15,23,42,0.22)] backdrop-blur-sm sm:p-6";
+          section.innerHTML =
+            `<div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.22em] ${group.accent}">${escapeHtml(group.badge)}</p>
+                <h3 class="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-900 sm:text-[2rem]">${escapeHtml(group.title)}</h3>
+                <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">${escapeHtml(group.subtitle)}</p>
+              </div>
+              <button type="button" data-home-category="${escapeHtml(list[0].category || "")}" class="rounded-full border border-[#d6e4fb] bg-[#f8fbff] px-5 py-2.5 text-sm font-black text-[#0056d2] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#e8f1fc] home-open-category">Open in catalog</button>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2.5">${familyShops
+              .map(
+                (shop) =>
+                  `<span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm"><span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#e8f1fc] text-[10px] font-black text-[#0056d2]">${escapeHtml(shopMonogram(shop))}</span>${escapeHtml(shop)}</span>`
+              )
+              .join("")}</div>
+            <div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">${list.map((item) => makeHomeProductCard(item)).join("")}</div>`;
+          sectionsEl.appendChild(section);
+        });
+
+        shops.slice(0, 8).forEach((shop) => {
+          const card = document.createElement("article");
+          card.className = "overflow-hidden rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-5 shadow-[0_20px_60px_-38px_rgba(15,23,42,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_-38px_rgba(15,23,42,0.34)]";
+          const categories = [...shop.categories].slice(0, 3);
+          card.innerHTML =
+            `<div class="flex items-start justify-between gap-3">
+              <div class="inline-flex h-14 w-14 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,#e8f1fc_0%,#d8e9ff_100%)] text-sm font-black tracking-[0.14em] text-[#0056d2]">${escapeHtml(shopMonogram(shop.name))}</div>
+              <span class="rounded-full ${shop.verified ? "border border-emerald-100 bg-emerald-50 text-emerald-700" : "border border-slate-200 bg-slate-100 text-slate-600"} px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]">${shop.verified ? "Verified" : "Local"}</span>
+            </div>
+            <p class="mt-5 text-xl font-black tracking-[-0.02em] text-slate-900">${escapeHtml(shop.name)}</p>
+            <p class="mt-1 text-sm text-slate-500">${escapeHtml(shop.city)}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
+            <div class="mt-4 flex items-end justify-between gap-4">
+              <div>
+                <p class="text-3xl font-black tracking-[-0.04em] text-slate-900">${shop.count}</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Live products</p>
+              </div>
+              <div class="h-12 w-12 rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.18),_rgba(37,99,235,0.02))]"></div>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">${categories
+              .map((category) => `<button type="button" data-home-category="${escapeHtml(category)}" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm transition hover:border-[#0056d2] hover:text-[#0056d2] home-open-category">${escapeHtml(category)}</button>`)
+              .join("")}</div>`;
+          shopGridEl.appendChild(card);
+        });
+
+        sectionsEl.querySelectorAll(".home-add-cart").forEach((btn) => {
+          btn.addEventListener("click", () => addToCart(btn.getAttribute("data-pid")));
+        });
+        sectionsEl.querySelectorAll(".home-save-catalog").forEach((btn) => {
+          btn.addEventListener("click", () => saveProduct(btn.getAttribute("data-pid")));
+        });
+        document.querySelectorAll(".home-open-category").forEach((btn) => {
+          btn.addEventListener("click", () => selectShopCategory(btn.getAttribute("data-home-category") || ""));
+        });
+      } catch (e) {
+        emptyEl.classList.remove("hidden");
+        emptyEl.textContent = e.message || "Could not load shopping home.";
+      }
     }
 
     async function updateKpis() {
@@ -1798,13 +2306,19 @@
       }
     });
 
-    document.getElementById("search-btn").addEventListener("click", loadCatalog);
+    document.getElementById("search-btn").addEventListener("click", async () => {
+      await loadCatalog();
+      if (typeof openUserSection === "function") openUserSection("browse-section");
+    });
     document.getElementById("search-q").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        loadCatalog();
+        loadCatalog().then(() => {
+          if (typeof openUserSection === "function") openUserSection("browse-section");
+        });
       }
     });
+    document.getElementById("shopping-home-see-all")?.addEventListener("click", () => selectShopCategory(""));
 
     document.getElementById("dept-all")?.addEventListener("click", () => selectShopCategory(""));
     document.getElementById("departments-nav")?.addEventListener("click", (e) => {
@@ -1830,6 +2344,7 @@
         await loadMe();
         await loadReferralInfo();
         await loadAllCategories();
+        await loadShoppingHome();
         await loadNearbyCategoryPills();
         await loadCatalog();
         await refreshCart();
@@ -1844,6 +2359,37 @@
         document.getElementById("msg").classList.remove("hidden");
       }
     })();
+
+    document.getElementById("header-city")?.addEventListener("click", openCityModal);
+    document.getElementById("city-close")?.addEventListener("click", closeCityModal);
+    document.getElementById("city-cancel")?.addEventListener("click", closeCityModal);
+    document.getElementById("city-region-select")?.addEventListener("change", (e) => {
+      fillCityOptions(String(e.target.value || "").trim(), "");
+    });
+    document.getElementById("city-save")?.addEventListener("click", async () => {
+      const btn = document.getElementById("city-save");
+      const region = String(document.getElementById("city-region-select")?.value || "").trim();
+      const city = String(document.getElementById("city-name-select")?.value || "").trim();
+      if (!region || !city) {
+        setCityModalMessage("Please select both state and city.", true);
+        return;
+      }
+      btn.disabled = true;
+      try {
+        await api("PATCH", "/api/auth/profile", { city, region });
+        await api("DELETE", "/api/cart/clear");
+        closeCityModal();
+        await refreshBuyerCityContext();
+        showToast(`Shopping city changed to ${city}, ${region}. Basket reset for the new city.`);
+      } catch (err) {
+        setCityModalMessage(err.message || "Could not update city.", true);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    document.getElementById("city-modal")?.addEventListener("click", (e) => {
+      if (e.target && e.target.id === "city-modal") closeCityModal();
+    });
 
     document.getElementById("address-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1877,7 +2423,7 @@
           },
         });
         showToast("Address saved");
-        await loadMe();
+        await refreshBuyerCityContext();
       } catch (err) {
         showToast(err.message || "Save failed", true);
       } finally {
@@ -1977,6 +2523,7 @@
     });
 
     const userTabIds = [
+      "shopping-home",
       "dashboard-home",
       "requests-section",
       "orders-section",
@@ -2030,7 +2577,7 @@
       const id = (location.hash || "").replace(/^#/, "");
       if (id) openUserSection(id);
     });
-    const firstSection = ((location.hash || "").replace(/^#/, "") || "dashboard-home");
+    const firstSection = ((location.hash || "").replace(/^#/, "") || "shopping-home");
     openUserSection(firstSection);
 
     document.getElementById("refer-cta")?.addEventListener("click", async () => {
