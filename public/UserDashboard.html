@@ -63,10 +63,23 @@
           <input id="search-q" type="search" placeholder="Search catalog…" class="flex-1 rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] bg-[#f8f9fb]" />
           <button type="button" id="search-btn" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold px-4 py-2.5 text-sm shrink-0">Search</button>
         </div>
-        <button type="button" id="notif-btn" class="relative p-2 rounded-xl border border-[#e5e7eb] text-slate-600 shrink-0 hover:bg-[#f8f9fa]" title="Notifications" aria-label="Notifications">
-          <span class="text-lg" aria-hidden="true">🔔</span>
-          <span id="notif-badge" class="absolute top-0.5 right-0.5 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
-        </button>
+        <div class="relative shrink-0">
+          <button type="button" id="notif-btn" class="relative p-2 rounded-xl border border-[#e5e7eb] text-slate-600 hover:bg-[#f8f9fa]" title="Notifications" aria-label="Notifications">
+            <span class="text-lg" aria-hidden="true">🔔</span>
+            <span id="notif-badge" class="absolute top-0.5 right-0.5 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
+          </button>
+          <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-[min(92vw,360px)] rounded-2xl border border-[#e5e7eb] bg-white shadow-xl z-[70] overflow-hidden">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#e5e7eb]">
+              <div>
+                <p class="text-sm font-extrabold text-slate-900">Notifications</p>
+                <p class="text-[11px] text-slate-500">Quotes, orders, and request activity</p>
+              </div>
+              <span id="notif-count-label" class="rounded-full bg-[#e8f1fc] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#0056d2]">0 new</span>
+            </div>
+            <div id="notif-list" class="max-h-[420px] overflow-y-auto p-2 space-y-2"></div>
+            <p id="notif-empty" class="hidden px-4 py-8 text-center text-sm text-slate-500">No notifications yet.</p>
+          </div>
+        </div>
         <div class="relative flex items-center gap-2 shrink-0 ml-auto">
           <div id="header-avatar" class="w-9 h-9 rounded-full border border-[#e5e7eb] shrink-0 bg-cover bg-center bg-slate-200" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&q=60')"></div>
           <div class="hidden sm:block min-w-0">
@@ -428,7 +441,96 @@
           </div>
         </section>
 
-        <p id="profile-strip" class="rounded-xl bg-white border border-[#e5e7eb] px-4 py-3 text-sm text-slate-600 scroll-mt-28"><span class="font-semibold text-slate-900">Profile:</span> signed in as <span id="profile-email" class="text-[#0056d2] font-medium"></span></p>
+        <section id="profile-strip" class="rounded-[28px] border border-[#e5e7eb] bg-white p-6 shadow-sm scroll-mt-28 space-y-6">
+          <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div class="flex items-start gap-4">
+              <div id="profile-avatar-large" class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#0b2247_0%,#1f4f8c_100%)] text-2xl font-black tracking-[0.08em] text-white shadow-sm">A</div>
+              <div class="min-w-0">
+                <p class="text-xs font-black uppercase tracking-[0.24em] text-[#0056d2]">Full Profile</p>
+                <h2 id="profile-full-name" class="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-900">Your profile</h2>
+                <div class="mt-3 flex flex-wrap items-center gap-2">
+                  <span id="profile-role-badge" class="rounded-full bg-[#e8f1fc] px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-[#0056d2]">Buyer</span>
+                  <span id="profile-created-at" class="text-sm text-slate-500">Member since —</span>
+                </div>
+                <p id="profile-email" class="mt-3 text-sm font-semibold text-[#0056d2] break-all"></p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button type="button" id="profile-edit-address-btn" class="rounded-xl border border-[#d6e4fb] bg-[#f8fbff] px-4 py-2.5 text-sm font-bold text-[#0056d2] hover:bg-[#e8f1fc]">Edit address</button>
+              <button type="button" id="profile-payments-btn" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">View payments</button>
+            </div>
+          </div>
+
+          <div class="grid gap-4 lg:grid-cols-3">
+            <div class="rounded-2xl border border-slate-200 bg-[#f8fbff] p-4">
+              <p class="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Contact</p>
+              <div class="mt-4 space-y-3 text-sm">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Phone</p>
+                  <p id="profile-phone" class="mt-1 font-semibold text-slate-900">—</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Email status</p>
+                  <p id="profile-email-status" class="mt-1 font-semibold text-slate-900">—</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Phone status</p>
+                  <p id="profile-phone-status" class="mt-1 font-semibold text-slate-900">—</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <p class="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Location</p>
+              <div class="mt-4 space-y-3 text-sm">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">City</p>
+                  <p id="profile-city" class="mt-1 font-semibold text-slate-900">—</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">State / region</p>
+                  <p id="profile-region" class="mt-1 font-semibold text-slate-900">—</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Pincode</p>
+                  <p id="profile-pincode" class="mt-1 font-semibold text-slate-900">—</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <p class="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Account</p>
+              <div class="mt-4 space-y-3 text-sm">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">User ID</p>
+                  <p id="profile-user-id" class="mt-1 font-semibold text-slate-900 break-all">—</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Referral code</p>
+                  <p id="profile-referral-code" class="mt-1 font-semibold text-slate-900">—</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Saved items</p>
+                  <p id="profile-saved-count" class="mt-1 font-semibold text-slate-900">0</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-5">
+            <p class="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Delivery address</p>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Address</p>
+                <p id="profile-address-text" class="mt-1 text-sm font-semibold leading-6 text-slate-900">—</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Landmark</p>
+                <p id="profile-landmark" class="mt-1 text-sm font-semibold leading-6 text-slate-900">—</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section id="address-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm scroll-mt-28">
           <h2 class="text-lg font-extrabold text-slate-900 mb-2">Address book</h2>
@@ -973,6 +1075,8 @@
     let lastRequests = [];
     let selectedRequestId = null;
     let ordersByRequestId = {};
+    let latestOrders = [];
+    let latestQuoteNotifications = [];
     const SHOPPING_HOME_GROUPS = [
       {
         id: "marketplace",
@@ -1143,6 +1247,24 @@
       return "₹" + Math.round(x).toLocaleString("en-IN");
     }
 
+    function profileInitials(name, email) {
+      const source = String(name || "").trim() || String(email || "").split("@")[0] || "U";
+      return source
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+    }
+
+    function formatProfileDate(raw) {
+      if (!raw) return "—";
+      const dt = new Date(raw);
+      if (Number.isNaN(dt.getTime())) return "—";
+      return dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    }
+
     async function loadReferralInfo() {
       try {
         const d = await api("GET", "/api/auth/referral/me");
@@ -1293,6 +1415,30 @@
       if (ws && city) ws.textContent = `Post your requirement and get the best quotes from trusted sellers in ${city}.`;
       const pe = document.getElementById("profile-email");
       if (pe) pe.textContent = me.user.email || "";
+      const pfn = document.getElementById("profile-full-name");
+      if (pfn) pfn.textContent = me.user.name || nmShort || "Your profile";
+      const prb = document.getElementById("profile-role-badge");
+      if (prb) prb.textContent = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Buyer";
+      const pca = document.getElementById("profile-created-at");
+      if (pca) pca.textContent = `Member since ${formatProfileDate(me.user.created_at)}`;
+      const pph = document.getElementById("profile-phone");
+      if (pph) pph.textContent = (me.user.phone || "").trim() || "Not added";
+      const pecs = document.getElementById("profile-email-status");
+      if (pecs) pecs.textContent = me.user.email_verified_at ? "Verified" : "Not verified";
+      const pphs = document.getElementById("profile-phone-status");
+      if (pphs) pphs.textContent = me.user.phone_verified_at ? "Verified" : "Not verified";
+      const pcity = document.getElementById("profile-city");
+      if (pcity) pcity.textContent = city || "Not added";
+      const preg = document.getElementById("profile-region");
+      if (preg) preg.textContent = region || "Not added";
+      const puid = document.getElementById("profile-user-id");
+      if (puid) puid.textContent = me.user.user_id || "—";
+      const prc = document.getElementById("profile-referral-code");
+      if (prc) prc.textContent = me.user.referral_code || "—";
+      const psc = document.getElementById("profile-saved-count");
+      if (psc) psc.textContent = String(me.user.saved_product_count != null ? me.user.saved_product_count : 0);
+      const pavatar = document.getElementById("profile-avatar-large");
+      if (pavatar) pavatar.textContent = profileInitials(me.user.name, me.user.email);
       const nm = document.getElementById("addr-name");
       if (nm) nm.value = (me.user.name || "").trim();
       const ph = document.getElementById("addr-phone");
@@ -1308,6 +1454,12 @@
       if (al) al.value = (loc.landmark || "").trim();
       const ap = document.getElementById("addr-pincode");
       if (ap) ap.value = (loc.pincode || "").trim();
+      const pat = document.getElementById("profile-address-text");
+      if (pat) pat.textContent = (loc.address_text || "").trim() || "Not added";
+      const plm = document.getElementById("profile-landmark");
+      if (plm) plm.textContent = (loc.landmark || "").trim() || "Not added";
+      const ppin = document.getElementById("profile-pincode");
+      if (ppin) ppin.textContent = (loc.pincode || "").trim() || "Not added";
       if (loc.lat != null && loc.lng != null) {
         setGpsFields(loc.lat, loc.lng, loc.accuracy_m);
       }
@@ -1683,15 +1835,7 @@
       } catch (_) {
         elS.textContent = "₹—";
       }
-      const nb = document.getElementById("notif-badge");
-      if (nb) {
-        const n = Math.min(99, qc + (activeReq > 0 ? 1 : 0));
-        if (n < 1) nb.classList.add("hidden");
-        else {
-          nb.classList.remove("hidden");
-          nb.textContent = String(n);
-        }
-      }
+      renderNotifications();
     }
 
     function timeAgo(iso) {
@@ -1704,6 +1848,106 @@
       if (s < 86400) return Math.floor(s / 3600) + " hr ago";
       if (s < 172800) return "Yesterday";
       return Math.floor(s / 86400) + " days ago";
+    }
+
+    function humanStatus(text) {
+      return String(text || "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (m) => m.toUpperCase())
+        .trim();
+    }
+
+    function getNotificationItems() {
+      const quoteItems = latestQuoteNotifications.map((q) => ({
+        id: `quote-${q.quote_id || Math.random()}`,
+        kind: "quote",
+        title: `New quote from ${q.shop_name || "Seller"}`,
+        body: `${q._reqName || "Your request"} · ${rupee(q.price)}`,
+        meta: q.created_at ? timeAgo(q.created_at) : "Quote update",
+        created_at: q.created_at || null,
+        sectionId: "requests-section",
+        requestId: q._requestId || null,
+      }));
+
+      const orderItems = latestOrders.map((o) => ({
+        id: `order-${o.order_id || Math.random()}`,
+        kind: "order",
+        title: o.summary || "Order update",
+        body: `${humanStatus(o.order_status || "placed")} · ${rupee(o.final_price)}`,
+        meta: o.created_at ? timeAgo(o.created_at) : "Order update",
+        created_at: o.created_at || null,
+        sectionId: "orders-section",
+        requestId: o.request_id || null,
+      }));
+
+      const requestItems = lastRequests
+        .filter((r) => String(r.status || "").toLowerCase() !== "closed")
+        .map((r) => ({
+          id: `request-${r.request_id || Math.random()}`,
+          kind: "request",
+          title: r.product_name || "Active request",
+          body: `${humanStatus(r.status || "open")} · Waiting for quotes`,
+          meta: r.created_at ? timeAgo(r.created_at) : "Request activity",
+          created_at: r.created_at || null,
+          sectionId: "requests-section",
+          requestId: r.request_id || null,
+        }));
+
+      return [...quoteItems, ...orderItems, ...requestItems]
+        .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+        .slice(0, 12);
+    }
+
+    function renderNotifications() {
+      const items = getNotificationItems();
+      const badge = document.getElementById("notif-badge");
+      const countLabel = document.getElementById("notif-count-label");
+      const list = document.getElementById("notif-list");
+      const empty = document.getElementById("notif-empty");
+      if (!badge || !countLabel || !list || !empty) return;
+
+      const n = Math.min(99, items.length);
+      if (n < 1) {
+        badge.classList.add("hidden");
+      } else {
+        badge.classList.remove("hidden");
+        badge.textContent = String(n);
+      }
+      countLabel.textContent = `${n} new`;
+      list.innerHTML = "";
+
+      if (!items.length) {
+        empty.classList.remove("hidden");
+        return;
+      }
+
+      empty.classList.add("hidden");
+      items.forEach((item) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className =
+          "notif-item w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-[#bfd6fa] hover:bg-[#f8fbff]";
+        row.setAttribute("data-section-id", item.sectionId || "");
+        row.setAttribute("data-request-id", item.requestId || "");
+        row.innerHTML =
+          `<div class="flex items-start gap-3">` +
+          `<span class="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.kind === "quote" ? "bg-[#e8f1fc] text-[#0056d2]" : item.kind === "order" ? "bg-violet-50 text-violet-700" : "bg-amber-50 text-amber-700"} text-sm font-black">` +
+          `${item.kind === "quote" ? "Q" : item.kind === "order" ? "O" : "R"}` +
+          `</span>` +
+          `<div class="min-w-0 flex-1">` +
+          `<div class="flex items-start justify-between gap-3">` +
+          `<p class="font-bold text-slate-900">${escapeHtml(item.title)}</p>` +
+          `<span class="shrink-0 text-[11px] font-semibold text-slate-400">${escapeHtml(item.meta)}</span>` +
+          `</div>` +
+          `<p class="mt-1 text-sm text-slate-600">${escapeHtml(item.body)}</p>` +
+          `</div>` +
+          `</div>`;
+        list.appendChild(row);
+      });
+    }
+
+    function closeNotifPanel() {
+      document.getElementById("notif-panel")?.classList.add("hidden");
     }
 
     function stepClass(on) {
@@ -1757,17 +2001,20 @@
       const box = document.getElementById("latest-quotes-list");
       if (!box) return;
       box.innerHTML = "";
+      latestQuoteNotifications = [];
       const pool = [];
       try {
         for (const r of lastRequests.filter((x) => String(x.status || "").toLowerCase() !== "closed").slice(0, 8)) {
           const q = await api("GET", "/api/quotes/request/" + encodeURIComponent(r.request_id));
-          if (Array.isArray(q)) q.forEach((item) => pool.push({ ...item, _reqName: r.product_name }));
+          if (Array.isArray(q)) q.forEach((item) => pool.push({ ...item, _reqName: r.product_name, _requestId: r.request_id }));
         }
       } catch (_) {}
       pool.sort((a, b) => Number(a.price) - Number(b.price));
       const pick = pool.slice(0, 6);
+      latestQuoteNotifications = pick;
       if (!pick.length) {
         box.innerHTML = '<p class="text-slate-500">No quotes yet. Post a request to receive offers.</p>';
+        renderNotifications();
         return;
       }
       pick.forEach((q, i) => {
@@ -1783,6 +2030,7 @@
       box.querySelectorAll(".choose-dash-q").forEach((btn) =>
         btn.addEventListener("click", () => placeOrder(btn.getAttribute("data-qid")))
       );
+      renderNotifications();
     }
 
     async function addToCart(productId) {
@@ -1865,13 +2113,16 @@
       const box = document.getElementById("orders-list");
       const dash = document.getElementById("orders-list-dash");
       ordersByRequestId = {};
+      latestOrders = [];
       try {
         const rows = await api("GET", "/api/orders/mine");
+        latestOrders = Array.isArray(rows) ? rows : [];
         box.innerHTML = "";
         if (dash) dash.innerHTML = "";
         if (!listCount(rows)) {
           box.innerHTML = '<p class="text-slate-500">No orders yet.</p>';
           if (dash) dash.innerHTML = '<p class="text-slate-500 text-sm">No orders yet.</p>';
+          renderNotifications();
           return;
         }
         rows.forEach((o) => {
@@ -2083,9 +2334,12 @@
             dash.appendChild(row);
           });
         }
+        renderNotifications();
       } catch (e) {
         box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
         if (dash) dash.innerHTML = "";
+        latestOrders = [];
+        renderNotifications();
       }
     }
 
@@ -2182,6 +2436,7 @@
           await paintActiveTracker();
           await updateKpis();
           await loadLatestQuotesPreview();
+          renderNotifications();
           return;
         }
         lastRequests.forEach((r) => {
@@ -2275,8 +2530,11 @@
         await paintActiveTracker();
         await updateKpis();
         await loadLatestQuotesPreview();
+        renderNotifications();
       } catch (e) {
         box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
+        lastRequests = [];
+        renderNotifications();
       }
     }
 
@@ -2499,10 +2757,31 @@
         e.stopPropagation();
         const act = el.getAttribute("data-action");
         closeProfileMenu();
-        if (act === "profile") document.getElementById("profile-strip")?.scrollIntoView({ behavior: "smooth" });
-        if (act === "address") document.getElementById("address-section")?.scrollIntoView({ behavior: "smooth" });
-        if (act === "payments") document.getElementById("payments-section")?.scrollIntoView({ behavior: "smooth" });
+        const sectionId =
+          act === "profile"
+            ? "profile-strip"
+            : act === "address"
+              ? "address-section"
+              : act === "payments"
+                ? "payments-section"
+                : "";
+        if (!sectionId) return;
+        if (typeof openUserSection === "function" && openUserSection(sectionId)) {
+          if (history && history.replaceState) history.replaceState(null, "", "#" + sectionId);
+          return;
+        }
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
+    });
+    document.getElementById("profile-edit-address-btn")?.addEventListener("click", () => {
+      if (typeof openUserSection === "function" && openUserSection("address-section")) {
+        if (history && history.replaceState) history.replaceState(null, "", "#address-section");
+      }
+    });
+    document.getElementById("profile-payments-btn")?.addEventListener("click", () => {
+      if (typeof openUserSection === "function" && openUserSection("payments-section")) {
+        if (history && history.replaceState) history.replaceState(null, "", "#payments-section");
+      }
     });
     document.addEventListener("click", (e) => {
       if (!profileMenu || profileMenu.classList.contains("hidden")) return;
@@ -2512,7 +2791,35 @@
 
     document.getElementById("notif-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      showToast("Quotes, orders, and delivery updates will appear here.", false);
+      const panel = document.getElementById("notif-panel");
+      if (!panel) return;
+      renderNotifications();
+      panel.classList.toggle("hidden");
+    });
+    document.getElementById("notif-list")?.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".notif-item");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      closeNotifPanel();
+      const sectionId = btn.getAttribute("data-section-id") || "";
+      const requestId = btn.getAttribute("data-request-id") || "";
+      if (sectionId && typeof openUserSection === "function") {
+        openUserSection(sectionId);
+        if (history && history.replaceState) history.replaceState(null, "", "#" + sectionId);
+      }
+      if (sectionId === "requests-section" && requestId) {
+        selectedRequestId = requestId;
+        paintRequestSelection();
+        await loadQuotesForRequest(requestId);
+      }
+    });
+    document.addEventListener("click", (e) => {
+      const panel = document.getElementById("notif-panel");
+      const btn = document.getElementById("notif-btn");
+      if (!panel || panel.classList.contains("hidden")) return;
+      if (panel.contains(e.target) || (btn && btn.contains(e.target))) return;
+      closeNotifPanel();
     });
     document.getElementById("requests-new-btn")?.addEventListener("click", () => {
       if (typeof openUserSection === "function") {
