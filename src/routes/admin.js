@@ -10,9 +10,229 @@ const AnalyticsEvent = require("../models/AnalyticsEvent");
 const Lead = require("../models/Lead");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest, formatOrder, formatDispute, formatSeller } = require("../lib/format");
+const { SELLER_KYC_DOC_KINDS, FIELD_SALES_REQUIRED_DOC_KINDS, MAX_DOC_CHARS, MAX_DOCS } = require("../lib/sellerKycDocs");
 const { sendMail } = require("../services/email");
 
 const router = express.Router();
+const SELLER_DOC_KIND_SET = new Set(SELLER_KYC_DOC_KINDS);
+const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/i;
+const IFSC_RE = /^[A-Z]{4}0[A-Z0-9]{6}$/i;
+const DOC_LABELS = {
+  shop_photo: "Shop photo",
+  gst_cert: "GST certificate",
+  aadhaar: "Aadhaar",
+  udyam: "Udyam",
+  pan: "PAN card",
+  government_id: "Government-issued ID",
+  proof_of_address: "Proof of address",
+  business_registration: "Business registration document",
+  banking_details: "Banking details",
+  other: "Other document",
+};
+
+function invalidInput(message) {
+  const err = new Error(message);
+  err.status = 400;
+  err.publicMessage = message;
+  return err;
+}
+
+function cleanText(value, max) {
+  return String(value == null ? "" : value).trim().slice(0, max);
+}
+
+function cleanUpper(value, max) {
+  return cleanText(value, max).toUpperCase();
+}
+
+function boolish(value) {
+  return value === true || value === "true" || value === 1 || value === "1" || value === "on";
+}
+
+function docLabel(kind) {
+  return DOC_LABELS[kind] || cleanText(kind, 40) || "Document";
+}
+
+function mapKycDocument(doc) {
+  return {
+    document_id: doc && doc._id ? String(doc._id) : "",
+    kind: doc && doc.kind ? doc.kind : "",
+    kind_label: docLabel(doc && doc.kind ? doc.kind : ""),
+    filename: doc && doc.filename ? doc.filename : "",
+    mime_type: doc && doc.mimeType ? doc.mimeType : "",
+    content: doc && doc.content ? doc.content : "",
+    uploaded_at: doc && doc.uploadedAt ? doc.uploadedAt : null,
+  };
+}
+
+function mapFieldReview(review) {
+  const r = review || {};
+  return {
+    collected_by_user_id: r.collectedByUser ? String(r.collectedByUser) : null,
+    collected_by_role: r.collectedByRole || "",
+    collected_by_name: r.collectedByName || "",
+    collected_at: r.collectedAt || null,
+    notes: r.notes || "",
+    aadhaar_last4: r.aadhaarLast4 || "",
+    pan_number: r.panNumber || "",
+    government_id_type: r.governmentIdType || "",
+    government_id_number: r.governmentIdNumber || "",
+    proof_of_address_type: r.proofOfAddressType || "",
+    proof_of_address_number: r.proofOfAddressNumber || "",
+    business_registration_type: r.businessRegistrationType || "",
+    business_registration_number: r.businessRegistrationNumber || "",
+    bank_account_holder: r.bankAccountHolder || "",
+    bank_ifsc: r.bankIfsc || "",
+    bank_account_number: r.bankAccountNumber || "",
+    aadhaar_matches_image: !!r.aadhaarMatchesImage,
+    pan_matches_image: !!r.panMatchesImage,
+    government_id_matches_image: !!r.governmentIdMatchesImage,
+    proof_of_address_matches_image: !!r.proofOfAddressMatchesImage,
+    business_registration_matches_image: !!r.businessRegistrationMatchesImage,
+    banking_details_match_image: !!r.bankingDetailsMatchImage,
+  };
+}
+
+function sanitizeKycDocuments(documents) {
+  if (!Array.isArray(documents)) {
+    throw invalidInput("documents must be an array");
+  }
+  const next = [];
+  for (const row of documents.slice(0, MAX_DOCS)) {
+    const kind = cleanText(row && row.kind ? row.kind : "", 40);
+    if (!SELLER_DOC_KIND_SET.has(kind)) {
+      throw invalidInput("Invalid document kind: " + kind);
+    }
+    const content = String(row && (row.data || row.content) ? row.data || row.content : "").trim();
+    if (!content) {
+      throw invalidInput(`Upload content is required for ${docLabel(kind)}`);
+    }
+    if (content.length > MAX_DOC_CHARS) {
+      throw invalidInput(`A ${docLabel(kind)} file is too large`);
+    }
+    next.push({
+      kind,
+      filename: cleanText(row && row.filename ? row.filename : "upload", 200),
+      mimeType: cleanText(row && (row.mime_type || row.mimeType) ? row.mime_type || row.mimeType : "application/octet-stream", 120),
+      content,
+      uploadedAt: new Date(),
+    });
+  }
+  return next;
+}
+
+function mergeFieldReview(existing, incoming, actor) {
+  const base = existing && typeof existing.toObject === "function" ? existing.toObject() : { ...(existing || {}) };
+  const src = incoming && typeof incoming === "object" ? incoming : {};
+  const textFields = [
+    ["notes", 2000, cleanText],
+    ["aadhaarLast4", 4, cleanText],
+    ["panNumber", 10, cleanUpper],
+    ["governmentIdType", 80, cleanText],
+    ["governmentIdNumber", 80, cleanText],
+    ["proofOfAddressType", 80, cleanText],
+    ["proofOfAddressNumber", 80, cleanText],
+    ["businessRegistrationType", 80, cleanText],
+    ["businessRegistrationNumber", 80, cleanText],
+    ["bankAccountHolder", 120, cleanText],
+    ["bankIfsc", 11, cleanUpper],
+    ["bankAccountNumber", 24, cleanText],
+  ];
+  const boolFields = [
+    "aadhaarMatchesImage",
+    "panMatchesImage",
+    "governmentIdMatchesImage",
+    "proofOfAddressMatchesImage",
+    "businessRegistrationMatchesImage",
+    "bankingDetailsMatchImage",
+  ];
+  let touched = false;
+  for (const [key, max, cleaner] of textFields) {
+    if (Object.prototype.hasOwnProperty.call(src, key)) {
+      base[key] = cleaner(src[key], max);
+      touched = true;
+    }
+  }
+  for (const key of boolFields) {
+    if (Object.prototype.hasOwnProperty.call(src, key)) {
+      base[key] = boolish(src[key]);
+      touched = true;
+    }
+  }
+  if (touched) {
+    base.collectedByUser = actor && actor._id ? actor._id : null;
+    base.collectedByRole = actor && actor.role ? actor.role : "";
+    base.collectedByName = cleanText((actor && (actor.name || actor.email)) || "", 120);
+    base.collectedAt = new Date();
+  }
+  return base;
+}
+
+function syncReviewedBankDetails(seller) {
+  const review = seller && seller.sellerKyc ? seller.sellerKyc.fieldReview : null;
+  if (!review) return;
+  const holder = cleanText(review.bankAccountHolder, 120);
+  const ifsc = cleanUpper(review.bankIfsc, 11);
+  const accountNumber = cleanText(review.bankAccountNumber, 24);
+  if (!holder && !ifsc && !accountNumber) return;
+  seller.sellerKyc.bankAccountHolder = holder;
+  seller.sellerKyc.bankIfsc = ifsc;
+  seller.sellerKyc.bankAccountNumber = accountNumber;
+  seller.sellerKyc.bankDetailsProvidedAt = new Date();
+}
+
+function validateFieldSalesApproval(seller) {
+  const kyc = seller && seller.sellerKyc ? seller.sellerKyc : {};
+  const review = kyc.fieldReview || {};
+  const docs = Array.isArray(kyc.documents) ? kyc.documents : [];
+  const docKinds = new Set(docs.map((doc) => String(doc && doc.kind ? doc.kind : "")));
+  const missingDocs = FIELD_SALES_REQUIRED_DOC_KINDS.filter((kind) => !docKinds.has(kind));
+  if (missingDocs.length) {
+    return `Upload these documents before approval: ${missingDocs.map(docLabel).join(", ")}`;
+  }
+  if (!/^\d{4}$/.test(String(review.aadhaarLast4 || ""))) {
+    return "Enter Aadhaar last 4 digits";
+  }
+  if (!PAN_RE.test(String(review.panNumber || ""))) {
+    return "Enter a valid PAN number";
+  }
+  if (!cleanText(review.governmentIdType, 80)) {
+    return "Enter the government-issued ID type";
+  }
+  if (!cleanText(review.governmentIdNumber, 80)) {
+    return "Enter the government-issued ID number";
+  }
+  if (!cleanText(review.proofOfAddressType, 80)) {
+    return "Enter the proof of address type";
+  }
+  if (!cleanText(review.businessRegistrationType, 80)) {
+    return "Enter the business registration document type";
+  }
+  if (!cleanText(review.businessRegistrationNumber, 80)) {
+    return "Enter the business registration number";
+  }
+  if (!cleanText(review.bankAccountHolder, 120)) {
+    return "Enter the bank account holder name";
+  }
+  if (!IFSC_RE.test(String(review.bankIfsc || ""))) {
+    return "Enter a valid IFSC code";
+  }
+  if (cleanText(review.bankAccountNumber, 24).length < 5) {
+    return "Enter a valid bank account number";
+  }
+  const confirmations = [
+    ["aadhaarMatchesImage", "Aadhaar"],
+    ["panMatchesImage", "PAN card"],
+    ["governmentIdMatchesImage", "Government-issued ID"],
+    ["proofOfAddressMatchesImage", "Proof of address"],
+    ["businessRegistrationMatchesImage", "Business registration"],
+    ["bankingDetailsMatchImage", "Banking details"],
+  ].filter(([key]) => !review[key]);
+  if (confirmations.length) {
+    return `Confirm the document match checks for: ${confirmations.map((row) => row[1]).join(", ")}`;
+  }
+  return "";
+}
 
 /** Read-only pipeline counts — shared with field sales portal. */
 /** Shopkeepers waiting for eKYC (field visit or document review). */
@@ -40,6 +260,7 @@ router.get("/seller-kyc/pending", requireAuth, requireRole("admin", "sales"), as
         document_count: Array.isArray(kyc.documents) ? kyc.documents.length : 0,
         submitted_at: kyc.submittedAt || null,
         salesman_requested_at: kyc.salesmanRequestedAt || null,
+        review_started_at: kyc.fieldReview && kyc.fieldReview.collectedAt ? kyc.fieldReview.collectedAt : null,
         gst_checksum_ok: Boolean(kyc.gstinChecksumOk),
         gst_registry_active: Boolean(kyc.gstRegistryActive),
         digilocker_linked: Boolean(kyc.digilockerLinkedAt),
@@ -54,17 +275,89 @@ router.get("/seller-kyc/pending", requireAuth, requireRole("admin", "sales"), as
   }
 });
 
+router.get("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales"), async (req, res, next) => {
+  try {
+    const sid = req.params.sellerId;
+    if (!mongoose.isValidObjectId(sid)) {
+      return res.status(400).json({ error: "Invalid seller id" });
+    }
+    const seller = await Seller.findById(sid).populate("user", "name email phone city region createdAt").lean();
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+    const user = seller.user && typeof seller.user === "object" ? seller.user : null;
+    const kyc = seller.sellerKyc || {};
+    const liveDocs = Array.isArray(kyc.documents) ? kyc.documents.map(mapKycDocument) : [];
+    return res.json({
+      seller: formatSeller(seller),
+      owner: {
+        name: user ? user.name || "" : "",
+        email: user ? user.email || "" : "",
+        phone: user ? user.phone || "" : "",
+        city: user ? user.city || "" : "",
+        region: user ? user.region || "" : "",
+        created_at: user ? user.createdAt || null : null,
+      },
+      kyc: {
+        status: kyc.status || "awaiting_path",
+        path: kyc.path || "",
+        gst_number: kyc.gstNumber || "",
+        submitted_at: kyc.submittedAt || null,
+        verified_at: kyc.verifiedAt || null,
+        salesman_requested_at: kyc.salesmanRequestedAt || null,
+        rejected_reason: kyc.rejectedReason || "",
+        document_count: liveDocs.length,
+        documents: liveDocs,
+        business: {
+          locality: kyc.locality || "",
+          service_areas: Array.isArray(kyc.serviceAreas) ? kyc.serviceAreas : [],
+          offers_delivery: kyc.offersDelivery !== false,
+          completed_at: kyc.businessDetailsCompletedAt || null,
+        },
+        bank: {
+          account_holder: kyc.bankAccountHolder || "",
+          ifsc: kyc.bankIfsc || "",
+          account_number: kyc.bankAccountNumber || "",
+          saved_at: kyc.bankDetailsProvidedAt || null,
+        },
+        field_review: mapFieldReview(kyc.fieldReview),
+        live: {
+          gst_checksum_ok: Boolean(kyc.gstinChecksumOk),
+          gst_checksum_checked_at: kyc.gstinChecksumCheckedAt || null,
+          gst_registry_active: Boolean(kyc.gstRegistryActive),
+          gst_registry_legal_name: kyc.gstRegistryLegalName || "",
+          gst_registry_checked_at: kyc.gstRegistryCheckedAt || null,
+          gst_registry_warning: kyc.gstRegistryWarning || "",
+          digilocker_linked_at: kyc.digilockerLinkedAt || null,
+          digilocker_issued_synced_at: kyc.digilockerIssuedSyncedAt || null,
+          digilocker_issued_docs: Array.isArray(kyc.digilockerIssuedItems)
+            ? kyc.digilockerIssuedItems.map((row) => {
+                const { uri: _uri, ...rest } = row || {};
+                return rest;
+              })
+            : [],
+        },
+      },
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.patch("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales"), async (req, res, next) => {
   try {
     const sid = req.params.sellerId;
     if (!mongoose.isValidObjectId(sid)) {
       return res.status(400).json({ error: "Invalid seller id" });
     }
-    const { action, rejection_reason } = req.body || {};
-    if (!["verify", "reject"].includes(action)) {
-      return res.status(400).json({ error: "action must be verify or reject" });
+    const { action, rejection_reason, review, documents } = req.body || {};
+    if (!["save_review", "verify", "reject"].includes(action)) {
+      return res.status(400).json({ error: "action must be save_review, verify, or reject" });
     }
-    const seller = await Seller.findById(sid).populate("user", "name email");
+    const [seller, actor] = await Promise.all([
+      Seller.findById(sid).populate("user", "name email phone"),
+      User.findById(req.user.id).select("name email role").lean(),
+    ]);
     if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
     }
@@ -72,24 +365,52 @@ router.patch("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales")
       seller.sellerKyc = {};
     }
     const st = seller.sellerKyc.status;
+    if (documents !== undefined) {
+      seller.sellerKyc.documents = sanitizeKycDocuments(documents);
+    }
+    if (review && typeof review === "object") {
+      seller.sellerKyc.fieldReview = mergeFieldReview(seller.sellerKyc.fieldReview, review, actor);
+      syncReviewedBankDetails(seller);
+    }
+    if (action === "save_review") {
+      if (!["salesman_pending", "submitted"].includes(st)) {
+        return res.status(400).json({ error: "Only pending seller eKYC records can be updated" });
+      }
+      await seller.save();
+      return res.json({
+        seller: formatSeller(seller.toObject ? seller.toObject() : seller),
+        field_review: mapFieldReview(seller.sellerKyc.fieldReview),
+        document_count: Array.isArray(seller.sellerKyc.documents) ? seller.sellerKyc.documents.length : 0,
+        message: "Field review saved",
+      });
+    }
     if (action === "verify") {
       if (!["submitted", "salesman_pending"].includes(st)) {
         return res.status(400).json({ error: "Seller is not in a state that can be verified from the queue" });
       }
+      if (seller.sellerKyc.path === "salesman") {
+        const validationMessage = validateFieldSalesApproval(seller);
+        if (validationMessage) {
+          return res.status(400).json({ error: validationMessage });
+        }
+      }
       seller.isVerified = true;
       seller.sellerKyc.status = "verified";
       seller.sellerKyc.verifiedAt = new Date();
+      seller.sellerKyc.submittedAt = seller.sellerKyc.submittedAt || new Date();
       seller.sellerKyc.rejectedReason = "";
+      syncReviewedBankDetails(seller);
       await seller.save();
       const u = seller.user;
       const email = u && u.email;
       if (email) {
         try {
+          const loginUrl = `${String(process.env.PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "")}/login.html?role=seller`;
           await sendMail({
             to: email,
-            subject: "Your Bachat shop verification is complete",
-            text: `Hi ${(u && u.name) || ""},\n\nYour shop eKYC / business verification on Bachat is approved. You can now sign in and use the full Shopkeeper dashboard.\n\n— Bachat`,
-            html: `<p>Hi ${(u && u.name) || "there"},</p><p>Your <strong>shop eKYC / business verification</strong> on Bachat is <strong>approved</strong>. You can now sign in and use the full Shopkeeper dashboard.</p><p>— Bachat</p>`,
+            subject: "You are verified now — Bachat Shopkeeper",
+            text: `Hi ${(u && u.name) || ""},\n\nYour shop verification is approved. You are verified now, and you can log in to Bachat as a shopkeeper.\n\nLogin: ${loginUrl}\n\n— Bachat`,
+            html: `<p>Hi ${(u && u.name) || "there"},</p><p>Your <strong>shop verification</strong> is approved.</p><p><strong>You are verified now, and you can log in as a shopkeeper.</strong></p><p><a href="${loginUrl}">Log in to Bachat</a></p><p>— Bachat</p>`,
           });
         } catch (e) {
           console.error("[seller-kyc-verify-mail]", e.message || e);
@@ -126,6 +447,9 @@ router.patch("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales")
     }
     return res.json({ seller: formatSeller(seller.toObject()), message: "Rejected" });
   } catch (err) {
+    if (err && err.status) {
+      return res.status(err.status).json({ error: err.publicMessage || err.message });
+    }
     return next(err);
   }
 });

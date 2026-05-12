@@ -14,121 +14,591 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <h1 class="text-2xl font-extrabold">Seller eKYC queue</h1>
-        <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/seller-kyc/pending</code> · Approve after field visit or document review.</p>
-        <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
-        <div class="mt-6 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
-          <table class="w-full text-sm text-left min-w-[1080px]">
-            <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
-              <tr>
-                <th class="px-4 py-3">Shop</th>
-                <th class="px-4 py-3">Owner</th>
-                <th class="px-4 py-3">Path</th>
-                <th class="px-4 py-3">Status</th>
-                <th class="px-4 py-3">Docs</th>
-                <th class="px-4 py-3">Live checks</th>
-                <th class="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
-          </table>
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-2xl font-extrabold">Seller eKYC queue</h1>
+            <p class="text-slate-500 text-sm mt-1">Review pending shop verifications, upload field-visit documents, fill ID values, and approve from one place.</p>
+          </div>
+          <button type="button" id="btn-refresh" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Refresh</button>
+        </div>
+
+        <p id="err" class="hidden mb-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
+        <p id="ok" class="hidden mb-4 text-sm text-green-800 bg-green-50 border border-green-100 rounded-xl px-4 py-3"></p>
+
+        <div class="grid xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)] gap-6">
+          <section class="rounded-xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+            <div class="px-4 lg:px-6 py-4 border-b border-[#e5e7eb] flex flex-wrap items-center gap-3 justify-between">
+              <div>
+                <h2 class="font-bold text-slate-900">Pending verification queue</h2>
+                <p class="text-xs text-slate-500 mt-1">Includes field-visit requests and direct uploads under review.</p>
+              </div>
+              <div class="text-xs font-semibold text-slate-500">
+                <span id="queue-count">0</span> pending
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left min-w-[880px]">
+                <thead class="bg-[#f8f9fb] text-xs font-bold text-slate-500 uppercase border-b border-[#e5e7eb]">
+                  <tr>
+                    <th class="px-4 py-3">Shop</th>
+                    <th class="px-4 py-3">Owner</th>
+                    <th class="px-4 py-3">Path</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Docs</th>
+                    <th class="px-4 py-3">Review</th>
+                    <th class="px-4 py-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody" class="divide-y divide-[#e5e7eb]"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+            <div class="px-5 py-4 border-b border-[#e5e7eb]">
+              <h2 class="font-bold text-slate-900">Verify eKYC</h2>
+              <p class="text-xs text-slate-500 mt-1">Open one seller, compare the uploaded images manually, then save or approve.</p>
+            </div>
+            <div id="detail-empty" class="px-5 py-10 text-sm text-slate-500">
+              Select a seller from the queue to start the eKYC review.
+            </div>
+            <div id="detail-shell" class="hidden">
+              <div class="px-5 py-4 border-b border-[#e5e7eb] bg-slate-50/70">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <p id="shop-title" class="text-lg font-extrabold text-slate-900"></p>
+                    <p id="shop-meta" class="text-sm text-slate-500 mt-1"></p>
+                  </div>
+                  <div class="text-right text-xs text-slate-500">
+                    <p>Status: <span id="kyc-status" class="font-bold text-slate-700"></span></p>
+                    <p class="mt-1">Path: <span id="kyc-path" class="font-bold text-slate-700"></span></p>
+                  </div>
+                </div>
+                <div class="mt-3 grid sm:grid-cols-2 gap-3 text-xs text-slate-600">
+                  <div class="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <p class="font-bold text-slate-700">Owner</p>
+                    <p id="owner-name" class="mt-1"></p>
+                    <p id="owner-email"></p>
+                    <p id="owner-phone"></p>
+                  </div>
+                  <div class="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <p class="font-bold text-slate-700">Business</p>
+                    <p id="owner-location" class="mt-1"></p>
+                    <p id="owner-locality"></p>
+                    <p id="owner-service-areas"></p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-5 space-y-6">
+                <div class="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+                  Manual verification only. Sales must compare the typed values with the uploaded images before approval.
+                </div>
+
+                <div class="rounded-xl border border-slate-200">
+                  <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                    <h3 class="font-bold text-slate-900">Document packet</h3>
+                    <p class="text-xs text-slate-500 mt-1">Upload or replace the latest images from the field visit. PDFs and images are both supported.</p>
+                  </div>
+                  <div id="doc-grid" class="p-4 grid gap-4"></div>
+                </div>
+
+                <div class="rounded-xl border border-slate-200">
+                  <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                    <h3 class="font-bold text-slate-900">Field verification form</h3>
+                    <p class="text-xs text-slate-500 mt-1">Required for field-visit approvals. Direct upload reviews can use this optionally.</p>
+                  </div>
+                  <form id="review-form" class="p-4 space-y-4">
+                    <div class="grid md:grid-cols-2 gap-4">
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Aadhaar last 4</span>
+                        <input id="review-aadhaar" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" maxlength="4" inputmode="numeric" />
+                      </label>
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">PAN number</span>
+                        <input id="review-pan" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase" maxlength="10" />
+                      </label>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Government-issued ID type</span>
+                        <input id="review-gov-type" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Driving Licence / Voter ID / Passport" />
+                      </label>
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Government-issued ID number</span>
+                        <input id="review-gov-number" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                      </label>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Proof of address type</span>
+                        <input id="review-address-type" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Electricity bill / Rental agreement" />
+                      </label>
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Proof of address number</span>
+                        <input id="review-address-number" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Optional reference number" />
+                      </label>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Business registration type</span>
+                        <input id="review-reg-type" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="GST / Udyam / Shop Act / Trade licence" />
+                      </label>
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Business registration number</span>
+                        <input id="review-reg-number" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                      </label>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-4">
+                      <label class="block md:col-span-1">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Bank account holder</span>
+                        <input id="review-bank-holder" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                      </label>
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">IFSC</span>
+                        <input id="review-bank-ifsc" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase" maxlength="11" />
+                      </label>
+                      <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Account number</span>
+                        <input id="review-bank-account" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                      </label>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <p class="text-xs font-bold text-slate-500 uppercase">Manual document match confirmation</p>
+                      <div class="mt-3 grid sm:grid-cols-2 gap-3 text-sm">
+                        <label class="flex items-center gap-2"><input type="checkbox" id="chk-aadhaar" class="rounded border-slate-300" /> Aadhaar matches image</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" id="chk-pan" class="rounded border-slate-300" /> PAN matches image</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" id="chk-gov" class="rounded border-slate-300" /> Government ID matches image</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" id="chk-address" class="rounded border-slate-300" /> Proof of address matches image</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" id="chk-reg" class="rounded border-slate-300" /> Business registration matches image</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" id="chk-bank" class="rounded border-slate-300" /> Banking details match image</label>
+                      </div>
+                    </div>
+
+                    <label class="block">
+                      <span class="text-xs font-bold text-slate-500 uppercase">Notes</span>
+                      <textarea id="review-notes" rows="3" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Field visit notes, missing items, storefront observations..."></textarea>
+                    </label>
+                  </form>
+                </div>
+
+                <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+                  <p class="font-bold text-slate-700">Live checks</p>
+                  <p id="live-checks" class="mt-1"></p>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                  <button type="button" id="btn-save-review" class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Save review draft</button>
+                  <button type="button" id="btn-approve" class="rounded-xl bg-green-600 text-white px-4 py-2.5 text-sm font-bold hover:bg-green-700">Approve and notify seller</button>
+                  <button type="button" id="btn-reject" class="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700 hover:bg-red-100">Reject</button>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
     </div>
   </div>
+
   <script src="/js/bachat-admin-shell.js"></script>
   <script src="/js/bachat-admin-runtime.js"></script>
   <script>
     (function () {
+      var DOC_FIELDS = [
+        { kind: "aadhaar", label: "Aadhaar", requiredForSalesman: true },
+        { kind: "pan", label: "PAN card", requiredForSalesman: true },
+        { kind: "government_id", label: "Government-issued ID", requiredForSalesman: true },
+        { kind: "proof_of_address", label: "Proof of address", requiredForSalesman: true },
+        { kind: "business_registration", label: "Business registration document", requiredForSalesman: true },
+        { kind: "banking_details", label: "Banking details", requiredForSalesman: true },
+        { kind: "shop_photo", label: "Shop photo", requiredForSalesman: false },
+        { kind: "gst_cert", label: "GST certificate", requiredForSalesman: false },
+        { kind: "udyam", label: "Udyam document", requiredForSalesman: false },
+        { kind: "other", label: "Other document", requiredForSalesman: false }
+      ];
+
+      var state = {
+        items: [],
+        currentId: "",
+        detail: null,
+      };
+
       function esc(s) {
         var t = document.createElement("div");
         t.textContent = s == null ? "" : String(s);
         return t.innerHTML;
       }
-      async function patch(id, action) {
-        var err = document.getElementById("err");
-        err.classList.add("hidden");
-        var body = { action: action };
-        if (action === "reject") {
-          var reason = window.prompt("Rejection reason for the seller email:", "Please resubmit clearer documents.");
-          if (reason === null) return;
-          body.rejection_reason = reason;
-        }
-        var res = await BachatAdminRuntime.adminFetch("/api/admin/seller-kyc/" + encodeURIComponent(id), {
-          method: "PATCH",
-          headers: BachatAdminRuntime.authHeaders(),
-          body: JSON.stringify(body),
-        });
-        var d = await res.json().catch(function () {
-          return {};
-        });
-        if (!res.ok) {
-          err.textContent = d.error || "Failed";
-          err.classList.remove("hidden");
-          return;
-        }
-        await load();
+
+      function showErr(msg) {
+        var el = document.getElementById("err");
+        el.textContent = msg;
+        el.classList.remove("hidden");
       }
-      async function load() {
-        var err = document.getElementById("err");
-        var res = await BachatAdminRuntime.adminFetch("/api/admin/seller-kyc/pending", { headers: BachatAdminRuntime.authHeaders() });
-        var data = await res.json().catch(function () {
-          return {};
-        });
-        var tb = document.getElementById("tbody");
-        tb.innerHTML = "";
-        if (!res.ok) {
-          err.textContent = data.error || "Failed to load";
-          err.classList.remove("hidden");
-          return;
+
+      function hideErr() {
+        document.getElementById("err").classList.add("hidden");
+      }
+
+      function showOk(msg) {
+        var el = document.getElementById("ok");
+        el.textContent = msg;
+        el.classList.remove("hidden");
+        setTimeout(function () {
+          el.classList.add("hidden");
+        }, 4500);
+      }
+
+      function formatWhen(iso) {
+        if (!iso) return "—";
+        try {
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return esc(String(iso));
+          return esc(
+            d.toLocaleString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          );
+        } catch (e) {
+          return esc(String(iso));
         }
-        if (!(data.items && data.items.length)) {
-          tb.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">No pending seller verifications.</td></tr>';
-          return;
+      }
+
+      function kindDoc(kind) {
+        var docs = state.detail && state.detail.kyc && Array.isArray(state.detail.kyc.documents)
+          ? state.detail.kyc.documents
+          : [];
+        for (var i = 0; i < docs.length; i += 1) {
+          if (docs[i].kind === kind) return docs[i];
         }
-        data.items.forEach(function (row) {
-          var tr = document.createElement("tr");
-          tr.className = "hover:bg-[#f8f9fb]";
-          tr.innerHTML =
-            "<td class=\"px-4 py-3 font-semibold\">" +
-            esc(row.shop_name) +
-            "<p class=\"text-xs text-slate-500 font-normal\">" +
-            esc(row.city) +
-            ", " +
-            esc(row.region) +
-            "</p></td><td class=\"px-4 py-3 text-xs\">" +
-            esc(row.owner_name) +
-            "<br/><span class=\"text-slate-500\">" +
-            esc(row.owner_email) +
-            "</span><br/>" +
-            esc(row.owner_phone) +
-            "</td><td class=\"px-4 py-3\">" +
-            esc(row.kyc_path || "—") +
-            "</td><td class=\"px-4 py-3 font-mono text-xs\">" +
-            esc(row.kyc_status) +
-            "</td><td class=\"px-4 py-3\">" +
-            String(row.document_count || 0) +
-            "</td><td class=\"px-4 py-3 text-xs leading-relaxed\">" +
-            (row.gst_checksum_ok ? "<span class=\"text-green-700 font-semibold\">GST✓</span> " : "<span class=\"text-slate-400\">GST —</span> ") +
-            (row.gst_registry_active ? "<span class=\"text-green-700 font-semibold\">Reg✓</span> " : "<span class=\"text-slate-400\">Reg —</span> ") +
-            (row.digilocker_linked ? "<span class=\"text-blue-700 font-semibold\">DL</span>" : "<span class=\"text-slate-400\">DL —</span>") +
-            "</td><td class=\"px-4 py-3 space-x-2\"><button type=\"button\" data-a=\"verify\" data-id=\"" +
-            esc(row.seller_id) +
-            "\" class=\"text-xs font-bold text-white bg-green-600 rounded-lg px-3 py-1.5 hover:bg-green-700\">Approve</button> " +
-            "<button type=\"button\" data-a=\"reject\" data-id=\"" +
-            esc(row.seller_id) +
-            "\" class=\"text-xs font-bold text-red-700 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50\">Reject</button></td>";
-          tb.appendChild(tr);
+        return null;
+      }
+
+      function previewHtml(doc) {
+        if (!doc || !doc.content) {
+          return '<div class="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-5 text-center text-xs text-slate-400">No file uploaded</div>';
+        }
+        if (String(doc.content).indexOf("data:image/") === 0) {
+          return '<img src="' + esc(doc.content) + '" alt="" class="h-28 w-full object-cover rounded-lg border border-slate-200 bg-slate-50" />';
+        }
+        return (
+          '<a href="' +
+          esc(doc.content) +
+          '" target="_blank" rel="noopener" class="flex h-28 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-[#0056d2] hover:underline">Open ' +
+          esc(doc.filename || "document") +
+          "</a>"
+        );
+      }
+
+      function readFileAsDataUrl(file) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            resolve(reader.result);
+          };
+          reader.onerror = function () {
+            reject(new Error("Could not read file"));
+          };
+          reader.readAsDataURL(file);
         });
-        tb.querySelectorAll("button[data-a]").forEach(function (b) {
-          b.addEventListener("click", function () {
-            patch(b.getAttribute("data-id"), b.getAttribute("data-a"));
+      }
+
+      function setDoc(kind, payload) {
+        if (!state.detail || !state.detail.kyc) return;
+        if (!Array.isArray(state.detail.kyc.documents)) state.detail.kyc.documents = [];
+        var next = [];
+        var replaced = false;
+        state.detail.kyc.documents.forEach(function (doc) {
+          if (doc.kind === kind && !replaced) {
+            next.push(payload);
+            replaced = true;
+          } else if (doc.kind !== kind) {
+            next.push(doc);
+          }
+        });
+        if (!replaced) next.push(payload);
+        state.detail.kyc.documents = next;
+      }
+
+      function collectReviewPayload() {
+        return {
+          aadhaarLast4: document.getElementById("review-aadhaar").value.trim(),
+          panNumber: document.getElementById("review-pan").value.trim().toUpperCase(),
+          governmentIdType: document.getElementById("review-gov-type").value.trim(),
+          governmentIdNumber: document.getElementById("review-gov-number").value.trim(),
+          proofOfAddressType: document.getElementById("review-address-type").value.trim(),
+          proofOfAddressNumber: document.getElementById("review-address-number").value.trim(),
+          businessRegistrationType: document.getElementById("review-reg-type").value.trim(),
+          businessRegistrationNumber: document.getElementById("review-reg-number").value.trim(),
+          bankAccountHolder: document.getElementById("review-bank-holder").value.trim(),
+          bankIfsc: document.getElementById("review-bank-ifsc").value.trim().toUpperCase(),
+          bankAccountNumber: document.getElementById("review-bank-account").value.trim(),
+          notes: document.getElementById("review-notes").value.trim(),
+          aadhaarMatchesImage: document.getElementById("chk-aadhaar").checked,
+          panMatchesImage: document.getElementById("chk-pan").checked,
+          governmentIdMatchesImage: document.getElementById("chk-gov").checked,
+          proofOfAddressMatchesImage: document.getElementById("chk-address").checked,
+          businessRegistrationMatchesImage: document.getElementById("chk-reg").checked,
+          bankingDetailsMatchImage: document.getElementById("chk-bank").checked,
+        };
+      }
+
+      function fillReviewForm() {
+        var review = state.detail && state.detail.kyc ? state.detail.kyc.field_review || {} : {};
+        var bank = state.detail && state.detail.kyc ? state.detail.kyc.bank || {} : {};
+        document.getElementById("review-aadhaar").value = review.aadhaar_last4 || "";
+        document.getElementById("review-pan").value = review.pan_number || "";
+        document.getElementById("review-gov-type").value = review.government_id_type || "";
+        document.getElementById("review-gov-number").value = review.government_id_number || "";
+        document.getElementById("review-address-type").value = review.proof_of_address_type || "";
+        document.getElementById("review-address-number").value = review.proof_of_address_number || "";
+        document.getElementById("review-reg-type").value = review.business_registration_type || "";
+        document.getElementById("review-reg-number").value = review.business_registration_number || "";
+        document.getElementById("review-bank-holder").value = review.bank_account_holder || bank.account_holder || "";
+        document.getElementById("review-bank-ifsc").value = review.bank_ifsc || bank.ifsc || "";
+        document.getElementById("review-bank-account").value = review.bank_account_number || bank.account_number || "";
+        document.getElementById("review-notes").value = review.notes || "";
+        document.getElementById("chk-aadhaar").checked = !!review.aadhaar_matches_image;
+        document.getElementById("chk-pan").checked = !!review.pan_matches_image;
+        document.getElementById("chk-gov").checked = !!review.government_id_matches_image;
+        document.getElementById("chk-address").checked = !!review.proof_of_address_matches_image;
+        document.getElementById("chk-reg").checked = !!review.business_registration_matches_image;
+        document.getElementById("chk-bank").checked = !!review.banking_details_match_image;
+      }
+
+      function renderDocGrid() {
+        var grid = document.getElementById("doc-grid");
+        grid.innerHTML = "";
+        var path = state.detail && state.detail.kyc ? state.detail.kyc.path : "";
+        DOC_FIELDS.forEach(function (field) {
+          var doc = kindDoc(field.kind);
+          var wrap = document.createElement("div");
+          wrap.className = "rounded-xl border border-slate-200 p-3";
+          wrap.innerHTML =
+            '<div class="flex items-start justify-between gap-2">' +
+            '<div><p class="text-sm font-bold text-slate-900">' + esc(field.label) + '</p>' +
+            '<p class="text-[11px] text-slate-500 mt-1">' +
+            (field.requiredForSalesman && path === "salesman" ? "Required for field-sales approval" : "Optional") +
+            "</p></div>" +
+            '<label class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0056d2] cursor-pointer hover:bg-slate-50">Upload' +
+            '<input type="file" data-kind="' + esc(field.kind) + '" class="hidden doc-input" accept="image/*,.pdf" />' +
+            "</label></div>" +
+            '<div class="mt-3">' + previewHtml(doc) + "</div>" +
+            '<p class="mt-2 text-[11px] text-slate-500">' +
+            (doc ? esc(doc.filename || "Uploaded") + " · " + esc(doc.kind_label || field.label) : "No document yet") +
+            "</p>";
+          grid.appendChild(wrap);
+        });
+        grid.querySelectorAll("input.doc-input").forEach(function (input) {
+          input.addEventListener("change", async function () {
+            var file = input.files && input.files[0];
+            if (!file) return;
+            hideErr();
+            try {
+              var content = await readFileAsDataUrl(file);
+              setDoc(input.getAttribute("data-kind"), {
+                kind: input.getAttribute("data-kind"),
+                kind_label: "",
+                filename: file.name,
+                mime_type: file.type || "application/octet-stream",
+                content: content,
+                uploaded_at: new Date().toISOString(),
+              });
+              renderDocGrid();
+              showOk("Document attached locally. Save review draft or approve to upload it.");
+            } catch (e) {
+              showErr(e.message || "Upload failed");
+            }
           });
         });
       }
+
+      function renderDetail() {
+        var empty = document.getElementById("detail-empty");
+        var shell = document.getElementById("detail-shell");
+        if (!state.detail) {
+          empty.classList.remove("hidden");
+          shell.classList.add("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+        shell.classList.remove("hidden");
+        var seller = state.detail.seller || {};
+        var owner = state.detail.owner || {};
+        var kyc = state.detail.kyc || {};
+        document.getElementById("shop-title").textContent = seller.shop_name || "Unnamed shop";
+        document.getElementById("shop-meta").textContent = (owner.email || "—") + " · " + (owner.phone || "—");
+        document.getElementById("kyc-status").textContent = kyc.status || "—";
+        document.getElementById("kyc-path").textContent = kyc.path || "—";
+        document.getElementById("owner-name").textContent = owner.name || "—";
+        document.getElementById("owner-email").textContent = owner.email || "—";
+        document.getElementById("owner-phone").textContent = owner.phone || "—";
+        document.getElementById("owner-location").textContent = (seller.city || "—") + ", " + (seller.region || "—");
+        document.getElementById("owner-locality").textContent = "Locality: " + ((kyc.business && kyc.business.locality) || "—");
+        document.getElementById("owner-service-areas").textContent =
+          "Service areas: " +
+          (((kyc.business && kyc.business.service_areas) || []).length
+            ? kyc.business.service_areas.join(", ")
+            : "—");
+        document.getElementById("live-checks").textContent =
+          "GST checksum " +
+          ((kyc.live && kyc.live.gst_checksum_ok) ? "passed" : "not confirmed") +
+          " · GST registry " +
+          ((kyc.live && kyc.live.gst_registry_active) ? "active" : "not confirmed") +
+          " · DigiLocker " +
+          ((kyc.live && kyc.live.digilocker_linked_at) ? "linked" : "not linked");
+        fillReviewForm();
+        renderDocGrid();
+      }
+
+      async function loadList(keepCurrent) {
+        hideErr();
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/seller-kyc/pending", {
+          headers: BachatAdminRuntime.authHeaders(),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) {
+          showErr(data.error || "Failed to load queue");
+          return;
+        }
+        state.items = data.items || [];
+        document.getElementById("queue-count").textContent = state.items.length;
+        var tb = document.getElementById("tbody");
+        tb.innerHTML = "";
+        if (!state.items.length) {
+          tb.innerHTML = '<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">No pending seller verifications.</td></tr>';
+          state.currentId = "";
+          state.detail = null;
+          renderDetail();
+          return;
+        }
+        state.items.forEach(function (row) {
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-[#f8f9fb] " + (state.currentId === row.seller_id ? "bg-blue-50/70" : "");
+          tr.innerHTML =
+            '<td class="px-4 py-3 font-semibold text-slate-900">' + esc(row.shop_name) +
+            '<p class="text-xs text-slate-500 font-normal mt-1">' + esc(row.city || "—") + ", " + esc(row.region || "—") + "</p></td>" +
+            '<td class="px-4 py-3 text-xs text-slate-600">' + esc(row.owner_name || "—") +
+            '<p class="text-slate-500 mt-1">' + esc(row.owner_email || "—") + "</p></td>" +
+            '<td class="px-4 py-3 text-xs"><span class="rounded-full bg-slate-100 px-2 py-1 font-bold text-slate-700">' + esc(row.kyc_path || "—") + "</span></td>" +
+            '<td class="px-4 py-3 font-mono text-xs">' + esc(row.kyc_status || "—") + "</td>" +
+            '<td class="px-4 py-3 text-xs">' + String(row.document_count || 0) + "</td>" +
+            '<td class="px-4 py-3 text-xs text-slate-500">' + (row.review_started_at ? "Started " + formatWhen(row.review_started_at) : "Not started") + "</td>" +
+            '<td class="px-4 py-3"><button type="button" data-open="' + esc(row.seller_id) + '" class="rounded-lg bg-[#0056d2] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0046b0]">Open</button></td>';
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll("button[data-open]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            loadDetail(btn.getAttribute("data-open"));
+          });
+        });
+        if (keepCurrent && state.currentId) {
+          var stillThere = state.items.some(function (row) { return row.seller_id === state.currentId; });
+          if (!stillThere) {
+            state.currentId = "";
+            state.detail = null;
+            renderDetail();
+          }
+          return;
+        }
+        if (!state.currentId && state.items.length) {
+          await loadDetail(state.items[0].seller_id, true);
+        }
+      }
+
+      async function loadDetail(sellerId, silent) {
+        hideErr();
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/seller-kyc/" + encodeURIComponent(sellerId), {
+          headers: BachatAdminRuntime.authHeaders(),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) {
+          if (!silent) showErr(data.error || "Failed to load seller detail");
+          return;
+        }
+        state.currentId = sellerId;
+        state.detail = data;
+        renderDetail();
+        await loadList(true);
+      }
+
+      async function submitAction(action) {
+        if (!state.currentId || !state.detail) return;
+        hideErr();
+        var payload = {
+          action: action,
+          review: collectReviewPayload(),
+        };
+        if (Array.isArray(state.detail.kyc.documents)) {
+          payload.documents = state.detail.kyc.documents.map(function (doc) {
+            return {
+              kind: doc.kind,
+              filename: doc.filename,
+              mime_type: doc.mime_type || doc.mimeType,
+              content: doc.content,
+            };
+          });
+        }
+        if (action === "reject") {
+          var existingReason = state.detail.kyc && state.detail.kyc.rejected_reason ? state.detail.kyc.rejected_reason : "";
+          var reason = window.prompt("Rejection reason for the seller email:", existingReason || "Please resubmit clearer documents.");
+          if (reason === null) return;
+          payload.rejection_reason = reason;
+        }
+        var res = await BachatAdminRuntime.adminFetch("/api/admin/seller-kyc/" + encodeURIComponent(state.currentId), {
+          method: "PATCH",
+          headers: BachatAdminRuntime.authHeaders(),
+          body: JSON.stringify(payload),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) {
+          showErr(data.error || "Failed to save");
+          return;
+        }
+        if (action === "verify") {
+          showOk("Seller verified and notification email sent.");
+          state.currentId = "";
+          state.detail = null;
+          renderDetail();
+          await loadList(false);
+          return;
+        }
+        if (action === "reject") {
+          showOk("Seller rejected and notification email sent.");
+          state.currentId = "";
+          state.detail = null;
+          renderDetail();
+          await loadList(false);
+          return;
+        }
+        showOk(data.message || "Review saved.");
+        await loadList(true);
+        await loadDetail(state.currentId, true);
+      }
+
       (async function () {
         if (!(await BachatAdminRuntime.guardOpsPage(["admin", "sales"]))) return;
-        await load();
+        document.getElementById("btn-refresh").addEventListener("click", function () {
+          loadList(true);
+        });
+        document.getElementById("btn-save-review").addEventListener("click", function () {
+          submitAction("save_review");
+        });
+        document.getElementById("btn-approve").addEventListener("click", function () {
+          submitAction("verify");
+        });
+        document.getElementById("btn-reject").addEventListener("click", function () {
+          submitAction("reject");
+        });
+        await loadList(false);
       })();
     })();
   </script>

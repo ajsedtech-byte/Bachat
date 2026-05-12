@@ -369,7 +369,11 @@
       const el = document.getElementById("toast");
       el.textContent = text;
       el.classList.remove("hidden", "border-blue-200", "bg-blue-50", "text-blue-950", "border-red-200", "bg-red-50", "text-red-800");
-      el.classList.add(isErr ? "border-red-200 bg-red-50 text-red-800" : "border-blue-200 bg-blue-50 text-blue-950");
+      if (isErr) {
+        el.classList.add("border-red-200", "bg-red-50", "text-red-800");
+      } else {
+        el.classList.add("border-blue-200", "bg-blue-50", "text-blue-950");
+      }
       clearTimeout(showToast._t);
       showToast._t = setTimeout(() => el.classList.add("hidden"), 4500);
     }

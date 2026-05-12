@@ -225,12 +225,26 @@ router.post("/register", async (req, res, next) => {
 
       await ensureReferralCodeBestEffort(User, createdUser);
 
-      await sendMail({
-        to: createdUser.email,
-        subject: "Verify your email – Bachat",
-        text: `Your verification code is: ${code}\nIt expires in 15 minutes.`,
-        html: `<p>Your verification code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 15 minutes.</p>`,
-      });
+      try {
+        await sendMail({
+          to: createdUser.email,
+          subject: "Verify your email – Bachat",
+          text: `Your verification code is: ${code}\nIt expires in 15 minutes.`,
+          html: `<p>Your verification code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 15 minutes.</p>`,
+        });
+      } catch (mailErr) {
+        return res.status(mailErr.status || 503).json(
+          withDevOtp(
+            {
+              error:
+                "Your account was created, but we could not send the verification email right now. Please try again in a few minutes.",
+              user_id: String(createdUser._id),
+              email: createdUser.email,
+            },
+            code
+          )
+        );
+      }
 
       return res.status(201).json(
         withDevOtp(
@@ -881,12 +895,26 @@ router.post("/delivery/register", async (req, res, next) => {
         purpose: "email_verify",
         expiresAt,
       });
-    await sendMail({
-      to: createdUser.email,
-      subject: "Verify your email – Bachat delivery",
-      text: `Your verification code is: ${code}\nIt expires in 15 minutes.`,
-      html: `<p>Your verification code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 15 minutes.</p>`,
-    });
+    try {
+      await sendMail({
+        to: createdUser.email,
+        subject: "Verify your email – Bachat delivery",
+        text: `Your verification code is: ${code}\nIt expires in 15 minutes.`,
+        html: `<p>Your verification code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 15 minutes.</p>`,
+      });
+    } catch (mailErr) {
+      return res.status(mailErr.status || 503).json(
+        withDevOtp(
+          {
+            error:
+              "Your delivery account was created, but we could not send the verification email right now. Please try again in a few minutes.",
+            user_id: String(createdUser._id),
+            email: createdUser.email,
+          },
+          code
+        )
+      );
+    }
 
     return res.status(201).json(
       withDevOtp(

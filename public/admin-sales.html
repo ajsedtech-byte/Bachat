@@ -182,6 +182,7 @@
       }
 
       var searchTimer;
+      var refreshTimer;
 
       async function loadKycPendingCount() {
         var el = document.getElementById("kpi-kyc");
@@ -403,6 +404,13 @@
           } catch (x) {
             showErr(err, x.message || "Error");
           }
+        });
+
+        refreshTimer = setInterval(function () {
+          refreshAll();
+        }, 30000);
+        window.addEventListener("beforeunload", function () {
+          if (refreshTimer) clearInterval(refreshTimer);
         });
       })();
     })();

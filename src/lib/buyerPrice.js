@@ -1,31 +1,49 @@
 const crypto = require("crypto");
 
-const MIN_MARKUP = 0.05;
-const MAX_MARKUP = 0.07;
+const PRICE_MARKUP_BANDS = Object.freeze([
+  { maxBasePrice: 300, minMarkup: 0.15, maxMarkup: 0.25 },
+  { maxBasePrice: 500, minMarkup: 0.12, maxMarkup: 0.22 },
+  { maxBasePrice: 1000, minMarkup: 0.12, maxMarkup: 0.2 },
+  { maxBasePrice: Infinity, minMarkup: 0.1, maxMarkup: 0.18 },
+]);
+
+function markupBandForPrice(basePrice) {
+  const base = Number(basePrice);
+  if (!Number.isFinite(base) || base <= 0) {
+    return PRICE_MARKUP_BANDS[0];
+  }
+  return PRICE_MARKUP_BANDS.find((band) => base <= band.maxBasePrice) || PRICE_MARKUP_BANDS[PRICE_MARKUP_BANDS.length - 1];
+}
 
 /**
- * Stable pseudo-random markup in [5%, 7%] per product (server secret).
+ * Stable pseudo-random markup inside the configured band for the seller price.
  * Used only when shaping buyer-facing prices — never exposed in API fields.
  */
 function markupRateForProduct(productId, secret) {
+  return markupRateForPriceBand(0, productId, secret);
+}
+
+function markupRateForPriceBand(sellerPrice, productId, secret) {
   const h = crypto.createHash("sha256").update(`${secret}:${String(productId)}`).digest();
   const n = h.readUInt32BE(0) / 0xffffffff;
-  return MIN_MARKUP + n * (MAX_MARKUP - MIN_MARKUP);
+  const band = markupBandForPrice(sellerPrice);
+  return band.minMarkup + n * (band.maxMarkup - band.minMarkup);
 }
 
 function buyerDisplayPrice(sellerPrice, productId) {
   const secret = process.env.PRICE_MARKUP_SECRET || "bachat_dev_markup_change_me";
   const base = Number(sellerPrice);
   if (!Number.isFinite(base) || base <= 0) return 0;
-  const m = markupRateForProduct(productId, secret);
+  const m = markupRateForPriceBand(base, productId, secret);
   return Math.ceil(base * (1 + m));
 }
 
-/** Upper bound buyer list price at max markup (for “savings vs worst-case markup” KPI). */
+/** Upper bound buyer list price at the max markup for that price band. */
 function buyerMaxListedPrice(sellerPrice) {
   const base = Number(sellerPrice);
   if (!Number.isFinite(base) || base <= 0) return 0;
-  return Math.ceil(base * (1 + MAX_MARKUP));
+  const band = markupBandForPrice(base);
+  return Math.ceil(base * (1 + band.maxMarkup));
 }
 
-module.exports = { buyerDisplayPrice, markupRateForProduct, buyerMaxListedPrice };
+module.exports = { buyerDisplayPrice, markupRateForProduct, buyerMaxListedPrice, markupBandForPrice };

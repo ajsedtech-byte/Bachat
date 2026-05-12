@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { CATEGORIES } = require("../lib/categories");
+const { SELLER_KYC_DOC_KINDS } = require("../lib/sellerKycDocs");
 
 /** DigiLocker issued-document row (URI never exposed to clients). */
 const digilockerIssuedItemSchema = new mongoose.Schema(
@@ -20,7 +21,7 @@ const sellerKycDocumentSchema = new mongoose.Schema(
   {
     kind: {
       type: String,
-      enum: ["shop_photo", "gst_cert", "aadhaar", "udyam", "pan", "other"],
+      enum: SELLER_KYC_DOC_KINDS,
       required: true,
     },
     filename: { type: String, default: "", trim: true, maxlength: 200 },
@@ -30,6 +31,34 @@ const sellerKycDocumentSchema = new mongoose.Schema(
     uploadedAt: { type: Date, default: () => new Date() },
   },
   { _id: true }
+);
+
+const sellerFieldReviewSchema = new mongoose.Schema(
+  {
+    collectedByUser: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    collectedByRole: { type: String, enum: ["", "admin", "sales"], default: "" },
+    collectedByName: { type: String, default: "", trim: true, maxlength: 120 },
+    collectedAt: { type: Date, default: null },
+    notes: { type: String, default: "", trim: true, maxlength: 2000 },
+    aadhaarLast4: { type: String, default: "", trim: true, maxlength: 4 },
+    panNumber: { type: String, default: "", trim: true, uppercase: true, maxlength: 10 },
+    governmentIdType: { type: String, default: "", trim: true, maxlength: 80 },
+    governmentIdNumber: { type: String, default: "", trim: true, maxlength: 80 },
+    proofOfAddressType: { type: String, default: "", trim: true, maxlength: 80 },
+    proofOfAddressNumber: { type: String, default: "", trim: true, maxlength: 80 },
+    businessRegistrationType: { type: String, default: "", trim: true, maxlength: 80 },
+    businessRegistrationNumber: { type: String, default: "", trim: true, maxlength: 80 },
+    bankAccountHolder: { type: String, default: "", trim: true, maxlength: 120 },
+    bankIfsc: { type: String, default: "", trim: true, uppercase: true, maxlength: 11 },
+    bankAccountNumber: { type: String, default: "", trim: true, maxlength: 24 },
+    aadhaarMatchesImage: { type: Boolean, default: false },
+    panMatchesImage: { type: Boolean, default: false },
+    governmentIdMatchesImage: { type: Boolean, default: false },
+    proofOfAddressMatchesImage: { type: Boolean, default: false },
+    businessRegistrationMatchesImage: { type: Boolean, default: false },
+    bankingDetailsMatchImage: { type: Boolean, default: false },
+  },
+  { _id: false }
 );
 
 const sellerKycSchema = new mongoose.Schema(
@@ -56,6 +85,7 @@ const sellerKycSchema = new mongoose.Schema(
     bankIfsc: { type: String, default: "", trim: true, maxlength: 11 },
     bankAccountNumber: { type: String, default: "", trim: true, maxlength: 24 },
     bankDetailsProvidedAt: { type: Date, default: null },
+    fieldReview: { type: sellerFieldReviewSchema, default: undefined },
     /** DigiLocker (Meri Pehchaan) — same OAuth keys as delivery; metadata only unless file fetch enabled. */
     digilockerLinkedAt: { type: Date, default: null },
     digilockerIssuedSyncedAt: { type: Date, default: null },

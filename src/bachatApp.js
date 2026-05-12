@@ -105,7 +105,10 @@ app.use(express.static(publicDir));
 app.use((err, _req, res, _next) => {
   console.error(err);
   const status = err.status || 500;
-  const message = err.message || "Internal Server Error";
+  const isServerError = status >= 500;
+  const message = isServerError
+    ? err.publicMessage || "Internal Server Error"
+    : err.publicMessage || err.message || "Request failed";
   res.status(status).json({ error: message });
 });
 

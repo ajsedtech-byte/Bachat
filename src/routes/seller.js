@@ -7,13 +7,12 @@ const { formatSeller } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
 const { validateGstinChecksum } = require("../lib/gstinValidate");
 const { gstRegistryLookupHttp } = require("../lib/gstRegistryLookup");
+const { SELLER_KYC_DOC_KINDS, MAX_DOC_CHARS, MAX_DOCS } = require("../lib/sellerKycDocs");
 const { sendMail } = require("../services/email");
 
 const router = express.Router();
 
-const DOC_KINDS = new Set(["shop_photo", "gst_cert", "aadhaar", "udyam", "pan", "other"]);
-const MAX_DOC_CHARS = 900000;
-const MAX_DOCS = 6;
+const DOC_KINDS = new Set(SELLER_KYC_DOC_KINDS);
 
 function round2(x) {
   return Math.round(Number(x) * 100) / 100;
