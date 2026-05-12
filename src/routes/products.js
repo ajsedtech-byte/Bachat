@@ -16,6 +16,18 @@ function badRequest(res, msg) {
   return res.status(400).json({ error: msg });
 }
 
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function exactCiRegex(value) {
+  return new RegExp(`^${escapeRegExp(String(value || "").trim())}$`, "i");
+}
+
+function normText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 async function sellerForUser(userId) {
   return Seller.findOne({ user: userId });
 }
@@ -76,7 +88,12 @@ router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, r
     const category = req.query.category ? String(req.query.category).trim() : "";
     const q = req.query.q ? String(req.query.q).trim() : "";
 
-    const sellers = await Seller.find({ city, region }).select("_id shopName city region").lean();
+    const sellers = await Seller.find({
+      city: exactCiRegex(city),
+      region: exactCiRegex(region),
+    })
+      .select("_id shopName city region isVerified")
+      .lean();
     const sellerIds = sellers.map((s) => s._id);
     if (!sellerIds.length) {
       return res.json({ items: [] });
@@ -114,7 +131,12 @@ router.get("/catalog/nearby-shop-categories", requireAuth, requireRole("buyer", 
       return badRequest(res, "Set your city and region on your profile to browse local items.");
     }
 
-    const sellers = await Seller.find({ city, region }).select("categories category").lean();
+    const sellers = await Seller.find({
+      city: exactCiRegex(city),
+      region: exactCiRegex(region),
+    })
+      .select("categories category")
+      .lean();
     const bag = new Set();
     for (const s of sellers) {
       for (const c of sellerCategoryList(s)) {
@@ -145,7 +167,7 @@ router.get("/catalog/:productId", requireAuth, requireRole("buyer", "admin"), as
     if (!doc) return res.status(404).json({ error: "Not found" });
 
     const seller = await Seller.findById(doc.seller).lean();
-    if (!seller || seller.city !== city || seller.region !== region) {
+    if (!seller || normText(seller.city) !== normText(city) || normText(seller.region) !== normText(region)) {
       return res.status(404).json({ error: "Not found" });
     }
 
