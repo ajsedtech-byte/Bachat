@@ -10,9 +10,84 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    html, body {
+      overflow-x: hidden;
+    }
+
     @media (min-width: 1200px) {
       html {
-        font-size: 75%;
+        font-size: 65%;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1199px) {
+      html {
+        font-size: 87.5%;
+      }
+    }
+
+    @media (max-width: 767px) {
+      #shopping-home > div:first-child,
+      #shopping-home > div:nth-child(2),
+      #shopping-home > div:nth-child(3),
+      #dashboard-home > div:nth-child(2),
+      #dashboard-home > div:nth-child(4),
+      #dashboard-home > div:nth-child(5) {
+        border-radius: 24px;
+      }
+
+      #shopping-home > div:first-child,
+      #shopping-home > div:nth-child(2),
+      #shopping-home > div:nth-child(3),
+      #dashboard-home > div:nth-child(2),
+      #dashboard-home > div:nth-child(4),
+      #dashboard-home > div:nth-child(5),
+      #catalog-grid > article,
+      #shopping-home-shop-grid > article,
+      #shopping-home-lanes > button,
+      #shopping-home-sections > section {
+        box-shadow: 0 16px 40px -32px rgba(15, 23, 42, 0.28);
+      }
+
+      #shopping-home h1 {
+        font-size: 2.5rem !important;
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+      }
+
+      #shopping-home > div:first-child > .relative,
+      #shopping-home > div:nth-child(3) {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      #shopping-home-shop-grid,
+      #catalog-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #shopping-home,
+      #dashboard-home {
+        gap: 1.25rem;
+      }
+
+      #shopping-home > div:first-child,
+      #shopping-home > div:nth-child(2),
+      #shopping-home > div:nth-child(3),
+      #dashboard-home > div:nth-child(2),
+      #dashboard-home > div:nth-child(4),
+      #dashboard-home > div:nth-child(5) {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+
+      #shopping-home .sm\:grid-cols-3,
+      #shopping-home .sm\:grid-cols-2,
+      #dashboard-home .grid-cols-2,
+      #catalog-grid,
+      #shopping-home-shop-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
       }
     }
   </style>
