@@ -5,7 +5,7 @@ const Seller = require("../models/Seller");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
-const { CATEGORY_SET, sellerCategoryList } = require("../lib/categories");
+const { CATEGORY_SET, canonicalCategory, sellerCategoryList } = require("../lib/categories");
 const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
 
 const router = express.Router();
@@ -85,7 +85,7 @@ router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, r
       return badRequest(res, "Set your city and region on your profile to browse local items.");
     }
 
-    const category = req.query.category ? String(req.query.category).trim() : "";
+    const category = req.query.category ? canonicalCategory(req.query.category) : "";
     const q = req.query.q ? String(req.query.q).trim() : "";
 
     const sellers = await Seller.find({
@@ -101,7 +101,7 @@ router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, r
 
     const filter = { seller: { $in: sellerIds }, isActive: true };
     if (category && ALLOWED_CATEGORIES.has(category)) {
-      filter.category = category;
+      filter.category = exactCiRegex(category);
     }
     if (q) {
       const esc = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -203,7 +203,8 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
     if (!title || !category || price == null) {
       return badRequest(res, "title, category, and price are required");
     }
-    if (!ALLOWED_CATEGORIES.has(String(category).trim())) {
+    const canonical = canonicalCategory(category);
+    if (!canonical || !ALLOWED_CATEGORIES.has(canonical)) {
       return badRequest(res, "Invalid category");
     }
     const sellerPrice = Number(price);
@@ -220,7 +221,7 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
       seller: seller._id,
       title: String(title).trim().slice(0, 200),
       description: String(description || "").slice(0, 8000),
-      category: String(category).trim(),
+      category: canonical,
       images: imgs,
       sellerPrice,
       isActive: true,
@@ -247,8 +248,8 @@ router.patch("/:productId", requireAuth, requireRole("seller"), requireSellerTra
     if (title != null) doc.title = String(title).trim().slice(0, 200);
     if (description != null) doc.description = String(description).slice(0, 8000);
     if (category != null) {
-      const c = String(category).trim();
-      if (!ALLOWED_CATEGORIES.has(c)) return badRequest(res, "Invalid category");
+      const c = canonicalCategory(category);
+      if (!c || !ALLOWED_CATEGORIES.has(c)) return badRequest(res, "Invalid category");
       doc.category = c;
     }
     if (images != null) {

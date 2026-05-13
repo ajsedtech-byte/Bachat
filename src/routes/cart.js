@@ -12,6 +12,10 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
+function normText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 async function getOrCreateCart(userId) {
   let cart = await Cart.findOne({ user: userId });
   if (!cart) cart = await Cart.create({ user: userId, items: [] });
@@ -78,7 +82,7 @@ router.post("/items", async (req, res, next) => {
     if (!city || !region) {
       return badRequest(res, "Set your city and region on your profile to add local items.");
     }
-    if (!seller || seller.city !== city || seller.region !== region) {
+    if (!seller || normText(seller.city) !== normText(city) || normText(seller.region) !== normText(region)) {
       return res.status(400).json({ error: "This product is not available in your current city." });
     }
 

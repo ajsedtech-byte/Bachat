@@ -825,6 +825,59 @@ function sortedUnique(arr) {
   return out;
 }
 
+function cleanLocationText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function titleWord(word) {
+  if (!word) return word;
+  if (/^\d+$/.test(word)) return word;
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+function humanizeLocationLabel(value) {
+  const clean = cleanLocationText(value);
+  if (!clean) return "";
+  return clean
+    .split(" ")
+    .map((part) => part.split("-").map(titleWord).join("-"))
+    .join(" ");
+}
+
+const regionMap = new Map(
+  Object.keys(citiesByState).map((region) => [cleanLocationText(region).toLowerCase(), region])
+);
+
+const cityMapByRegion = new Map(
+  Object.entries(citiesByState).map(([region, cities]) => [
+    region,
+    new Map(sortedUnique(cities).map((city) => [cleanLocationText(city).toLowerCase(), city])),
+  ])
+);
+
+function canonicalRegionName(region) {
+  const clean = cleanLocationText(region);
+  if (!clean) return "";
+  return regionMap.get(clean.toLowerCase()) || humanizeLocationLabel(clean);
+}
+
+function canonicalCityName(region, city) {
+  const clean = cleanLocationText(city);
+  if (!clean) return "";
+  const canonicalRegion = canonicalRegionName(region);
+  const cityMap = cityMapByRegion.get(canonicalRegion);
+  if (cityMap) {
+    return cityMap.get(clean.toLowerCase()) || humanizeLocationLabel(clean);
+  }
+  return humanizeLocationLabel(clean);
+}
+
+function normalizeIndiaRegionCity(region, city) {
+  const canonicalRegion = canonicalRegionName(region);
+  const canonicalCity = canonicalCityName(canonicalRegion || region, city);
+  return { region: canonicalRegion, city: canonicalCity };
+}
+
 function getIndiaStatesCities() {
   const citiesByStateSorted = {};
   for (const [st, cities] of Object.entries(citiesByState)) {
@@ -834,4 +887,10 @@ function getIndiaStatesCities() {
   return { states, citiesByState: citiesByStateSorted };
 }
 
-module.exports = { getIndiaStatesCities, citiesByState };
+module.exports = {
+  getIndiaStatesCities,
+  citiesByState,
+  canonicalRegionName,
+  canonicalCityName,
+  normalizeIndiaRegionCity,
+};

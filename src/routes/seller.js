@@ -5,6 +5,7 @@ const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatSeller } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
+const { normalizeIndiaRegionCity } = require("../lib/indiaLocations");
 const { validateGstinChecksum } = require("../lib/gstinValidate");
 const { gstRegistryLookupHttp } = require("../lib/gstRegistryLookup");
 const { SELLER_KYC_DOC_KINDS, MAX_DOC_CHARS, MAX_DOCS } = require("../lib/sellerKycDocs");
@@ -203,8 +204,9 @@ router.post("/kyc/business-details", requireAuth, requireRole("seller"), async (
     if (!nextCats.length) {
       return badRequest(res, "Select at least one business category");
     }
-    const c = String(city || "").trim();
-    const r = String(region || "").trim();
+    const normalizedPlace = normalizeIndiaRegionCity(region, city);
+    const c = normalizedPlace.city || String(city || "").trim();
+    const r = normalizedPlace.region || String(region || "").trim();
     if (!c || !r) {
       return badRequest(res, "city and region are required");
     }

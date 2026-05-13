@@ -22,6 +22,10 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
+function normText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 function requireValidPlace(res, label, place) {
   if (!place || place.lat == null || place.lng == null) {
     badRequest(res, `${label}.lat and ${label}.lng are required`);
@@ -172,7 +176,7 @@ router.post(
           }
 
           const seller = await Seller.findById(sellerIds[0]).session(session);
-          if (!seller || seller.city !== city || seller.region !== region) {
+          if (!seller || normText(seller.city) !== normText(city) || normText(seller.region) !== normText(region)) {
             throw Object.assign(new Error("Those items are not available in your delivery area."), {
               status: 400,
             });

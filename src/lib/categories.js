@@ -79,6 +79,17 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_SET = new Set(CATEGORIES);
+const CATEGORY_MAP = new Map(
+  CATEGORIES.map((category) => [String(category || "").trim().toLowerCase(), category])
+);
+
+function categoryKey(input) {
+  return String(input || "").trim().toLowerCase();
+}
+
+function canonicalCategory(input) {
+  return CATEGORY_MAP.get(categoryKey(input)) || null;
+}
 
 /**
  * Normalize client input to a unique list of allowed category strings.
@@ -99,8 +110,8 @@ function normalizeSellerCategories(input) {
   const out = [];
   const seen = new Set();
   for (const c of arr) {
-    const t = String(c || "").trim();
-    if (!t || !CATEGORY_SET.has(t) || seen.has(t)) continue;
+    const t = canonicalCategory(c);
+    if (!t || seen.has(t)) continue;
     seen.add(t);
     out.push(t);
   }
@@ -112,10 +123,11 @@ function sellerCategoryList(sellerDoc) {
   if (!sellerDoc) return [];
   const o = sellerDoc.toObject ? sellerDoc.toObject() : sellerDoc;
   if (Array.isArray(o.categories) && o.categories.length) {
-    return o.categories.filter((c) => CATEGORY_SET.has(String(c)));
+    return o.categories.map(canonicalCategory).filter(Boolean);
   }
-  if (o.category && CATEGORY_SET.has(String(o.category))) {
-    return [String(o.category)];
+  const legacy = canonicalCategory(o.category);
+  if (legacy) {
+    return [legacy];
   }
   return [];
 }
@@ -123,6 +135,7 @@ function sellerCategoryList(sellerDoc) {
 module.exports = {
   CATEGORIES,
   CATEGORY_SET,
+  canonicalCategory,
   normalizeSellerCategories,
   sellerCategoryList,
 };

@@ -10,6 +10,7 @@ const { generateSixDigitCode, hashOtp, verifyOtp } = require("../utils/otp");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatUser, formatSeller, maskEmail } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
+const { normalizeIndiaRegionCity } = require("../lib/indiaLocations");
 const { ensureReferralCode } = require("../lib/referralCode");
 const { normalizePreciseLocation, inIndiaBounds } = require("../lib/location");
 const { normalizePhone10India, maskPhoneIndia } = require("../lib/phone");
@@ -136,7 +137,9 @@ router.post("/register", async (req, res, next) => {
         return badRequest(res, "shop_name and at least one valid shop category are required for sellers");
       }
     }
-
+    const normalizedPlace = normalizeIndiaRegionCity(region, city);
+    const nextCity = normalizedPlace.city || String(city).trim();
+    const nextRegion = normalizedPlace.region || String(region).trim();
     const normalizedEmail = String(email).toLowerCase().trim();
     const passwordHash = await bcrypt.hash(password, 10);
     const code = generateSixDigitCode();
@@ -171,8 +174,8 @@ router.post("/register", async (req, res, next) => {
         user.name = name;
         user.phone = phone10;
         user.phoneVerifiedAt = null;
-        user.city = city;
-        user.region = region;
+        user.city = nextCity;
+        user.region = nextRegion;
         user.role = role;
         user.referredBy = referredById || null;
         await user.save();
@@ -183,8 +186,8 @@ router.post("/register", async (req, res, next) => {
           name,
           phone: phone10,
           phoneVerifiedAt: null,
-          city,
-          region,
+          city: nextCity,
+          region: nextRegion,
           role,
           referredBy: referredById || undefined,
         });
@@ -199,8 +202,8 @@ router.post("/register", async (req, res, next) => {
               shopName: shop_name,
               categories: sellerCategories,
               category: sellerCategories[0],
-              city,
-              region,
+              city: nextCity,
+              region: nextRegion,
               isVerified: false,
               sellerKyc: {
                 status: "awaiting_path",
@@ -764,8 +767,17 @@ router.patch("/profile", requireAuth, async (req, res, next) => {
       if (next) user.phone = next;
       else if (String(phone).trim() === "") user.phone = "";
     }
-    if (city != null) user.city = String(city).trim() || user.city;
-    if (region != null) user.region = String(region).trim() || user.region;
+    if (city != null || region != null) {
+      const normalizedPlace = normalizeIndiaRegionCity(region != null ? region : user.region, city != null ? city : user.city);
+      if (city != null) {
+        const nextCity = normalizedPlace.city || String(city).trim();
+        if (nextCity) user.city = nextCity;
+      }
+      if (region != null) {
+        const nextRegion = normalizedPlace.region || String(region).trim();
+        if (nextRegion) user.region = nextRegion;
+      }
+    }
     if (location != null) {
       const loc = normalizePreciseLocation(location);
       if (loc.lat == null || loc.lng == null) {
@@ -848,6 +860,9 @@ router.post("/delivery/register", async (req, res, next) => {
       return badRequest(res, "Valid 10-digit Indian mobile number is required");
     }
 
+    const normalizedPlace = normalizeIndiaRegionCity(region, city);
+    const nextCity = normalizedPlace.city || String(city).trim();
+    const nextRegion = normalizedPlace.region || String(region).trim();
     const normalizedEmail = String(email).toLowerCase().trim();
     const passwordHash = await bcrypt.hash(password, 10);
     const code = generateSixDigitCode();
@@ -871,8 +886,8 @@ router.post("/delivery/register", async (req, res, next) => {
         user.name = name;
         user.phone = phone10;
         user.phoneVerifiedAt = null;
-        user.city = city;
-        user.region = region;
+        user.city = nextCity;
+        user.region = nextRegion;
         if (!user.deliveryKyc) user.deliveryKyc = { status: "not_started" };
         await user.save();
       } else {
@@ -882,8 +897,8 @@ router.post("/delivery/register", async (req, res, next) => {
           name,
           phone: phone10,
           phoneVerifiedAt: null,
-          city,
-          region,
+          city: nextCity,
+          region: nextRegion,
           role: "delivery",
           deliveryKyc: { status: "not_started" },
         });

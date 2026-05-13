@@ -6,7 +6,7 @@ const User = require("../models/User");
 const Order = require("../models/Order");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest } = require("../lib/format");
-const { CATEGORY_SET, sellerCategoryList } = require("../lib/categories");
+const { CATEGORY_SET, canonicalCategory, sellerCategoryList } = require("../lib/categories");
 const { recordEvent } = require("../lib/analytics");
 const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
 
@@ -16,14 +16,22 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function exactCiRegex(value) {
+  return new RegExp(`^${escapeRegExp(String(value || "").trim())}$`, "i");
+}
+
 router.post("/", requireAuth, requireRole("buyer"), async (req, res, next) => {
   try {
     const { category, product_name, specifications, budget } = req.body || {};
     if (!category || !product_name) {
       return badRequest(res, "category and product_name are required");
     }
-    const cat = String(category).trim();
-    if (!CATEGORY_SET.has(cat)) return badRequest(res, "Invalid category");
+    const cat = canonicalCategory(category);
+    if (!cat || !CATEGORY_SET.has(cat)) return badRequest(res, "Invalid category");
 
     const user = await User.findById(req.user.id).lean();
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -67,9 +75,9 @@ router.get("/seller/open", requireAuth, requireRole("seller"), requireSellerTrad
 
     const rows = await Request.find({
       status: { $in: ["open", "quoted"] },
-      city: seller.city,
-      region: seller.region,
-      category: { $in: [...sellerCats] },
+      city: exactCiRegex(seller.city),
+      region: exactCiRegex(seller.region),
+      category: { $in: [...sellerCats, ...[...sellerCats].map((cat) => exactCiRegex(cat))] },
     })
       .sort({ createdAt: -1 })
       .limit(150)

@@ -1261,9 +1261,15 @@
     function shoppingGroupForCategory(category) {
       const cat = String(category || "").trim();
       return (
-        SHOPPING_HOME_GROUPS.find((group) => group.categories.includes(cat)) ||
+        SHOPPING_HOME_GROUPS.find((group) =>
+          group.categories.some((entry) => String(entry || "").trim().toLowerCase() === cat.toLowerCase())
+        ) ||
         SHOPPING_HOME_GROUPS[SHOPPING_HOME_GROUPS.length - 1]
       );
+    }
+
+    function sameText(a, b) {
+      return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
     }
 
     function setCityModalMessage(text, isErr) {
@@ -1299,7 +1305,7 @@
         const option = document.createElement("option");
         option.value = city;
         option.textContent = city;
-        if (selectedCity && city === selectedCity) option.selected = true;
+        if (selectedCity && sameText(city, selectedCity)) option.selected = true;
         citySelect.appendChild(option);
       });
       citySelect.disabled = false;
@@ -1600,7 +1606,7 @@
       if (!box) return;
       box.innerHTML = "";
       const addPill = (label, value) => {
-        const active = value === "" ? !selectedCategory : selectedCategory === value;
+        const active = value === "" ? !selectedCategory : sameText(selectedCategory, value);
         const b = document.createElement("button");
         b.type = "button";
         b.textContent = label;
@@ -1628,7 +1634,7 @@
       } catch (e) {
         showToast(e.message || "Categories unavailable", true);
       }
-      if (selectedCategory && !nearby.includes(selectedCategory)) {
+      if (selectedCategory && !nearby.some((c) => sameText(c, selectedCategory))) {
         nearby.push(selectedCategory);
       }
       nearbyCategoriesCache = nearby;
@@ -1637,7 +1643,7 @@
 
     function selectShopCategory(cat) {
       selectedCategory = cat || "";
-      if (selectedCategory && !nearbyCategoriesCache.includes(selectedCategory)) {
+      if (selectedCategory && !nearbyCategoriesCache.some((c) => sameText(c, selectedCategory))) {
         nearbyCategoriesCache = [...nearbyCategoriesCache, selectedCategory];
       }
       paintCategoryPills();
@@ -1648,8 +1654,8 @@
       if (browse) browse.scrollIntoView({ behavior: "smooth", block: "start" });
       const rc = document.getElementById("req-category");
       if (rc && selectedCategory) {
-        const opt = [...rc.options].find((o) => o.value === selectedCategory);
-        if (opt) rc.value = selectedCategory;
+        const opt = [...rc.options].find((o) => sameText(o.value, selectedCategory));
+        if (opt) rc.value = opt.value;
       }
     }
 

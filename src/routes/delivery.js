@@ -20,6 +20,18 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function exactCiRegex(value) {
+  return new RegExp(`^${escapeRegExp(String(value || "").trim())}$`, "i");
+}
+
+function normText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 function stageAlias(s) {
   const m = {
     delivery_assigned: "assigned",
@@ -166,7 +178,7 @@ router.get("/jobs", async (req, res, next) => {
     };
     if (req.query.all !== "1" && region) {
       filter.$or = [
-        { "delivery.dropoffRegion": region },
+        { "delivery.dropoffRegion": exactCiRegex(region) },
         { "delivery.dropoffRegion": "" },
         { "delivery.dropoffRegion": { $exists: false } },
       ];
@@ -179,8 +191,8 @@ router.get("/jobs", async (req, res, next) => {
         if (!city && !region) return true;
         const dr = o.delivery?.dropoffRegion;
         const dc = o.delivery?.dropoffCity;
-        if (req.query.strict === "1" && region && dr && dr !== region) return false;
-        if (req.query.strict === "1" && city && dc && dc !== city) return false;
+        if (req.query.strict === "1" && region && dr && normText(dr) !== normText(region)) return false;
+        if (req.query.strict === "1" && city && dc && normText(dc) !== normText(city)) return false;
         return true;
       })
       .map((o) => ({

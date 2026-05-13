@@ -14,6 +14,10 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
+function normText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked, async (req, res, next) => {
   try {
     const { request_id, price, delivery_time, notes } = req.body || {};
@@ -32,7 +36,7 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
     if (!["open", "quoted"].includes(reqDoc.status)) {
       return badRequest(res, "Request is not open for quoting");
     }
-    if (reqDoc.city !== seller.city || reqDoc.region !== seller.region) {
+    if (normText(reqDoc.city) !== normText(seller.city) || normText(reqDoc.region) !== normText(seller.region)) {
       return res.status(403).json({ error: "Outside your service area" });
     }
 

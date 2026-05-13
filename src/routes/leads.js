@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Lead = require("../models/Lead");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatLead } = require("../lib/format");
+const { normalizeIndiaRegionCity } = require("../lib/indiaLocations");
 
 const router = express.Router();
 const LEAD_TYPES = Lead.LEAD_TYPES;
@@ -85,12 +86,13 @@ router.post("/", async (req, res, next) => {
       owner = req.user.id;
     }
 
+    const normalizedPlace = normalizeIndiaRegionCity(region, city);
     const doc = await Lead.create({
       title: String(title).trim().slice(0, 200),
       type: t,
       stage: st,
-      city: String(city || "").trim().slice(0, 80),
-      region: String(region || "").trim().slice(0, 80),
+      city: String(normalizedPlace.city || city || "").trim().slice(0, 80),
+      region: String(normalizedPlace.region || region || "").trim().slice(0, 80),
       notes: String(notes || "").slice(0, 8000),
       ownerUser: owner,
       meta: meta && typeof meta === "object" ? meta : {},
@@ -137,8 +139,11 @@ router.patch("/:id", async (req, res, next) => {
       }
       set.stage = st;
     }
-    if (city != null) set.city = String(city).trim().slice(0, 80);
-    if (region != null) set.region = String(region).trim().slice(0, 80);
+    if (city != null || region != null) {
+      const normalizedPlace = normalizeIndiaRegionCity(region != null ? region : existing.region, city != null ? city : existing.city);
+      if (city != null) set.city = String(normalizedPlace.city || city || "").trim().slice(0, 80);
+      if (region != null) set.region = String(normalizedPlace.region || region || "").trim().slice(0, 80);
+    }
     if (notes != null) set.notes = String(notes).slice(0, 8000);
     if (owner_user_id !== undefined) {
       if (owner_user_id === null || owner_user_id === "") {

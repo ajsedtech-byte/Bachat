@@ -9,6 +9,7 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "migrate": "node scripts/migrate.js",
+    "normalize-locations": "node scripts/normalize-locations.js",
     "create-admin": "node scripts/create-admin.js",
     "create-sales": "node scripts/create-sales.js",
     "sync-team": "node scripts/sync-team-users.js",
