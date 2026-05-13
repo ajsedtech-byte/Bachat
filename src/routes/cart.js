@@ -5,6 +5,7 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const { buyerDisplayPrice } = require("../lib/buyerPrice");
 
 const router = express.Router();
 
@@ -31,14 +32,15 @@ async function cartWithProducts(userId) {
     .map((row) => {
       const p = pmap[String(row.product)];
       if (!p || !p.isActive) return null;
+      const price = buyerDisplayPrice(p.sellerPrice, p._id);
       return {
         product_id: String(p._id),
         title: p.title,
         category: p.category,
         images: p.images || [],
-        price: p.sellerPrice,
+        price,
         quantity: row.quantity,
-        line_total: row.quantity * p.sellerPrice,
+        line_total: row.quantity * price,
       };
     })
     .filter(Boolean);

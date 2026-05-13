@@ -8,10 +8,648 @@
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --amz-navy: #131a22;
+      --amz-navy-soft: #232f3e;
+      --amz-line: #3a4553;
+      --amz-accent: #febd69;
+      --amz-accent-strong: #f3a847;
+    }
+
     html, body {
       overflow-x: hidden;
+    }
+
+    .amazon-shell {
+      background: linear-gradient(180deg, #f5f7fb 0%, #eef2f8 34%, #f7f9fc 100%);
+    }
+
+    .amazon-top-header {
+      background: var(--amz-navy);
+      color: #fff;
+      border-bottom: 1px solid #0f141b;
+      font-family: "Amazon Ember", Arial, Helvetica, sans-serif;
+    }
+
+    .amazon-top-row {
+      display: grid;
+      grid-template-columns: minmax(104px, auto) minmax(122px, auto) minmax(360px, 1fr) 48px minmax(238px, auto);
+      gap: 10px;
+      align-items: center;
+      min-height: 72px;
+      padding: 10px 16px;
+    }
+
+    .amazon-top-row > a:first-child {
+      grid-column: 1;
+      grid-row: 1;
+      min-height: 48px;
+      font-size: 16px;
+      line-height: 20px;
+      letter-spacing: 0;
+    }
+
+    #header-city {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .amazon-search-wrap {
+      grid-column: 3;
+      grid-row: 1;
+      min-height: 44px;
+    }
+
+    .amazon-top-row > .relative.shrink-0 {
+      grid-column: 4;
+      grid-row: 1;
+      justify-self: center;
+    }
+
+    .amazon-city-btn {
+      border: 1px solid transparent;
+      border-radius: 4px;
+      background: transparent;
+      color: #fff;
+      min-height: 48px;
+      font-size: 14px;
+      line-height: 17px;
+      transition: border-color 140ms ease, background-color 140ms ease;
+    }
+
+    .amazon-city-btn .block {
+      font-size: 12px;
+      line-height: 14px;
+      letter-spacing: 0;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .amazon-city-btn #header-city-label {
+      font-size: 14px;
+      line-height: 17px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .amazon-city-btn:hover {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .amazon-search-wrap:focus-within {
+      border-color: var(--amz-accent);
+      box-shadow: 0 0 0 2px rgba(254, 189, 105, 0.25);
+    }
+
+    .amazon-search-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      background: #fff;
+    }
+
+    .amazon-search-wrap input {
+      border: 0;
+      outline: 0;
+      background: #fff;
+      color: #111827;
+      padding: 0 14px;
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 600;
+    }
+
+    .amazon-search-wrap button {
+      border: 0;
+      padding: 0 20px;
+      background: var(--amz-accent);
+      color: #1f2937;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      transition: background-color 140ms ease;
+    }
+
+    .amazon-search-wrap button:hover {
+      background: var(--amz-accent-strong);
+    }
+
+    .amazon-search-wrap #search-q {
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: #fff !important;
+      color: #111827 !important;
+      outline: 0;
+      box-shadow: none !important;
+      font-size: 15px !important;
+      line-height: 20px !important;
+      font-weight: 600 !important;
+    }
+
+    .amazon-search-wrap #search-btn {
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: var(--amz-accent) !important;
+      color: #1f2937 !important;
+      font-size: 13px !important;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .amazon-search-wrap #search-btn:hover {
+      background: var(--amz-accent-strong) !important;
+    }
+
+    .amazon-head-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: #fff;
+      min-height: 48px;
+      font-size: 14px;
+      line-height: 18px;
+      font-weight: 800;
+      padding: 6px 10px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: border-color 140ms ease, background-color 140ms ease;
+    }
+
+    .amazon-head-link:hover {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    #profile-menu-open {
+      color: rgba(255, 255, 255, 0.88);
+      text-decoration: none;
+    }
+
+    #profile-menu-open:hover {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    #amazon-head-actions p:last-child {
+      color: rgba(255, 255, 255, 0.78) !important;
+    }
+
+    .amazon-head-link strong {
+      display: block;
+      font-size: 15px;
+      line-height: 18px;
+      letter-spacing: 0;
+    }
+
+    #amazon-head-actions {
+      grid-column: 5;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-self: end;
+      min-width: max-content;
+      margin-left: 0 !important;
+    }
+
+    #amazon-head-actions #header-avatar {
+      width: 42px;
+      height: 42px;
+    }
+
+    #amazon-head-actions p {
+      font-size: 12px;
+      line-height: 15px;
+      letter-spacing: 0;
+    }
+
+    #amazon-head-actions #hello-user {
+      font-size: 14px;
+      line-height: 18px;
+      font-weight: 900;
+    }
+
+    #profile-menu-open {
+      font-size: 14px;
+      line-height: 18px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .amazon-nav-strip {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      background: var(--amz-navy-soft);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid #1a2430;
+      color: #fff;
+      scrollbar-width: thin;
+    }
+
+    #departments-nav > div {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .amazon-nav-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 0 16px;
+      border-right: 1px solid var(--amz-line);
+      color: #e5e7eb;
+      font-size: 13px;
+      line-height: 16px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-decoration: none;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    .amazon-nav-link:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .amazon-nav-link.active {
+      color: #fff;
+      background: rgba(254, 189, 105, 0.15);
+      box-shadow: inset 0 -2px 0 0 var(--amz-accent);
+    }
+
+    #departments-nav details > summary {
+      border-right: 1px solid var(--amz-line);
+      min-height: 38px;
+      padding: 0 16px !important;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      line-height: 16px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    #dept-all {
+      min-height: 38px;
+      padding: 0 16px !important;
+      font-size: 13px !important;
+      line-height: 16px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    #departments-nav details > summary:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .amazon-main {
+      padding-top: 1.1rem;
+    }
+
+    #shopping-home {
+      max-width: 1360px;
+      margin-inline: auto;
+    }
+
+    .shopping-hero {
+      max-width: 1260px;
+      margin-inline: auto;
+      padding: 28px 32px !important;
+      border-radius: 28px !important;
+    }
+
+    .shopping-hero-grid {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1.05fr) minmax(300px, 390px) !important;
+      gap: 24px !important;
+      align-items: start !important;
+    }
+
+    .shopping-hero-title {
+      max-width: 720px !important;
+      margin-top: 14px !important;
+      font-size: clamp(38px, 4.2vw, 58px) !important;
+      line-height: 0.98 !important;
+      letter-spacing: -0.045em !important;
+    }
+
+    .shopping-hero-copy {
+      max-width: 660px !important;
+      margin-top: 16px !important;
+      font-size: clamp(14px, 1.1vw, 17px) !important;
+      line-height: 1.55 !important;
+    }
+
+    .shopping-stat-grid {
+      max-width: 680px !important;
+      margin-top: 22px !important;
+      gap: 10px !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .shopping-stat-grid > div {
+      border-radius: 16px !important;
+      padding: 14px 16px !important;
+    }
+
+    #shopping-home-shop-count,
+    #shopping-home-product-count {
+      margin-top: 8px !important;
+      font-size: 32px !important;
+    }
+
+    .shopping-mode-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 12px !important;
+      align-content: start !important;
+    }
+
+    .shopping-mode-grid > div {
+      min-height: 136px;
+      border-radius: 18px !important;
+      padding: 16px !important;
+    }
+
+    .shopping-mode-grid p:last-child {
+      margin-top: 10px !important;
+      font-size: 15px !important;
+      line-height: 1.45 !important;
+    }
+
+    @media (max-width: 1180px) {
+      .shopping-hero-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .shopping-mode-grid > div {
+        min-height: auto;
+      }
+    }
+
+    .cart-panel {
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid #dfe5ec;
+      background: #fff;
+      box-shadow: 0 18px 44px -32px rgba(15, 23, 42, 0.45);
+    }
+
+    .cart-panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 24px;
+      border-bottom: 1px solid #edf1f6;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .cart-panel-head h2 {
+      margin: 0;
+      color: #0f172a;
+      font-size: clamp(24px, 2.2vw, 34px);
+      line-height: 1.05;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+    }
+
+    .cart-panel-head p {
+      margin: 7px 0 0;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .cart-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+      gap: 18px;
+      padding: 22px;
+      background: #f7f9fc;
+    }
+
+    .cart-items {
+      display: grid;
+      gap: 12px;
+    }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 10px 30px -28px rgba(15, 23, 42, 0.7);
+    }
+
+    .cart-thumb {
+      width: 82px;
+      height: 82px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+      color: #0056d2;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -0.03em;
+    }
+
+    .cart-thumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .cart-title {
+      margin: 0;
+      color: #0f172a;
+      font-size: 17px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .cart-meta {
+      margin-top: 6px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .cart-qty-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #0056d2;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .cart-line-total {
+      text-align: right;
+      color: #0f172a;
+      font-size: 20px;
+      line-height: 1.15;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .cart-remove {
+      margin-top: 10px;
+      border: 0;
+      background: transparent;
+      color: #dc2626;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .cart-summary {
+      align-self: start;
+      border: 1px solid #d7e2f0;
+      border-radius: 20px;
+      background: #fff;
+      padding: 18px;
+      box-shadow: 0 18px 44px -34px rgba(15, 23, 42, 0.6);
+    }
+
+    .cart-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 0;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .cart-summary-total {
+      border-top: 1px solid #e2e8f0;
+      margin-top: 8px;
+      padding-top: 14px;
+      color: #0f172a;
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    .cart-checkout-btn {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 999px;
+      background: #0056d2;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 950;
+      box-shadow: 0 14px 26px -18px rgba(0, 86, 210, 0.7);
+    }
+
+    .cart-checkout-btn:disabled {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    .pay-now-btn {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 999px;
+      background: #0056d2;
+      color: #fff;
+      cursor: pointer;
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+      box-shadow: 0 10px 20px -16px rgba(0, 86, 210, 0.8);
+    }
+
+    .pay-now-btn:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+
+    .payment-status-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .payment-status-pill.is-paid {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .payment-status-pill.is-pending {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+
+    .cart-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 20px;
+      background: #fff;
+      padding: 34px;
+      text-align: center;
+      color: #64748b;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    @media (min-width: 1024px) {
+      #departments-nav {
+        overflow: visible;
+      }
+
+      #departments-nav > div {
+        overflow: visible !important;
+        scrollbar-width: none;
+      }
+
+      #departments-nav > div::-webkit-scrollbar {
+        display: none;
+      }
+
+      .amazon-nav-link,
+      #dept-all,
+      #departments-nav details > summary {
+        padding-left: clamp(8px, 0.72vw, 14px) !important;
+        padding-right: clamp(8px, 0.72vw, 14px) !important;
+        font-size: clamp(11px, 0.72vw, 13px) !important;
+      }
     }
 
     @media (min-width: 1200px) {
@@ -24,9 +662,74 @@
       html {
         font-size: 87.5%;
       }
+
+      .amazon-top-row {
+        grid-template-columns: auto auto minmax(180px, 1fr) auto auto;
+        gap: 0.5rem;
+      }
+
+      #amazon-head-actions {
+        gap: 6px;
+      }
+
+      #amazon-head-actions #header-avatar {
+        width: 36px;
+        height: 36px;
+      }
     }
 
     @media (max-width: 767px) {
+      .amazon-top-row {
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+      }
+
+      .amazon-top-row > a {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+      }
+
+      .amazon-city-btn {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+      }
+
+      .amazon-search-wrap {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
+      .amazon-top-row > .relative.shrink-0 {
+        grid-column: 2;
+        grid-row: 3;
+        justify-self: end;
+      }
+
+      #amazon-head-actions {
+        grid-column: 1;
+        grid-row: 3;
+        justify-content: flex-start;
+        width: 100%;
+        min-width: 0;
+      }
+
+      #amazon-head-actions .hidden.sm\:block {
+        display: block !important;
+      }
+
+      #amazon-head-actions #header-avatar {
+        width: 34px;
+        height: 34px;
+      }
+
+      #amazon-head-actions p,
+      #profile-menu-open {
+        font-size: 12px;
+        line-height: 15px;
+      }
+
       #shopping-home > div:first-child,
       #shopping-home > div:nth-child(2),
       #shopping-home > div:nth-child(3),
@@ -53,6 +756,45 @@
         font-size: 2.5rem !important;
         line-height: 0.98;
         letter-spacing: -0.04em;
+      }
+
+      .shopping-hero {
+        padding: 22px 18px !important;
+      }
+
+      .shopping-hero-title {
+        font-size: 2.35rem !important;
+      }
+
+      .shopping-stat-grid,
+      .shopping-mode-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .cart-panel-head {
+        flex-direction: column;
+        padding: 18px;
+      }
+
+      .cart-shell {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+
+      .cart-item {
+        grid-template-columns: 64px minmax(0, 1fr);
+        align-items: start;
+      }
+
+      .cart-thumb {
+        width: 64px;
+        height: 64px;
+        border-radius: 14px;
+      }
+
+      .cart-line-total {
+        grid-column: 2;
+        text-align: left;
       }
 
       #shopping-home > div:first-child > .relative,
@@ -92,10 +834,10 @@
     }
   </style>
 </head>
-<body class="bachat-ui bg-[#f8f9fb] text-slate-900 min-h-screen">
+<body class="bachat-ui amazon-shell bg-[#f8f9fb] text-slate-900 min-h-screen">
   <div id="deliver-to" class="hidden" aria-hidden="true"></div>
   <div class="flex min-h-screen">
-    <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
+    <aside class="hidden w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
       <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
       <nav id="user-sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
         <a href="#shopping-home" data-section="shopping-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>&#127968;</span> Home</a>
@@ -135,20 +877,24 @@
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-      <div class="sticky top-0 z-30 shrink-0 bg-white shadow-sm">
-      <header class="bg-white border-b border-[#e5e7eb] px-3 sm:px-5 py-2.5 sm:py-3 flex flex-wrap items-center gap-2 sm:gap-3">
-        <button type="button" id="header-city" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#e5e7eb] bg-white text-sm font-semibold text-slate-700 shrink-0 hover:border-[#0056d2]/30 hover:bg-[#f8fbff]" aria-label="Change city">
-          <svg class="w-4 h-4 text-[#0056d2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <span id="header-city-label">Indore</span>
+      <div class="sticky top-0 z-40 shrink-0 amazon-top-header shadow-[0_2px_14px_rgba(0,0,0,0.28)]">
+      <header class="amazon-top-row">
+        <a href="/" class="flex items-center gap-2 rounded-lg border border-transparent px-2 py-1 hover:border-white">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/95 text-[#0f172a]"><img src="/assets/bachat-icon.svg" alt="" class="h-5 w-5" /></span>
+          <span class="text-sm font-black tracking-[0.08em]">BACHAT</span>
+        </a>
+        <button type="button" id="header-city" class="amazon-city-btn flex items-center gap-2 px-3 py-2 text-sm font-semibold shrink-0" aria-label="Change city">
+          <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span class="text-left leading-tight"><span class="block text-[10px] uppercase tracking-[0.12em] text-white/70">Deliver to</span><span id="header-city-label">Indore</span></span>
         </button>
-        <div class="flex flex-1 min-w-[140px] max-w-xl items-center gap-2 order-last sm:order-none w-full sm:w-auto basis-full sm:basis-auto">
-          <input id="search-q" type="search" placeholder="Search catalog…" class="flex-1 rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] bg-[#f8f9fb]" />
+        <div class="amazon-search-wrap min-w-[140px]">
+          <input id="search-q" type="search" placeholder="Search catalog..." class="flex-1 rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] bg-[#f8f9fb]" />
           <button type="button" id="search-btn" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold px-4 py-2.5 text-sm shrink-0">Search</button>
         </div>
         <div class="relative shrink-0">
-          <button type="button" id="notif-btn" class="relative p-2 rounded-xl border border-[#e5e7eb] text-slate-600 hover:bg-[#f8f9fa]" title="Notifications" aria-label="Notifications">
+          <button type="button" id="notif-btn" class="amazon-head-link relative" title="Notifications" aria-label="Notifications">
             <span class="text-lg" aria-hidden="true">🔔</span>
-            <span id="notif-badge" class="absolute top-0.5 right-0.5 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
+            <span id="notif-badge" class="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
           </button>
           <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-[min(92vw,360px)] rounded-2xl border border-[#e5e7eb] bg-white shadow-xl z-[70] overflow-hidden">
             <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#e5e7eb]">
@@ -162,11 +908,16 @@
             <p id="notif-empty" class="hidden px-4 py-8 text-center text-sm text-slate-500">No notifications yet.</p>
           </div>
         </div>
-        <div class="relative flex items-center gap-2 shrink-0 ml-auto">
-          <div id="header-avatar" class="w-9 h-9 rounded-full border border-[#e5e7eb] shrink-0 bg-cover bg-center bg-slate-200" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&q=60')"></div>
-          <div class="hidden sm:block min-w-0">
-            <p id="hello-user" class="text-sm font-bold text-slate-900 truncate max-w-[180px]"></p>
-            <p class="text-[11px] text-slate-500">Buyer · <button type="button" id="profile-menu-open" class="font-semibold text-[#0056d2] hover:underline">View profile ▾</button></p>
+        <div id="amazon-head-actions" class="relative flex items-center gap-2 shrink-0 ml-auto">
+          <a href="#cart-section" data-cart-link data-section="cart-section" class="amazon-head-link">
+            <span class="hidden sm:inline">Basket</span>
+            <strong data-cart-badge>0</strong>
+          </a>
+          <div id="header-avatar" class="w-9 h-9 rounded-full border border-white/30 shrink-0 bg-cover bg-center bg-slate-200" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&q=60')"></div>
+          <div class="hidden sm:block min-w-0 max-w-[188px]">
+            <p class="text-[10px] uppercase tracking-[0.12em] text-white/70">Hello</p>
+            <p id="hello-user" class="text-sm font-bold text-white truncate"></p>
+            <button type="button" id="profile-menu-open" class="font-semibold text-[#0056d2] hover:underline">Account &amp; Lists ▾</button>
           </div>
           <div id="profile-menu" class="hidden absolute right-0 top-full mt-1 w-52 rounded-xl border border-[#e5e7eb] bg-white shadow-lg py-1 z-50 text-sm">
             <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="profile">View profile</button>
@@ -178,9 +929,17 @@
         </div>
       </header>
 
-      <nav id="departments-nav" class="hidden bg-[#232f3e] text-white border-t border-white/10 text-sm" aria-label="Shop by category" hidden>
+      <nav id="departments-nav" class="amazon-nav-strip text-sm" aria-label="Shop by category">
         <div class="flex items-stretch gap-0 px-1 sm:px-2 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/25">
-          <button type="button" id="dept-all" class="shrink-0 px-3 sm:px-4 py-2.5 font-semibold text-white hover:bg-white/10 whitespace-nowrap border-r border-white/10">All</button>
+          <a href="#shopping-home" data-section="shopping-home" class="amazon-nav-link">Home</a>
+          <a href="#browse-section" data-section="browse-section" class="amazon-nav-link">Catalog</a>
+          <a href="#dashboard-home" data-section="dashboard-home" class="amazon-nav-link">Dashboard</a>
+          <a href="#requests-section" data-section="requests-section" class="amazon-nav-link">Requests</a>
+          <a href="#orders-section" data-section="orders-section" class="amazon-nav-link">Orders</a>
+          <a href="#saved-section" data-section="saved-section" class="amazon-nav-link">Saved</a>
+          <a href="#address-section" data-section="address-section" class="amazon-nav-link">Address</a>
+          <a href="#payments-section" data-section="payments-section" class="amazon-nav-link">Payments</a>
+          <button type="button" id="dept-all" class="shrink-0 px-3 sm:px-4 py-2.5 font-semibold text-white hover:bg-white/10 whitespace-nowrap border-r border-white/10">All categories</button>
           <details name="shop-dept" class="relative group shrink-0 border-r border-white/10 min-w-0">
             <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Electronics &amp; mobiles <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
             <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,420px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
@@ -283,19 +1042,19 @@
       </nav>
       </div>
 
-      <main class="flex-1 overflow-auto space-y-8 bg-[linear-gradient(180deg,#f5f8fc_0%,#eef4fb_28%,#f8fbff_100%)] p-4 lg:p-6">
+      <main class="amazon-main flex-1 overflow-auto space-y-8 bg-[linear-gradient(180deg,#f5f8fc_0%,#eef4fb_28%,#f8fbff_100%)] p-4 lg:p-6">
         <p id="toast" class="hidden rounded-xl border border-[#e8f1fc] bg-[#e8f1fc] text-[#0044a8] text-sm font-semibold px-4 py-3"></p>
         <p id="msg" class="text-sm text-slate-500 hidden"></p>
 
-        <section id="shopping-home" class="space-y-8">
-          <div class="relative overflow-hidden rounded-[34px] border border-[#d4deec] bg-[linear-gradient(100deg,#0b2247_0%,#193763_36%,#496b98_72%,#6787b0_100%)] px-6 py-7 text-white shadow-[0_26px_80px_-44px_rgba(15,23,42,0.62)] lg:px-8 lg:py-8">
+        <section id="shopping-home" class="space-y-6">
+          <div class="shopping-hero relative overflow-hidden rounded-[34px] border border-[#d4deec] bg-[linear-gradient(100deg,#0b2247_0%,#193763_36%,#496b98_72%,#6787b0_100%)] px-6 py-7 text-white shadow-[0_26px_80px_-44px_rgba(15,23,42,0.62)] lg:px-8 lg:py-8">
             <div class="absolute inset-y-0 left-0 w-[52%] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.06),_transparent_48%)]"></div>
-            <div class="relative grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_360px] xl:items-start">
+            <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_360px] xl:items-start">
               <div>
                 <p class="text-xs font-black uppercase tracking-[0.28em] text-blue-100/90">Bachat Home</p>
-                <h1 class="mt-4 max-w-4xl text-4xl font-black leading-[0.95] tracking-[-0.045em] text-white sm:text-5xl lg:text-[4.1rem]">Everything local in one place for <span id="shopping-home-city" class="text-[#8ec1ff]">your city</span>.</h1>
-                <p class="mt-5 max-w-3xl text-base leading-8 text-blue-50/92 sm:text-lg">Browse shops and products across everyday shopping, quick essentials, food categories, and trusted neighborhood stores, all filtered to the city you selected above.</p>
-                <div class="mt-7 grid max-w-3xl gap-3 sm:grid-cols-3">
+                <h1 class="shopping-hero-title mt-4 max-w-4xl text-4xl font-black leading-[0.95] tracking-[-0.045em] text-white sm:text-5xl lg:text-[4.1rem]">Everything local in one place for <span id="shopping-home-city" class="text-[#8ec1ff]">your city</span>.</h1>
+                <p class="shopping-hero-copy mt-5 max-w-3xl text-base leading-8 text-blue-50/92 sm:text-lg">Browse shops and products across everyday shopping, quick essentials, food categories, and trusted neighborhood stores, all filtered to the city you selected above.</p>
+                <div class="shopping-stat-grid mt-7 grid max-w-3xl gap-3 sm:grid-cols-3">
                   <div class="rounded-[22px] border border-white/14 bg-white/10 px-5 py-4 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
                     <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100/80">Local shops</p>
                     <p id="shopping-home-shop-count" class="mt-3 text-4xl font-black leading-none text-white">0</p>
@@ -313,7 +1072,7 @@
                   </div>
                 </div>
               </div>
-              <div class="grid gap-3 sm:grid-cols-2">
+              <div class="shopping-mode-grid grid gap-3 sm:grid-cols-2">
                 <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
                   <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Everyday shopping</p>
                   <p class="mt-2 text-lg font-black leading-7 text-white">Electronics, fashion, home and everyday discovery.</p>
@@ -758,9 +1517,15 @@
     </section>
 
     <!-- Cart -->
-    <section id="cart-section" class="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm">
-      <h2 class="text-xl font-extrabold text-slate-900 mb-4">Basket</h2>
-      <div id="cart-body" class="space-y-3 text-sm"></div>
+    <section id="cart-section" class="cart-panel">
+      <div class="cart-panel-head">
+        <div>
+          <h2>Basket</h2>
+          <p>Review local items, remove anything you do not need, and continue checkout.</p>
+        </div>
+        <a href="#browse-section" data-section="browse-section" class="inline-flex min-h-11 items-center rounded-full border border-[#cfe0f8] bg-white px-4 text-sm font-black text-[#0056d2] shadow-sm hover:bg-[#f4f8ff]">Continue shopping</a>
+      </div>
+      <div id="cart-body"></div>
     </section>
   </main>
     </div>
@@ -1384,22 +2149,100 @@
         list.innerHTML = "";
         items.forEach((row) => {
           const div = document.createElement("div");
-          div.className = "rounded-lg border border-slate-200 px-4 py-3 flex flex-wrap justify-between gap-2";
+          const paid = String(row.order_payment_status || "").toLowerCase() === "paid";
+          div.className = "rounded-lg border border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3";
           div.innerHTML =
             `<div>
             <p class="font-bold">${escapeHtml(row.order_summary || "Order")}</p>
             <p class="text-xs text-slate-500">${escapeHtml(row.status || "")} · order ${escapeHtml(row.order_payment_status || "")}</p>
           </div>
-          <div class="text-right text-sm">
+          <div class="flex items-center gap-3 text-right text-sm">
+            ${paid ? '<span class="payment-status-pill is-paid">Paid</span>' : `<button type="button" data-pay-order="${escapeHtml(row.order_id)}" class="pay-now-btn">Pay now</button>`}
             <p class="font-extrabold">${rupee(row.amount)}</p>
             <p class="text-[11px] text-slate-400">${escapeHtml((row.created_at || "").slice(0, 10))}</p>
           </div>`;
           list.appendChild(div);
         });
+        list.querySelectorAll("[data-pay-order]").forEach((btn) => {
+          btn.addEventListener("click", () => startOrderPayment(btn.getAttribute("data-pay-order"), btn));
+        });
       } catch (e) {
         empty.textContent = e.message || "Could not load payments";
         empty.classList.remove("hidden");
         list.classList.add("hidden");
+      }
+    }
+
+    function paymentSuccessNav() {
+      loadOrders();
+      loadPayments();
+      updateKpis();
+      if (typeof openUserSection === "function") {
+        openUserSection("orders-section");
+        if (history && history.replaceState) history.replaceState(null, "", "#orders-section");
+      }
+    }
+
+    async function startOrderPayment(orderId, trigger) {
+      if (!orderId) return false;
+      const oldText = trigger ? trigger.textContent : "";
+      if (trigger) {
+        trigger.disabled = true;
+        trigger.textContent = "Opening...";
+      }
+      try {
+        const pay = await api("POST", "/api/payments/create-order", { order_id: orderId });
+        if (!pay || !pay.key_id) {
+          showToast("Order created. Add Razorpay keys in .env to collect payment.", true);
+          await loadPayments();
+          await loadOrders();
+          if (typeof openUserSection === "function") openUserSection("orders-section");
+          return false;
+        }
+        if (typeof Razorpay !== "function") {
+          showToast("Razorpay checkout script did not load. Check internet and try Pay now again.", true);
+          return false;
+        }
+        const user = meUser || {};
+        const checkout = new Razorpay({
+          key: pay.key_id,
+          amount: pay.amount,
+          currency: pay.currency || "INR",
+          name: "Bachat",
+          description: "Local order payment",
+          order_id: pay.razorpay_order_id || undefined,
+          prefill: {
+            name: user.name || "",
+            email: user.email || "",
+            contact: user.phone || "",
+          },
+          theme: { color: "#0056d2" },
+          handler: async function (response) {
+            await api("POST", "/api/payments/verify", {
+              order_id: pay.order_id,
+              razorpay_order_id: response.razorpay_order_id || pay.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            showToast("Payment successful");
+            await paymentSuccessNav();
+          },
+          modal: {
+            ondismiss: function () {
+              showToast("Payment not completed. You can pay from Orders or Payments.");
+            },
+          },
+        });
+        checkout.open();
+        return true;
+      } catch (e) {
+        showToast(e.message || "Could not start payment", true);
+        return false;
+      } finally {
+        if (trigger) {
+          trigger.disabled = false;
+          trigger.textContent = oldText || "Pay now";
+        }
       }
     }
 
@@ -2123,7 +2966,10 @@
 
     async function addToCart(productId) {
       try {
-        await api("POST", "/api/cart/items", { product_id: productId, quantity: 1 });
+        const currentCart = await api("GET", "/api/cart");
+        const existing = (Array.isArray(currentCart) ? currentCart : []).find((line) => line.product_id === productId);
+        const nextQuantity = Math.min(99, (Number(existing?.quantity) || 0) + 1);
+        await api("POST", "/api/cart/items", { product_id: productId, quantity: nextQuantity });
         showToast("Added to basket");
         await refreshCart();
       } catch (e) {
@@ -2131,11 +2977,128 @@
       }
     }
 
+    function cartItemCount(cart) {
+      return (Array.isArray(cart) ? cart : []).reduce((sum, line) => sum + (Number(line.quantity) || 1), 0);
+    }
+
+    function cartLineTotal(line) {
+      const explicit = Number(line && line.line_total);
+      if (Number.isFinite(explicit)) return explicit;
+      return (Number(line && line.price) || 0) * (Number(line && line.quantity) || 1);
+    }
+
+    function cartImage(line) {
+      return Array.isArray(line && line.images) ? String(line.images.find(Boolean) || "") : "";
+    }
+
+    function cartInitials(title) {
+      return String(title || "B")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+    }
+
+    function cartCardHtml(line) {
+      const image = cartImage(line);
+      const title = String(line.title || "Local item");
+      const qty = Number(line.quantity) || 1;
+      const thumb = image
+        ? `<div class="cart-thumb"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy"></div>`
+        : `<div class="cart-thumb">${escapeHtml(cartInitials(title))}</div>`;
+      return `<article class="cart-item">
+        ${thumb}
+        <div class="min-w-0">
+          <h3 class="cart-title">${escapeHtml(title)}</h3>
+          <p class="cart-meta">${escapeHtml(line.category || "Local item")} - ${rupee(line.price)} each</p>
+          <span class="cart-qty-pill">Qty ${qty}</span>
+        </div>
+        <div class="cart-line-total">
+          ${rupee(cartLineTotal(line))}
+          <button type="button" data-rm="${escapeHtml(line.product_id)}" class="cart-remove rm-cart">Remove</button>
+        </div>
+      </article>`;
+    }
+
+    function bindCartActions(body) {
+      body.querySelectorAll(".rm-cart").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          try {
+            await api("DELETE", "/api/cart/items/" + btn.getAttribute("data-rm"));
+            showToast("Removed");
+            await refreshCart();
+          } catch (e) {
+            showToast(e.message, true);
+          }
+        });
+      });
+      document.getElementById("cart-checkout")?.addEventListener("click", async () => {
+        const btn = document.getElementById("cart-checkout");
+        btn.disabled = true;
+        btn.textContent = "Creating order...";
+        try {
+          const order = await api("POST", "/api/orders/from-cart", {});
+          showToast("Order created from basket");
+          await refreshCart();
+          await loadOrders();
+          await loadPayments();
+          await startOrderPayment(order && order.order_id, btn);
+          if (typeof openUserSection === "function") {
+            openUserSection("orders-section");
+            if (history && history.replaceState) history.replaceState(null, "", "#orders-section");
+          }
+        } catch (e) {
+          showToast(e.message || "Checkout failed", true);
+          btn.textContent = "Proceed to checkout";
+          btn.disabled = false;
+        }
+      });
+    }
+
     async function refreshCart() {
       try {
+        const freshCart = await api("GET", "/api/cart");
+        const itemTotal = cartItemCount(freshCart);
+        document.querySelectorAll("#cart-badge, [data-cart-badge]").forEach((el) => {
+          el.textContent = String(itemTotal);
+        });
+        const bodyEl = document.getElementById("cart-body");
+        bodyEl.innerHTML = "";
+        if (!itemTotal) {
+          bodyEl.innerHTML = `<div class="cart-shell">
+            <div class="cart-empty">
+              <p class="text-lg font-black text-slate-900">Your basket is empty.</p>
+              <p class="mt-2">Add products from nearby shops and they will appear here.</p>
+              <button type="button" id="cart-empty-shop" class="cart-checkout-btn max-w-xs">Start shopping</button>
+            </div>
+          </div>`;
+          document.getElementById("cart-empty-shop")?.addEventListener("click", () => {
+            if (typeof openUserSection === "function") openUserSection("browse-section");
+          });
+          return;
+        }
+        const subtotal = freshCart.reduce((sum, line) => sum + cartLineTotal(line), 0);
+        const shopCount = new Set(freshCart.map((line) => String(line.shop_name || line.seller_id || ""))).size || 1;
+        bodyEl.innerHTML = `<div class="cart-shell">
+          <div class="cart-items">${freshCart.map(cartCardHtml).join("")}</div>
+          <aside class="cart-summary">
+            <p class="text-xs font-black uppercase tracking-[0.18em] text-[#0056d2]">Order summary</p>
+            <div class="cart-summary-row"><span>Items</span><strong>${itemTotal}</strong></div>
+            <div class="cart-summary-row"><span>Shops</span><strong>${shopCount}</strong></div>
+            <div class="cart-summary-row cart-summary-total"><span>Subtotal</span><strong>${rupee(subtotal)}</strong></div>
+            <button type="button" id="cart-checkout" class="cart-checkout-btn">Proceed to checkout</button>
+            <p class="mt-3 text-xs font-semibold leading-5 text-slate-500">Checkout works for items from one shop at a time. If needed, remove items from other shops first.</p>
+          </aside>
+        </div>`;
+        bindCartActions(bodyEl);
+        return;
         const cart = await api("GET", "/api/cart");
         const n = listCount(cart);
-        document.getElementById("cart-badge").textContent = String(n);
+        document.querySelectorAll("#cart-badge, [data-cart-badge]").forEach((el) => {
+          el.textContent = String(n);
+        });
         const body = document.getElementById("cart-body");
         body.innerHTML = "";
         if (!n) {
@@ -2218,19 +3181,25 @@
           const wrap = document.createElement("div");
           wrap.className = "rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3";
           const top = document.createElement("div");
-          top.className = "flex flex-wrap justify-between gap-2";
+          top.className = "flex flex-wrap items-start justify-between gap-3";
           const pay = escapeHtml(o.payment_status || "");
           const st = escapeHtml(o.order_status || "");
+          const payOk = String(o.payment_status || "").toLowerCase() === "paid";
           top.innerHTML = `<div>
             <p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
             <p class="text-xs text-slate-500">${rupee(o.final_price)} total · ${pay} · ${st}</p>
           </div>
-          <span class="text-xs font-semibold text-slate-400">${escapeHtml((o.created_at || "").slice(0, 10))}</span>`;
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            ${payOk ? '<span class="payment-status-pill is-paid">Paid</span>' : `<button type="button" data-pay-order="${escapeHtml(o.order_id)}" class="pay-now-btn">Pay now</button>`}
+            <span class="text-xs font-semibold text-slate-400">${escapeHtml((o.created_at || "").slice(0, 10))}</span>
+          </div>`;
           wrap.appendChild(top);
+          top.querySelector("[data-pay-order]")?.addEventListener("click", (e) => {
+            startOrderPayment(e.currentTarget.getAttribute("data-pay-order"), e.currentTarget);
+          });
 
           const del = o.delivery || {};
           const dStatus = String(del.status || "none");
-          const payOk = String(o.payment_status || "").toLowerCase() === "paid";
           const canRequest = payOk && ["none", "pending_details", "expired_unclaimed"].includes(dStatus);
 
           const delRow = document.createElement("div");
@@ -2680,9 +3649,16 @@
       location.href = "/login.html";
     });
 
-    document.getElementById("cart-link").addEventListener("click", (e) => {
-      e.preventDefault();
-      document.getElementById("cart-section").scrollIntoView({ behavior: "smooth" });
+    document.querySelectorAll("#cart-link, [data-cart-link]").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (typeof openUserSection === "function") {
+          openUserSection("cart-section");
+          if (history && history.replaceState) history.replaceState(null, "", "#cart-section");
+          return;
+        }
+        document.getElementById("cart-section")?.scrollIntoView({ behavior: "smooth" });
+      });
     });
 
     (async function boot() {
@@ -2934,6 +3910,12 @@
     const userTabSections = userTabIds
       .map((id) => document.getElementById(id))
       .filter(Boolean);
+    function resetTopNavScroll() {
+      const nav = document.getElementById("departments-nav");
+      const inner = nav?.firstElementChild;
+      if (nav) nav.scrollLeft = 0;
+      if (inner) inner.scrollLeft = 0;
+    }
     function paintUserNavActive(activeId) {
       document.querySelectorAll("#user-sidebar-nav a[data-section]").forEach((a) => {
         const on = a.getAttribute("data-section") === activeId;
@@ -2949,6 +3931,10 @@
           "whitespace-nowrap px-3 py-1.5 rounded-lg " +
           (on ? "bg-[#e8f1fc] text-[#0056d2]" : "hover:bg-[#f8f9fa]");
       });
+      document.querySelectorAll("#departments-nav a[data-section]").forEach((a) => {
+        const on = a.getAttribute("data-section") === activeId;
+        a.classList.toggle("active", on);
+      });
     }
     function openUserSection(sectionId) {
       const target = document.getElementById(sectionId);
@@ -2956,10 +3942,11 @@
       userTabSections.forEach((el) => el.classList.add("hidden"));
       target.classList.remove("hidden");
       target.scrollIntoView({ behavior: "smooth", block: "start" });
+      resetTopNavScroll();
       paintUserNavActive(sectionId);
       return true;
     }
-    document.querySelectorAll("#user-sidebar-nav a[data-section], #user-mobile-nav a[data-section]").forEach((a) => {
+    document.querySelectorAll("#user-sidebar-nav a[data-section], #user-mobile-nav a[data-section], #departments-nav a[data-section]").forEach((a) => {
       a.addEventListener("click", (e) => {
         e.preventDefault();
         const id = a.getAttribute("data-section");
