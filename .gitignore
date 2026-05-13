@@ -7,5 +7,5 @@ android/keystore.properties
 *.log
 .DS_Store
 
-# Playwright / local screenshot artifacts
+# Playwright / local screenshot artifacts 
 pw-*.png
