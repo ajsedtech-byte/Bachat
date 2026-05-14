@@ -73,6 +73,35 @@ function formatSellerProduct(doc) {
   };
 }
 
+async function catalogItemsForLocation({ city, region, category, q, limit = 120 }) {
+  const cleanCity = String(city || "").trim();
+  const cleanRegion = String(region || "").trim();
+  const sellers = await Seller.find({
+    city: exactCiRegex(cleanCity),
+    region: exactCiRegex(cleanRegion),
+  })
+    .select("_id shopName city region isVerified")
+    .lean();
+  const sellerIds = sellers.map((s) => s._id);
+  if (!sellerIds.length) return [];
+
+  const filter = { seller: { $in: sellerIds }, isActive: true };
+  if (category && ALLOWED_CATEGORIES.has(category)) {
+    filter.category = exactCiRegex(category);
+  }
+  if (q) {
+    const rx = new RegExp(escapeRegExp(q), "i");
+    filter.$or = [{ title: rx }, { description: rx }];
+  }
+
+  const products = await Product.find(filter)
+    .sort({ updatedAt: -1 })
+    .limit(limit)
+    .lean();
+  const sellerMap = Object.fromEntries(sellers.map((s) => [String(s._id), s]));
+  return products.map((p) => formatCatalogProduct(p, sellerMap[String(p.seller)]));
+}
+
 // --- Buyer catalog (same city/region as buyer account) ---
 router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, res, next) => {
   try {
@@ -87,32 +116,23 @@ router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, r
 
     const category = req.query.category ? canonicalCategory(req.query.category) : "";
     const q = req.query.q ? String(req.query.q).trim() : "";
+    const items = await catalogItemsForLocation({ city, region, category, q });
+    return res.json({ items });
+  } catch (e) {
+    return next(e);
+  }
+});
 
-    const sellers = await Seller.find({
-      city: exactCiRegex(city),
-      region: exactCiRegex(region),
-    })
-      .select("_id shopName city region isVerified")
-      .lean();
-    const sellerIds = sellers.map((s) => s._id);
-    if (!sellerIds.length) {
-      return res.json({ items: [] });
+router.get("/public-catalog", async (req, res, next) => {
+  try {
+    const city = String(req.query.city || "Indore").trim();
+    const region = String(req.query.region || "Madhya Pradesh").trim();
+    const category = req.query.category ? canonicalCategory(req.query.category) : "";
+    const q = req.query.q ? String(req.query.q).trim() : "";
+    if (!city || !region) {
+      return badRequest(res, "Choose a city and region to browse local items.");
     }
-
-    const filter = { seller: { $in: sellerIds }, isActive: true };
-    if (category && ALLOWED_CATEGORIES.has(category)) {
-      filter.category = exactCiRegex(category);
-    }
-    if (q) {
-      const esc = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const rx = new RegExp(esc, "i");
-      filter.$or = [{ title: rx }, { description: rx }];
-    }
-
-    const products = await Product.find(filter).sort({ updatedAt: -1 }).limit(120).lean();
-
-    const sellerMap = Object.fromEntries(sellers.map((s) => [String(s._id), s]));
-    const items = products.map((p) => formatCatalogProduct(p, sellerMap[String(p.seller)]));
+    const items = await catalogItemsForLocation({ city, region, category, q });
     return res.json({ items });
   } catch (e) {
     return next(e);
@@ -162,6 +182,27 @@ router.get("/catalog/:productId", requireAuth, requireRole("buyer", "admin"), as
 
     const pid = req.params.productId;
     if (!mongoose.isValidObjectId(pid)) return res.status(404).json({ error: "Not found" });
+
+    const doc = await Product.findOne({ _id: pid, isActive: true }).lean();
+    if (!doc) return res.status(404).json({ error: "Not found" });
+
+    const seller = await Seller.findById(doc.seller).lean();
+    if (!seller || normText(seller.city) !== normText(city) || normText(seller.region) !== normText(region)) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    return res.json({ item: formatCatalogProduct(doc, seller) });
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.get("/public-catalog/:productId", async (req, res, next) => {
+  try {
+    const city = String(req.query.city || "Indore").trim();
+    const region = String(req.query.region || "Madhya Pradesh").trim();
+    const pid = req.params.productId;
+    if (!city || !region || !mongoose.isValidObjectId(pid)) return res.status(404).json({ error: "Not found" });
 
     const doc = await Product.findOne({ _id: pid, isActive: true }).lean();
     if (!doc) return res.status(404).json({ error: "Not found" });

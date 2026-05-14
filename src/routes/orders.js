@@ -14,7 +14,11 @@ const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
 const { claimTimeoutMs, normalizeAddressPart } = require("../lib/delivery");
 const { recordEvent } = require("../lib/analytics");
 const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
-const { inIndiaBounds, normalizePreciseLocation, reverseGeocodeCoords, areaMatches } = require("../lib/location");
+const { inIndiaBounds, normalizePreciseLocation } = require("../lib/location");
+const {
+  DeliveryRequestError,
+  requestDeliveryForOrder,
+} = require("../services/deliveryRequests");
 
 const router = express.Router();
 
@@ -428,98 +432,17 @@ router.post(
       if (String(order.user) !== String(req.user.id)) {
         return res.status(403).json({ error: "Forbidden" });
       }
-      if (order.paymentStatus !== "paid") {
-        return badRequest(res, "Order must be paid before requesting delivery");
-      }
-
-      if (!order.delivery) order.delivery = {};
-
-      const allowed = ["none", "expired_unclaimed", "pending_details"];
-      if (!allowed.includes(order.delivery?.status || "none")) {
-        return badRequest(res, "Delivery already requested or in progress");
-      }
-
       const { dropoff, pickup: pickupOverride, fee } = req.body || {};
-
-      const buyer = await User.findById(req.user.id).lean();
-      const sellerDoc = await Seller.findById(order.seller).lean();
-      if (!sellerDoc) return res.status(404).json({ error: "Seller not found" });
-      const buyerLoc = normalizePreciseLocation(dropoff || buyer?.location || {});
-      const sellerLoc = normalizePreciseLocation(pickupOverride || sellerDoc?.location || {});
-      if (!buyerLoc.capturedAt) buyerLoc.capturedAt = new Date();
-      if (!sellerLoc.capturedAt) sellerLoc.capturedAt = new Date();
-      if (!requireValidPlace(res, "dropoff", buyerLoc)) return;
-      if (!requireValidPlace(res, "pickup", sellerLoc)) return;
-      let revBuyer;
-      let revSeller;
-      try {
-        [revBuyer, revSeller] = await Promise.all([
-          reverseGeocodeCoords(buyerLoc.lat, buyerLoc.lng),
-          reverseGeocodeCoords(sellerLoc.lat, sellerLoc.lng),
-        ]);
-      } catch (e) {
-        return res.status(502).json({ error: "Could not validate GPS area. Please try again." });
-      }
-      if (!areaMatches(buyer?.city, buyer?.region, revBuyer)) {
-        return badRequest(
-          res,
-          "Dropoff GPS does not match your profile city/region. Update profile area or move pin."
-        );
-      }
-      if (!areaMatches(sellerDoc?.city, sellerDoc?.region, revSeller)) {
-        return badRequest(
-          res,
-          "Pickup GPS does not match seller service area. Ask shopkeeper to update location."
-        );
-      }
-      if (!buyerLoc.pincode && revBuyer && revBuyer.pincode) buyerLoc.pincode = revBuyer.pincode;
-      if (!sellerLoc.pincode && revSeller && revSeller.pincode) sellerLoc.pincode = revSeller.pincode;
-
-      const dropPhone = normalizeAddressPart(dropoff?.contactPhone) || normalizeAddressPart(buyer?.phone) || "";
-      const pickPhone = normalizeAddressPart(pickupOverride?.contactPhone) || "";
-
-      order.delivery = order.delivery || {};
-      order.delivery.status = "delivery_requested";
-      order.delivery.fee = fee != null && Number.isFinite(Number(fee)) ? Math.max(0, Number(fee)) : order.delivery.fee || 0;
-      order.delivery.driver = null;
-      order.delivery.requestedAt = new Date();
-      order.delivery.claimExpiresAt = new Date(Date.now() + claimTimeoutMs());
-      order.delivery.assignedAt = null;
-      order.delivery.readyForPickupAt = null;
-      order.delivery.pickedUpAt = null;
-      order.delivery.deliveredAt = null;
-      order.delivery.driverLastLat = null;
-      order.delivery.driverLastLng = null;
-      order.delivery.driverLocationAt = null;
-      order.delivery.routePoints = [];
-      order.delivery.dropoffCity = normalizeAddressPart(buyer?.city) || "";
-      order.delivery.dropoffRegion = normalizeAddressPart(buyer?.region) || "";
-      order.delivery.dropoff = {
-        address: buyerLoc.addressText,
-        addressText: buyerLoc.addressText,
-        landmark: buyerLoc.landmark,
-        pincode: buyerLoc.pincode,
-        lat: buyerLoc.lat,
-        lng: buyerLoc.lng,
-        accuracyM: buyerLoc.accuracyM,
-        capturedAt: buyerLoc.capturedAt,
-        contactPhone: dropPhone,
-      };
-      order.delivery.pickup = {
-        address: sellerLoc.addressText,
-        addressText: sellerLoc.addressText,
-        landmark: sellerLoc.landmark,
-        pincode: sellerLoc.pincode,
-        lat: sellerLoc.lat,
-        lng: sellerLoc.lng,
-        accuracyM: sellerLoc.accuracyM,
-        capturedAt: sellerLoc.capturedAt,
-        contactPhone: pickPhone,
-      };
-
-      await order.save();
-      return res.status(201).json({ order: formatOrder(order) });
+      const result = await requestDeliveryForOrder(order, {
+        dropoff,
+        pickup: pickupOverride,
+        fee,
+      });
+      return res.status(201).json({ order: formatOrder(result.order) });
     } catch (err) {
+      if (err instanceof DeliveryRequestError) {
+        return res.status(err.status).json({ error: err.message });
+      }
       return next(err);
     }
   }

@@ -124,6 +124,11 @@
       }
       if (role === "admin") return "/AdminDashboard.html";
       if (role === "delivery") return "/DeliveryDashboard.html";
+      var afterLogin = localStorage.getItem("ajs_after_login") || "";
+      if (afterLogin && afterLogin.charAt(0) === "/" && afterLogin.indexOf("//") !== 0) {
+        localStorage.removeItem("ajs_after_login");
+        return afterLogin;
+      }
       return "/";
     }
     (function () {

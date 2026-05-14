@@ -12,7 +12,7 @@ const cartRoutes = require("./routes/cart");
 const savedRoutes = require("./routes/saved");
 const sellerRoutes = require("./routes/seller");
 const deliveryRoutes = require("./routes/delivery");
-const { router: paymentRoutes, handleRazorpayWebhook } = require("./routes/payments");
+const { router: paymentRoutes, apiRouter: paymentApiRoutes, handleRazorpayWebhook } = require("./routes/payments");
 const { CATEGORIES } = require("./lib/categories");
 const geoRoutes = require("./routes/geo");
 const digilockerRoutes = require("./routes/digilocker");
@@ -64,7 +64,7 @@ app.use("/api/products", express.json({ limit: "8mb" }), productRoutes);
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+  res.sendFile(path.join(publicDir, "UserDashboard.html"));
 });
 
 app.get("/api", (_req, res) => {
@@ -94,6 +94,7 @@ app.use("/api/delivery", deliveryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/saved", savedRoutes);
 app.use("/api/seller", sellerRoutes);
+app.use("/api", paymentApiRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 /* /api/products mounted above with larger JSON limit for image payloads */
