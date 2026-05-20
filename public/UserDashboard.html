@@ -1369,19 +1369,27 @@
 
     .bachat-storefront .store-action-icon {
       display: inline-flex;
-      height: 58px;
-      width: 58px;
+      height: 60px;
+      width: 60px;
       align-items: center;
       justify-content: center;
-      border-radius: 14px;
+      border-radius: 18px;
       font-size: 17px;
       font-weight: 950;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 12px 24px -18px currentColor;
     }
 
     .bachat-storefront .store-action-icon svg {
-      height: 26px;
-      width: 26px;
-      stroke-width: 2.5;
+      height: 28px;
+      width: 28px;
+      stroke-width: 2.35;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .bachat-storefront .store-action-icon svg * {
+      vector-effect: non-scaling-stroke;
     }
 
     .bachat-storefront .store-action-tile strong {
@@ -1397,6 +1405,21 @@
       font-size: 12px;
       line-height: 1.35;
       font-weight: 700;
+    }
+
+    #product-detail-modal .product-detail-thumb {
+      cursor: pointer;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    #product-detail-modal .product-detail-thumb:hover {
+      border-color: #9cc2fb;
+      transform: translateY(-1px);
+    }
+
+    #product-detail-modal .product-detail-thumb[aria-pressed="true"] {
+      border-color: #0056d2;
+      box-shadow: 0 0 0 3px #cfe1ff;
     }
 
     .bachat-storefront .store-hero-visual {
@@ -1579,6 +1602,13 @@
       font-size: 28px;
     }
 
+    .bachat-storefront .category-icon svg {
+      height: 28px;
+      width: 28px;
+      color: #0056d2;
+      stroke-width: 2.25;
+    }
+
     .bachat-storefront .home-product-card {
       position: relative;
       display: flex;
@@ -1641,6 +1671,48 @@
       font-weight: 950;
     }
 
+    .bachat-storefront #browse-section {
+      border: 1px solid #e5edf8;
+      border-radius: 22px;
+      background: #fff;
+      padding: 24px;
+      box-shadow: 0 18px 48px -38px rgba(15, 23, 42, 0.28);
+    }
+
+    .bachat-storefront #catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)) !important;
+      gap: 18px !important;
+    }
+
+    .bachat-storefront .catalog-product-card {
+      min-height: 312px;
+      border: 1px solid #e1eaf7;
+      border-radius: 16px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 18px 42px -34px rgba(15, 23, 42, 0.42);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .bachat-storefront .catalog-product-card:hover {
+      transform: translateY(-2px);
+      border-color: #bfd6fa;
+      box-shadow: 0 22px 52px -34px rgba(15, 23, 42, 0.5);
+    }
+
+    .bachat-storefront .catalog-product-image {
+      height: 152px;
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .catalog-product-image img {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+      padding: 12px;
+    }
+
     .bachat-storefront .shop-row,
     .bachat-storefront .saved-row,
     .bachat-storefront .order-row {
@@ -1648,7 +1720,35 @@
       padding: 16px 0;
     }
 
-    .bachat-storefront .shop-row:last-child,
+    .bachat-storefront .shop-row {
+      border: 1px solid #e5edf8;
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 16px 34px -30px rgba(15, 23, 42, 0.35);
+    }
+
+    .bachat-storefront .shop-row + .shop-row {
+      margin-top: 12px;
+    }
+
+    .bachat-storefront .shop-row:last-child {
+      border-bottom: 1px solid #e5edf8;
+    }
+
+    .bachat-storefront .shop-row-thumb {
+      height: 82px;
+      width: 82px;
+      border-radius: 16px;
+    }
+
+    .bachat-storefront .shop-row-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 12px;
+    }
+
     .bachat-storefront .saved-row:last-child,
     .bachat-storefront .order-row:last-child {
       border-bottom: 0;
@@ -2161,6 +2261,9 @@
     .bachat-storefront #dept-all,
     .bachat-storefront #departments-nav details > summary {
       position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       min-height: 52px;
       border: 0 !important;
       color: #334155 !important;
@@ -2200,6 +2303,21 @@
     .bachat-storefront #departments-nav details:nth-of-type(3) > summary::before { content: "⌂"; }
     .bachat-storefront #departments-nav details:nth-of-type(4) > summary::before { content: "◇"; }
     .bachat-storefront #departments-nav details:nth-of-type(5) > summary::before { content: "✣"; }
+
+    .bachat-storefront #dept-all::before,
+    .bachat-storefront #departments-nav details > summary::before {
+      content: none !important;
+      display: none !important;
+    }
+
+    .bachat-storefront .dept-nav-icon {
+      display: inline-block;
+      height: 17px;
+      width: 17px;
+      flex: 0 0 auto;
+      color: currentColor;
+      stroke-width: 2.35;
+    }
 
     .bachat-storefront .amazon-nav-link.active::after {
       content: "";
@@ -2371,7 +2489,10 @@
           <a href="#shopping-home" data-section="shopping-home" class="amazon-nav-link active">Home</a>
           <a href="#browse-section" data-section="browse-section" class="amazon-nav-link">Catalog</a>
           <div id="dept-all-wrap" class="relative shrink-0 border-r border-white/10">
-            <button type="button" id="dept-all" aria-expanded="false" class="h-full shrink-0 px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap">All categories</button>
+            <button type="button" id="dept-all" aria-expanded="false" class="h-full shrink-0 px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+              <span>All categories</span>
+            </button>
             <div id="dept-all-panel" class="hidden absolute left-0 top-full z-[70] w-[min(94vw,760px)] max-h-[min(72vh,520px)] overflow-y-auto rounded-b-2xl border border-[#e5e7eb] bg-white p-4 text-slate-900 shadow-2xl">
               <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
                 <div>
@@ -2406,7 +2527,11 @@
             </div>
           </div>
           <details name="shop-dept" class="relative group shrink-0 border-r border-white/10 min-w-0">
-            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Electronics &amp; mobiles <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 18h4"/></svg>
+              <span>Electronics &amp; mobiles</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
             <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,420px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
               <button type="button" data-shop-cat="Electronics" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Electronics</button>
               <button type="button" data-shop-cat="Computer Parts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Computer parts</button>
@@ -2420,7 +2545,11 @@
             </div>
           </details>
           <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
-            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Groceries &amp; food <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg>
+              <span>Groceries &amp; food</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
             <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,420px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
               <button type="button" data-shop-cat="Groceries" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Groceries</button>
               <button type="button" data-shop-cat="Food" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Food</button>
@@ -2438,7 +2567,11 @@
             </div>
           </details>
           <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
-            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Fashion <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M9 4h6l2 3 3 2-3 4v7H7v-7L4 9l3-2 2-3Z"/><path d="M9 4a3 3 0 0 0 6 0"/></svg>
+              <span>Fashion</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
             <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
               <button type="button" data-shop-cat="Fashion" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Fashion</button>
               <button type="button" data-shop-cat="Men's clothing" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Men&apos;s clothing</button>
@@ -2453,7 +2586,11 @@
             </div>
           </details>
           <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
-            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Home &amp; kitchen <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+              <span>Home &amp; kitchen</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
             <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
               <button type="button" data-shop-cat="Home &amp; daily" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Home &amp; daily</button>
               <button type="button" data-shop-cat="Home decor" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Home decor</button>
@@ -2467,7 +2604,11 @@
             </div>
           </details>
           <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
-            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">Beauty &amp; health <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3v18"/><path d="M5 12h14"/><path d="m7 7 10 10"/><path d="m17 7-10 10"/></svg>
+              <span>Beauty &amp; health</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
             <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,320px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
               <button type="button" data-shop-cat="Beauty &amp; personal care" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Beauty &amp; personal care</button>
               <button type="button" data-shop-cat="Health &amp; wellness" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Health &amp; wellness</button>
@@ -2477,7 +2618,11 @@
             </div>
           </details>
           <details name="shop-dept" class="relative shrink-0 min-w-0">
-            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">More <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></summary>
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+              <span>More</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
             <div class="absolute right-0 sm:left-0 left-auto top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
               <button type="button" data-shop-cat="Books &amp; media" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Books &amp; media</button>
               <button type="button" data-shop-cat="Sports, toys &amp; fitness" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Sports, toys &amp; fitness</button>
@@ -2516,34 +2661,34 @@
             <div class="absolute inset-y-0 left-0 w-[52%] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.06),_transparent_48%)]"></div>
             <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] xl:items-center">
               <div>
-                <p class="text-sm font-black text-[#0056d2]">Good evening, <span id="shopping-home-greeting-name">there</span>!</p>
+                <p class="text-sm font-black text-[#0056d2]"><span id="shopping-home-greeting-period">Good evening</span>, <span id="shopping-home-greeting-name">there</span>!</p>
                 <h1 class="shopping-hero-title mt-3 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">What do you need today?</h1>
                 <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7 text-slate-600">Shop from trusted local stores and get the best prices near <span id="shopping-home-city" class="font-black text-[#0056d2]">your city</span>.</p>
                 <div class="shopping-stat-grid mt-7 grid max-w-3xl gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   <a href="#browse-section" data-section="browse-section" class="store-action-tile">
                     <span class="store-action-icon bg-emerald-50 text-emerald-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6.5 8.5h11l-1 10h-9l-1-10Z"/><path d="M9 8.5a3 3 0 0 1 6 0"/><path d="M13.7 13.2h3.2v-3.1"/><path d="M17 13a4.4 4.4 0 0 1-7.4 3.2"/><path d="M10.3 10.8H7.1v3.1"/><path d="M7 11a4.4 4.4 0 0 1 7.4-3.2"/></svg>
                     </span>
                     <strong>Buy Again</strong>
                     <span>Shop your previous items</span>
                   </a>
                   <a href="#browse-section" data-section="browse-section" class="store-action-tile">
                     <span class="store-action-icon bg-blue-50 text-[#0056d2]">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11Z"/><circle cx="12" cy="10" r="2.2"/></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 21s6.2-5.3 6.2-11.1a6.2 6.2 0 0 0-12.4 0C5.8 15.7 12 21 12 21Z"/><circle cx="12" cy="9.9" r="2.15"/><path d="M4.5 20.5h15"/></svg>
                     </span>
                     <strong>Nearby Shops</strong>
                     <span>Find trusted local shops</span>
                   </a>
                   <a href="#post-section" data-section="post-section" class="store-action-tile">
                     <span class="store-action-icon bg-orange-50 text-orange-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 3h10v18l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3V3Z"/><path d="M10 8h4"/><path d="M10 12h4"/><path d="M10 16h2"/></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 4.5h10v15l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2v-15Z"/><path d="M10 8.5h4"/><path d="M10 12h4"/><path d="M10 15.5h2.3"/><path d="M16.7 7.3h3.1"/><path d="M18.25 5.75v3.1"/></svg>
                     </span>
                     <strong>Request Quote</strong>
                     <span>Get quotes from sellers</span>
                   </a>
                   <a href="#saved-section" data-section="saved-section" class="store-action-tile">
                     <span class="store-action-icon bg-violet-50 text-violet-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20.5 8.8c0 5.3-8.5 10-8.5 10s-8.5-4.7-8.5-10A4.8 4.8 0 0 1 12 5.6a4.8 4.8 0 0 1 8.5 3.2Z"/></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20.4 8.8c0 5.3-8.4 10-8.4 10s-8.4-4.7-8.4-10A4.75 4.75 0 0 1 12 5.7a4.75 4.75 0 0 1 8.4 3.1Z"/><path d="m9.4 11.5 1.75 1.75 3.65-4"/></svg>
                     </span>
                     <strong>Saved Items</strong>
                     <span>View saved products</span>
@@ -2979,7 +3124,7 @@
         <span class="rounded-full bg-blue-900 text-white text-xs font-black px-4 py-2 uppercase tracking-wide">Local stores</span>
       </div>
       <div id="category-pills" class="flex flex-wrap gap-2 mb-4"></div>
-      <div id="catalog-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+      <div id="catalog-grid"></div>
       <p id="catalog-empty" class="hidden text-slate-500 text-sm py-8 text-center">No listings match. Try another category or post a request below.</p>
     </section>
 
@@ -3159,6 +3304,46 @@
 
     function hasSession() {
       return Boolean(token);
+    }
+
+    function storedSessionUser() {
+      try {
+        const raw = localStorage.getItem("ajs_user");
+        const user = raw ? JSON.parse(raw) : null;
+        return user && typeof user === "object" ? user : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function userDisplayName(user, fallback) {
+      const value =
+        (user && (user.name || user.full_name || user.display_name || user.email || user.phone)) ||
+        fallback ||
+        "there";
+      const clean = String(value).trim();
+      if (!clean) return "there";
+      const noEmailDomain = clean.includes("@") ? clean.split("@")[0] : clean;
+      return noEmailDomain.split(/\s+/)[0] || noEmailDomain || "there";
+    }
+
+    function setHomeGreetingName(name) {
+      const greetingName = document.getElementById("shopping-home-greeting-name");
+      if (greetingName) greetingName.textContent = name || "there";
+    }
+
+    function greetingPeriod(date) {
+      const hour = (date || new Date()).getHours();
+      if (hour < 5) return "Good night";
+      if (hour < 12) return "Good morning";
+      if (hour < 17) return "Good afternoon";
+      if (hour < 21) return "Good evening";
+      return "Good night";
+    }
+
+    function setHomeGreetingPeriod() {
+      const period = document.getElementById("shopping-home-greeting-period");
+      if (period) period.textContent = greetingPeriod();
     }
 
     function clearBuyerSession() {
@@ -3648,17 +3833,20 @@
     }
 
     function applyGuestHeader() {
-      meUser = { role: "guest", city: GUEST_CITY, region: GUEST_REGION, name: "Guest" };
+      setHomeGreetingPeriod();
+      const cachedUser = hasSession() ? storedSessionUser() : null;
+      const cachedName = cachedUser ? userDisplayName(cachedUser) : "";
+      meUser = cachedUser || { role: "guest", city: GUEST_CITY, region: GUEST_REGION, name: "" };
       const dt = document.getElementById("deliver-to");
       if (dt) dt.textContent = `Deliver to ${GUEST_CITY}`;
       const hcl = document.getElementById("header-city-label");
       if (hcl) hcl.textContent = GUEST_CITY;
       const helloLabel = document.getElementById("hello-label");
-      if (helloLabel) helloLabel.textContent = "Hello, sign in";
+      if (helloLabel) helloLabel.textContent = cachedName ? "Hello" : "Hello, sign in";
       const helloUser = document.getElementById("hello-user");
-      if (helloUser) helloUser.textContent = "";
+      if (helloUser) helloUser.textContent = cachedName || "";
       const greetingName = document.getElementById("shopping-home-greeting-name");
-      if (greetingName) greetingName.textContent = "Guest";
+      if (greetingName) greetingName.textContent = cachedName || "there";
       const menuOpen = document.getElementById("profile-menu-open");
       if (menuOpen) menuOpen.textContent = "Account & Lists ▾";
       document.getElementById("profile-menu")?.classList.add("hidden");
@@ -3674,6 +3862,8 @@
     }
 
     function applySignedInHeader(user) {
+      setHomeGreetingPeriod();
+      const displayName = userDisplayName(user);
       const helloLabel = document.getElementById("hello-label");
       if (helloLabel) helloLabel.textContent = "Hello";
       document.getElementById("header-avatar")?.classList.remove("hidden");
@@ -3682,7 +3872,7 @@
       const helloUser = document.getElementById("hello-user");
       if (helloUser) helloUser.textContent = user.name || user.email || "";
       const greetingName = document.getElementById("shopping-home-greeting-name");
-      if (greetingName) greetingName.textContent = (user.name || user.email || "there").split("@")[0];
+      if (greetingName) greetingName.textContent = displayName;
     }
 
     const SHOPPING_HOME_GROUPS = [
@@ -4109,6 +4299,8 @@
         applyGuestHeader();
         return null;
       }
+      const cachedUser = storedSessionUser();
+      if (cachedUser) applySignedInHeader(cachedUser);
       const me = await api("GET", "/api/auth/me");
       if (!me || !me.user) return null;
       const role = String(me.user.role || "").toLowerCase();
@@ -4125,6 +4317,7 @@
         return null;
       }
       meUser = me.user;
+      localStorage.setItem("ajs_user", JSON.stringify(me.user));
       applySignedInHeader(me.user);
       const city = (me.user.city || "").trim();
       const region = (me.user.region || "").trim();
@@ -4132,7 +4325,7 @@
       if (dt) dt.textContent = city && region ? `Deliver to ${city} — ${region}` : "Set city & region at signup";
       const hcl = document.getElementById("header-city-label");
       if (hcl) hcl.textContent = city || "Indore";
-      const nmShort = (me.user.name || "").trim() || (me.user.email || "there").split("@")[0] || "there";
+      const nmShort = userDisplayName(me.user);
       const wn = document.getElementById("welcome-name");
       if (wn) wn.textContent = nmShort || "there";
       const dhn = document.getElementById("dashboard-hello-name");
@@ -4344,22 +4537,21 @@
           card.setAttribute("role", "button");
           card.setAttribute("tabindex", "0");
           card.setAttribute("aria-label", `Open details for ${p.title || "local item"}`);
-          card.className =
-            "cursor-pointer rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col";
+          card.className = "catalog-product-card cursor-pointer flex flex-col";
           const img =
             p.images && p.images[0]
-              ? `<img src="${String(p.images[0]).replace(/"/g, "&quot;")}" alt="${escapeHtml(p.title || "Local item")}" class="h-36 w-full object-cover bg-slate-100" />`
-              : `<div class="h-36 w-full bg-gradient-to-br from-blue-800 to-blue-950 flex items-center justify-center font-display font-black text-white text-lg">Bachat</div>`;
+              ? `<div class="catalog-product-image"><img src="${escapeHtml(p.images[0])}" alt="${escapeHtml(p.title || "Local item")}" loading="lazy" /></div>`
+              : `<div class="catalog-product-image flex items-center justify-center bg-[linear-gradient(135deg,#123f82,#1d4ed8)] font-display text-lg font-black text-white">Bachat</div>`;
           card.innerHTML =
             img +
-            `<div class="p-3 flex-1 flex flex-col">
-              <span class="text-[10px] font-black uppercase text-blue-600">Near you</span>
-              <p class="font-bold text-slate-900 line-clamp-2">${escapeHtml(p.title)}</p>
-              <p class="text-xs text-slate-500 mt-1 line-clamp-1">${escapeHtml(p.shop_name || "")}</p>
-              <p class="text-lg font-black text-blue-950 mt-auto pt-2">${rupee(p.price)}</p>
+            `<div class="flex flex-1 flex-col p-3.5">
+              <span class="text-[10px] font-black uppercase tracking-[0.12em] text-[#0056d2]">${escapeHtml(p.category || "Near you")}</span>
+              <p class="mt-1 line-clamp-2 min-h-[38px] text-sm font-black leading-tight text-slate-950">${escapeHtml(p.title)}</p>
+              <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(p.shop_name || "")}</p>
+              <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
               <div class="mt-2 grid grid-cols-2 gap-2">
-                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-lg bg-[#0056d2] hover:bg-[#0044a8] text-white text-xs font-black py-2 add-cart">Basket</button>
-                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-lg border border-[#0056d2] text-[#0056d2] text-xs font-black py-2 hover:bg-[#e8f1fc] save-catalog">Save</button>
+                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8]">Basket</button>
+                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
               </div>
             </div>`;
           grid.appendChild(card);
@@ -4422,12 +4614,16 @@
       const locationText = escapeHtml(productLocationText(p));
       const description = escapeHtml(p.description || "No description has been added yet. Contact or order from the seller for more details.");
       const images = Array.isArray(p.images) ? p.images.filter(Boolean).slice(0, 4) : [];
+      const primaryImage = images[0] || "";
+      const mainMedia = primaryImage
+        ? `<img src="${escapeHtml(primaryImage)}" alt="${title}" data-product-main-image class="h-full w-full object-contain p-3" loading="lazy" />`
+        : `<div class="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#0b2348,#123f82)] text-5xl font-black tracking-[0.18em] text-white">${escapeHtml(shopMonogram((p && p.shop_name) || p.title || "Bachat"))}</div>`;
       const gallery =
         images.length > 1
           ? `<div class="mt-3 grid grid-cols-4 gap-2">${images
               .map(
-                (src) =>
-                  `<div class="aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50"><img src="${escapeHtml(src)}" alt="${title}" class="h-full w-full object-cover" loading="lazy" /></div>`
+                (src, index) =>
+                  `<button type="button" data-product-thumb="${escapeHtml(src)}" aria-label="Show product image ${index + 1}" aria-pressed="${index === 0 ? "true" : "false"}" class="product-detail-thumb aspect-square overflow-hidden rounded-xl border border-slate-200 bg-white"><img src="${escapeHtml(src)}" alt="${title}" class="h-full w-full object-contain p-1" loading="lazy" /></button>`
               )
               .join("")}</div>`
           : "";
@@ -4436,8 +4632,8 @@
         : '<span class="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-slate-600">Local seller</span>';
       return `<div class="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)_320px]">
         <section>
-          <div class="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-50">
-            ${productImageHtml(p, "h-[340px] w-full object-cover sm:h-[430px]", "flex h-[340px] w-full items-center justify-center bg-[linear-gradient(135deg,#0b2348,#123f82)] text-5xl font-black tracking-[0.18em] text-white sm:h-[430px]")}
+          <div class="flex h-[340px] items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white sm:h-[430px]">
+            ${mainMedia}
           </div>
           ${gallery}
         </section>
@@ -4546,6 +4742,19 @@
         closeProductDetail();
         selectShopCategory(e.currentTarget.getAttribute("data-product-category") || "");
       });
+      const mainImage = root.querySelector("[data-product-main-image]");
+      if (mainImage) {
+        root.querySelectorAll("[data-product-thumb]").forEach((thumb) => {
+          thumb.addEventListener("click", () => {
+            const src = thumb.getAttribute("data-product-thumb") || "";
+            if (!src) return;
+            mainImage.src = src;
+            root.querySelectorAll("[data-product-thumb]").forEach((other) => {
+              other.setAttribute("aria-pressed", other === thumb ? "true" : "false");
+            });
+          });
+        });
+      }
     }
 
     function wireProductDetailCards(root) {
@@ -4590,6 +4799,29 @@
       );
     }
 
+    function homeCategoryIcon(name) {
+      const key = String(name || "").toLowerCase();
+      if (key.includes("elect")) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 18h4"/></svg>';
+      }
+      if (key.includes("grocery")) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg>';
+      }
+      if (key.includes("fruit")) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 8c4 0 7 2.8 7 6.5S16 21 12 21s-7-2.8-7-6.5S8 8 12 8Z"/><path d="M12 8c.8-3.4 3-5 6-5"/><path d="M12 8C10.8 5.8 9 5 7 5"/></svg>';
+      }
+      if (key.includes("atta") || key.includes("rice") || key.includes("dal")) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 5h10l2 15H5L7 5Z"/><path d="M9 5a3 3 0 0 1 6 0"/><path d="M9 13h6"/><path d="M10 16h4"/></svg>';
+      }
+      if (key.includes("kitchen")) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 3v8"/><path d="M9 3v8"/><path d="M6 7h3"/><path d="M7.5 11v10"/><path d="M16 3v18"/><path d="M16 3c2 1.5 3 3.5 3 6s-1 4.5-3 6"/></svg>';
+      }
+      if (key.includes("beauty") || key.includes("health")) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3v18"/><path d="M5 12h14"/><path d="m7 7 10 10"/><path d="m17 7-10 10"/></svg>';
+      }
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>';
+    }
+
     async function loadShoppingHome() {
       const cityEl = document.getElementById("shopping-home-city");
       const shopsCityEl = document.getElementById("shopping-home-shops-city");
@@ -4620,13 +4852,16 @@
               city: item.city || city,
               region: item.region || region,
               verified: Boolean(item.seller_verified),
-              image: Array.isArray(item.images) ? item.images.find(Boolean) : "",
+              image: item.shop_photo || item.shop_image || item.store_photo || item.storefront_photo || (Array.isArray(item.images) ? item.images.find(Boolean) : ""),
               count: 0,
               categories: new Set(),
             });
           }
           const summary = shopMap.get(key);
           summary.count += 1;
+          if (!summary.image) {
+            summary.image = item.shop_photo || item.shop_image || item.store_photo || item.storefront_photo || (Array.isArray(item.images) ? item.images.find(Boolean) : "");
+          }
           if (item.category) summary.categories.add(item.category);
         });
 
@@ -4645,19 +4880,19 @@
         emptyEl.classList.add("hidden");
 
         const categoryTiles = [
-          { label: "Electronics", value: "Electronics", icon: "📱" },
-          { label: "Groceries", value: "Groceries", icon: "🧺" },
-          { label: "Fruits", value: "Fruits", icon: "🍊" },
-          { label: "Atta, Rice, Oil & Dal", value: "Atta, rice, dal & oil", icon: "🛍" },
-          { label: "Kitchen & Dining", value: "Kitchen & dining", icon: "🍲" },
-          { label: "Beauty & Health", value: "Beauty & personal care", icon: "🧴" },
-          { label: "View all categories", value: "", icon: "▦" },
+          { label: "Electronics", value: "Electronics" },
+          { label: "Groceries", value: "Groceries" },
+          { label: "Fruits", value: "Fruits" },
+          { label: "Atta, Rice, Oil & Dal", value: "Atta, rice, dal & oil" },
+          { label: "Kitchen & Dining", value: "Kitchen & dining" },
+          { label: "Beauty & Health", value: "Beauty & personal care" },
+          { label: "View all categories", value: "" },
         ];
         categoryTiles.forEach((tile) => {
           const lane = document.createElement("button");
           lane.type = "button";
           lane.className = "category-tile";
-          lane.innerHTML = `<span class="category-icon">${tile.icon}</span><span>${escapeHtml(tile.label)}</span>`;
+          lane.innerHTML = `<span class="category-icon">${homeCategoryIcon(tile.label)}</span><span>${escapeHtml(tile.label)}</span>`;
           lane.addEventListener("click", () => selectShopCategory(tile.value));
           lanesEl.appendChild(lane);
         });
@@ -4669,15 +4904,16 @@
           const categories = [...shop.categories].slice(0, 3);
           card.innerHTML =
             `<div class="flex gap-3">
-              <div class="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl border border-[#e5edf8] bg-[#f8fbff]">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="" class="h-full w-full object-cover" />` : `<div class="flex h-full w-full items-center justify-center text-sm font-black text-[#0056d2]">${escapeHtml(shopMonogram(shop.name))}</div>`}</div>
+              <div class="shop-row-thumb shrink-0 overflow-hidden border border-[#e5edf8] bg-[#f8fbff]">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="" class="h-full w-full object-cover" />` : `<div class="flex h-full w-full items-center justify-center text-sm font-black text-[#0056d2]">${escapeHtml(shopMonogram(shop.name))}</div>`}</div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
                   <h3 class="truncate text-base font-black text-slate-950">${escapeHtml(shop.name)}</h3>
                   <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">${shop.verified ? "Verified" : "Local"}</span>
                 </div>
                 <p class="mt-1 truncate text-xs font-semibold text-slate-500">${escapeHtml(shop.city)}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
-                <div class="mt-2 flex items-center justify-between gap-2 text-xs font-bold text-slate-500">
+                <div class="shop-row-meta mt-2 text-xs font-bold text-slate-500">
                   <span class="text-amber-500">★ <span class="text-slate-600">${(4.8 - index * 0.1).toFixed(1)} (${124 - index * 26})</span></span>
+                  <span>${shop.count} ${shop.count === 1 ? "listing" : "listings"}</span>
                   <span>${(1.2 + index * 0.9).toFixed(1)} km away</span>
                 </div>
                 <div class="mt-2 flex flex-wrap gap-2">${categories
@@ -6032,6 +6268,7 @@
       if (id) openUserSection(id);
     });
     const firstSection = ((location.hash || "").replace(/^#/, "") || "shopping-home");
+    setHomeGreetingPeriod();
     openUserSection(firstSection);
 
     document.getElementById("refer-cta")?.addEventListener("click", async () => {
@@ -6062,3 +6299,4 @@
   </script>
 </body>
 </html>
+
