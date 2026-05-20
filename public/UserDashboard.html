@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bachat — Your dashboard</title>
+  <title>Bachat - Your dashboard</title>
   <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -688,6 +688,245 @@
       font-weight: 700;
     }
 
+    .seller-join-tile {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: center;
+      border: 1px solid #d7e2f0;
+      border-radius: 8px;
+      background: #fff;
+      padding: 22px 24px;
+      box-shadow: 0 18px 48px -36px rgba(15, 23, 42, 0.36);
+    }
+
+    .seller-join-tile h2 {
+      margin: 0;
+      color: #0f172a;
+      font-size: clamp(22px, 2vw, 30px);
+      line-height: 1.1;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .seller-join-tile p {
+      margin: 8px 0 0;
+      max-width: 680px;
+      color: #526174;
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .seller-join-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .seller-join-actions a,
+    .seller-join-actions button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 0 18px;
+      font-size: 13px;
+      font-weight: 950;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .seller-join-primary {
+      background: #febd69;
+      color: #131921;
+      box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.7);
+    }
+
+    .seller-join-secondary {
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+
+    .bachat-footer {
+      overflow: hidden;
+      border-radius: 8px;
+      background: #131a22;
+      color: #e5e7eb;
+      font-family: "Amazon Ember", Arial, Helvetica, sans-serif;
+      box-shadow: 0 22px 60px -42px rgba(15, 23, 42, 0.72);
+    }
+
+    .bachat-footer-back {
+      display: flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      background: #37475a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .bachat-footer-back:hover {
+      background: #46596f;
+    }
+
+    .bachat-footer-main {
+      background: #232f3e;
+      padding: 44px clamp(20px, 6vw, 80px);
+    }
+
+    .bachat-footer-columns {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 34px;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    .bachat-footer h3 {
+      margin: 0 0 12px;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1.15;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .bachat-footer-list {
+      display: grid;
+      gap: 9px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bachat-footer-list a,
+    .bachat-footer-list span,
+    .bachat-footer-list button {
+      color: #d5d9d9;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    .bachat-footer-list button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      text-align: left;
+      font: inherit;
+    }
+
+    .bachat-footer-list a:hover,
+    .bachat-footer-list button:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    .bachat-footer-brand {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      border-top: 1px solid #3a4553;
+      background: #232f3e;
+      padding: 26px 20px;
+    }
+
+    .bachat-footer-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+      font-size: 13px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .bachat-footer-logo img {
+      display: block;
+      height: 22px;
+      width: 22px;
+    }
+
+    .bachat-footer-pill {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #848688;
+      border-radius: 3px;
+      color: #d5d9d9;
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .bachat-footer-network {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 20px 38px;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 30px clamp(20px, 6vw, 80px) 18px;
+    }
+
+    .bachat-footer-network a {
+      color: #d5d9d9;
+      text-decoration: none;
+    }
+
+    .bachat-footer-network strong {
+      display: block;
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 950;
+    }
+
+    .bachat-footer-network span {
+      display: block;
+      margin-top: 2px;
+      color: #999;
+      font-size: 12px;
+      line-height: 1.15;
+      font-weight: 650;
+    }
+
+    .bachat-footer-legal {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      justify-content: center;
+      padding: 18px 20px 30px;
+      color: #d5d9d9;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .bachat-footer-legal a {
+      color: #d5d9d9;
+      text-decoration: none;
+    }
+
+    .bachat-footer-legal a:hover {
+      text-decoration: underline;
+    }
+
     @media (min-width: 1024px) {
       #departments-nav {
         overflow: visible;
@@ -858,6 +1097,24 @@
         text-align: left;
       }
 
+      .seller-join-tile {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 18px;
+      }
+
+      .seller-join-actions {
+        justify-content: stretch;
+      }
+
+      .seller-join-actions a {
+        flex: 1 1 150px;
+      }
+
+      .bachat-footer-columns,
+      .bachat-footer-network {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       #shopping-home > div:first-child > .relative,
       #shopping-home > div:nth-child(3) {
         grid-template-columns: minmax(0, 1fr);
@@ -892,10 +1149,1115 @@
       #shopping-home-shop-grid {
         grid-template-columns: minmax(0, 1fr) !important;
       }
+
+      .bachat-footer-main {
+        padding: 30px 18px;
+      }
+
+      .bachat-footer-columns,
+      .bachat-footer-network {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .bachat-storefront.amazon-shell {
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .amazon-top-header {
+      background: rgba(255, 255, 255, 0.96);
+      color: #0f172a;
+      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 8px 28px -26px rgba(15, 23, 42, 0.45) !important;
+      backdrop-filter: blur(14px);
+    }
+
+    .bachat-storefront .amazon-top-row {
+      grid-template-columns: minmax(150px, auto) minmax(116px, auto) minmax(280px, 1fr) 46px minmax(230px, auto);
+      max-width: 1480px;
+      margin: 0 auto;
+      min-height: 76px;
+      padding: 10px clamp(12px, 2vw, 28px);
+    }
+
+    .bachat-storefront .amazon-city-btn {
+      color: #0f172a;
+      border: 1px solid #d6e4fb;
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .bachat-storefront .amazon-city-btn:hover {
+      border-color: rgba(0, 86, 210, 0.34);
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .amazon-city-btn svg {
+      color: #0056d2 !important;
+    }
+
+    .bachat-storefront .amazon-city-btn .block {
+      display: none;
+    }
+
+    .bachat-storefront .amazon-city-btn #header-city-label {
+      color: #0f172a;
+      font-weight: 900;
+    }
+
+    .bachat-storefront .amazon-search-wrap {
+      border: 1px solid #d9e5f6;
+      border-radius: 22px;
+      background: #fbfdff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .bachat-storefront .amazon-search-wrap input,
+    .bachat-storefront .amazon-search-wrap #search-q {
+      background: #fbfdff !important;
+      padding-left: 20px;
+    }
+
+    .bachat-storefront .amazon-search-wrap button,
+    .bachat-storefront .amazon-search-wrap #search-btn {
+      background: #0056d2 !important;
+      color: #fff !important;
+      border-radius: 18px !important;
+      margin: 4px;
+      min-width: 102px;
+      text-transform: none;
+      box-shadow: 0 10px 22px -12px rgba(0, 86, 210, 0.85);
+    }
+
+    .bachat-storefront .amazon-search-wrap button:hover,
+    .bachat-storefront .amazon-search-wrap #search-btn:hover {
+      background: #0044a8 !important;
+    }
+
+    .bachat-storefront .amazon-head-link,
+    .bachat-storefront #profile-menu-open,
+    .bachat-storefront #amazon-head-actions p,
+    .bachat-storefront #amazon-head-actions p:last-child {
+      color: #334155 !important;
+    }
+
+    .bachat-storefront .amazon-head-link {
+      border-radius: 16px;
+      min-height: 44px;
+    }
+
+    .bachat-storefront .amazon-head-link:hover {
+      border-color: #d6e4fb;
+      background: #f8fbff;
+    }
+
+    .bachat-storefront #amazon-head-actions #header-avatar {
+      border-color: #e5e7eb;
+    }
+
+    .bachat-storefront .amazon-nav-strip {
+      background: #fff;
+      border-top: 0;
+      border-bottom: 1px solid #e5e7eb;
+      color: #0f172a;
+    }
+
+    .bachat-storefront #departments-nav > div {
+      max-width: 1480px;
+      margin: 0 auto;
+      gap: 14px;
+      padding-inline: clamp(12px, 2vw, 28px);
+    }
+
+    .bachat-storefront .amazon-nav-link,
+    .bachat-storefront #dept-all,
+    .bachat-storefront #departments-nav details > summary {
+      border-right: 0;
+      color: #334155 !important;
+      min-height: 44px;
+      padding-inline: 0 !important;
+      text-transform: none;
+    }
+
+    .bachat-storefront .amazon-nav-link.active,
+    .bachat-storefront .amazon-nav-link:hover,
+    .bachat-storefront #dept-all:hover,
+    .bachat-storefront #departments-nav details > summary:hover {
+      color: #0056d2 !important;
+      background: transparent;
+    }
+
+    .bachat-storefront .shopping-hero {
+      border-color: #d6e4fb !important;
+      border-radius: 22px !important;
+      background:
+        radial-gradient(ellipse at 78% 48%, rgba(0, 86, 210, 0.12), transparent 34%),
+        linear-gradient(100deg, #f8fbff 0%, #eef7ff 48%, #dcefff 100%) !important;
+      color: #0f172a !important;
+      min-height: 0 !important;
+      height: clamp(390px, 28vw, 460px) !important;
+      padding: clamp(42px, 3.2vw, 58px) clamp(44px, 3.4vw, 64px) !important;
+    }
+
+    .bachat-storefront .shopping-hero-grid {
+      grid-template-columns: minmax(0, 0.96fr) minmax(520px, 0.9fr) !important;
+      gap: clamp(36px, 5vw, 92px) !important;
+      align-items: center !important;
+      height: 100%;
+    }
+
+    .bachat-storefront .shopping-hero-title {
+      max-width: 760px !important;
+      margin-top: 8px !important;
+      font-size: clamp(34px, 2.55vw, 48px) !important;
+      line-height: 1.05 !important;
+      letter-spacing: 0 !important;
+      white-space: nowrap;
+    }
+
+    .bachat-storefront .shopping-hero-copy {
+      margin-top: 14px !important;
+      font-size: clamp(15px, 1.02vw, 18px) !important;
+      line-height: 1.45 !important;
+    }
+
+    .bachat-storefront .shopping-stat-grid {
+      grid-template-columns: repeat(4, minmax(106px, 1fr)) !important;
+      max-width: 820px !important;
+      margin-top: 34px !important;
+      gap: 22px !important;
+    }
+
+    .bachat-storefront .shopping-hero::after {
+      content: none;
+    }
+
+    .bachat-storefront .shopping-hero-grid {
+      position: relative;
+      z-index: 1;
+    }
+
+    .bachat-storefront .shopping-stat-grid > div,
+    .bachat-storefront .store-action-tile,
+    .bachat-storefront .shopping-mode-grid > div {
+      border-color: #dbeafe !important;
+      background: rgba(255, 255, 255, 0.86) !important;
+      color: #0f172a !important;
+      backdrop-filter: blur(10px);
+    }
+
+    .bachat-storefront .store-action-tile {
+      display: flex;
+      min-height: 172px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 1px solid #e1eaf7;
+      border-radius: 16px;
+      padding: 18px 14px;
+      text-align: center;
+      text-decoration: none;
+      box-shadow: 0 18px 42px -34px rgba(15, 23, 42, 0.42);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .bachat-storefront .store-action-tile:hover {
+      transform: translateY(-2px);
+      border-color: #bfd6fa !important;
+      box-shadow: 0 22px 52px -34px rgba(15, 23, 42, 0.5);
+    }
+
+    .bachat-storefront .store-action-icon {
+      display: inline-flex;
+      height: 58px;
+      width: 58px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .store-action-icon svg {
+      height: 26px;
+      width: 26px;
+      stroke-width: 2.5;
+    }
+
+    .bachat-storefront .store-action-tile strong {
+      display: block;
+      color: #0f172a;
+      font-size: 15px;
+      line-height: 1.15;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .store-action-tile span:last-child {
+      color: #526174;
+      font-size: 12px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .bachat-storefront .store-hero-visual {
+      position: relative;
+      display: flex;
+      min-height: 0;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 20px;
+      isolation: isolate;
+    }
+
+    .bachat-storefront .store-hero-visual::before {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      z-index: 0;
+      content: "";
+      width: min(100%, 830px);
+      height: 350px;
+      transform: translateX(-50%);
+      background: url("/assets/bachat-hero-palace-bg.svg") center bottom / contain no-repeat;
+      opacity: 1;
+    }
+
+    .bachat-storefront .store-hero-visual::after {
+      content: none;
+    }
+
+    .bachat-storefront .store-hero-visual img {
+      position: relative;
+      z-index: 2;
+      width: clamp(300px, 21vw, 390px);
+      height: auto;
+      max-width: none;
+      margin-right: 0;
+      transform: translateY(-8px);
+      filter: drop-shadow(0 22px 32px rgba(0, 86, 210, 0.18));
+    }
+
+    .bachat-storefront .hero-cloud,
+    .bachat-storefront .hero-tree {
+      display: none;
+    }
+
+    .bachat-storefront .hero-cloud {
+      top: 22px;
+      height: 12px;
+      width: 42px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.12);
+    }
+
+    .bachat-storefront .hero-cloud::before,
+    .bachat-storefront .hero-cloud::after {
+      position: absolute;
+      bottom: 5px;
+      content: "";
+      border-radius: 999px;
+      background: inherit;
+    }
+
+    .bachat-storefront .hero-cloud::before {
+      left: 7px;
+      height: 18px;
+      width: 18px;
+    }
+
+    .bachat-storefront .hero-cloud::after {
+      right: 8px;
+      height: 24px;
+      width: 24px;
+    }
+
+    .bachat-storefront .hero-cloud-one {
+      left: 18%;
+      opacity: 0.74;
+    }
+
+    .bachat-storefront .hero-cloud-two {
+      right: 7%;
+      top: 20px;
+      opacity: 0.9;
+    }
+
+    .bachat-storefront .hero-tree {
+      bottom: 76px;
+      width: 42px;
+      height: 54px;
+      z-index: 1;
+    }
+
+    .bachat-storefront .hero-tree::before {
+      position: absolute;
+      left: 19px;
+      bottom: 0;
+      content: "";
+      width: 6px;
+      height: 23px;
+      border-radius: 999px;
+      background: #8b5a2b;
+    }
+
+    .bachat-storefront .hero-tree::after {
+      position: absolute;
+      left: 3px;
+      top: 0;
+      content: "";
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 68%, #62b73d 0 26%, transparent 27%),
+        radial-gradient(circle at 68% 68%, #65bd42 0 28%, transparent 29%),
+        radial-gradient(circle at 50% 35%, #82cf4e 0 36%, transparent 37%);
+      filter: drop-shadow(0 8px 10px rgba(22, 101, 52, 0.14));
+    }
+
+    .bachat-storefront .hero-tree-one {
+      left: 22%;
+      right: auto;
+      transform: scale(0.82);
+    }
+
+    .bachat-storefront .hero-tree-two {
+      right: 14%;
+      transform: scale(0.78);
+    }
+
+    .bachat-storefront #shopping-home-lanes {
+      grid-template-columns: repeat(7, minmax(110px, 1fr)) !important;
+    }
+
+    .bachat-storefront .home-panel {
+      border: 1px solid #e5edf8;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 16px 42px -36px rgba(15, 23, 42, 0.28);
+    }
+
+    .bachat-storefront .home-panel h2 {
+      font-size: 18px !important;
+      line-height: 1.2 !important;
+      letter-spacing: 0 !important;
+    }
+
+    .bachat-storefront .category-tile {
+      display: flex;
+      min-height: 112px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 0;
+      border-right: 1px solid #e5edf8;
+      background: transparent;
+      color: #0f172a;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 950;
+      line-height: 1.15;
+    }
+
+    .bachat-storefront .category-tile:last-child {
+      border-right: 0;
+    }
+
+    .bachat-storefront .category-icon {
+      display: inline-flex;
+      height: 58px;
+      width: 58px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #dbeafe;
+      border-radius: 20px;
+      background: #f3f8ff;
+      font-size: 28px;
+    }
+
+    .bachat-storefront .home-product-card {
+      position: relative;
+      display: flex;
+      min-height: 278px;
+      flex-direction: column;
+      border: 1px solid #e1eaf7;
+      border-radius: 15px;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 14px 34px -30px rgba(15, 23, 42, 0.28);
+    }
+
+    .bachat-storefront .home-product-card .home-product-img {
+      display: flex;
+      height: 118px;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 14px;
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .home-product-card img {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+    }
+
+    .bachat-storefront .home-product-title {
+      margin-top: 12px;
+      color: #0f172a;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .home-product-meta {
+      margin-top: 2px;
+      color: #526174;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .bachat-storefront .home-product-price {
+      margin-top: 8px;
+      color: #0f172a;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .home-product-card .home-add-cart {
+      margin-top: auto;
+      width: 100%;
+      align-self: stretch;
+      border-radius: 8px;
+      background: #0056d2;
+      padding: 9px 13px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .shop-row,
+    .bachat-storefront .saved-row,
+    .bachat-storefront .order-row {
+      border-bottom: 1px solid #eef3fb;
+      padding: 16px 0;
+    }
+
+    .bachat-storefront .shop-row:last-child,
+    .bachat-storefront .saved-row:last-child,
+    .bachat-storefront .order-row:last-child {
+      border-bottom: 0;
+    }
+
+    .bachat-storefront .offer-card {
+      position: relative;
+      min-height: 92px;
+      border-radius: 14px;
+      padding: 18px 20px 18px 64px;
+      font-weight: 800;
+    }
+
+    .bachat-storefront .offer-card::before {
+      position: absolute;
+      left: 22px;
+      top: 24px;
+      display: inline-flex;
+      height: 32px;
+      width: 32px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.68);
+      content: "%";
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .offer-card strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .offer-card span,
+    .bachat-storefront .offer-card small {
+      display: block;
+      margin-top: 3px;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .bachat-storefront .offer-green { background: #effcf4; color: #16a34a; }
+    .bachat-storefront .offer-orange { background: #fff7ed; color: #f97316; }
+    .bachat-storefront .offer-purple { background: #faf5ff; color: #9333ea; }
+
+    .bachat-storefront .trust-strip {
+      border: 1px solid #e5edf8;
+      border-radius: 22px;
+      background: #fff;
+      padding: 18px 28px;
+      box-shadow: 0 18px 48px -38px rgba(15, 23, 42, 0.28);
+    }
+
+    .bachat-storefront .trust-strip div {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      column-gap: 14px;
+      align-items: center;
+    }
+
+    .bachat-storefront .trust-strip span {
+      grid-row: span 2;
+      display: inline-flex;
+      height: 54px;
+      width: 54px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      background: #eef6ff;
+      color: #0056d2;
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .trust-strip svg {
+      height: 23px;
+      width: 23px;
+      stroke-width: 2.4;
+    }
+
+    .bachat-storefront .trust-strip strong {
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .trust-strip small {
+      color: #526174;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .bachat-storefront .bachat-footer {
+      border-radius: 0;
+      background: transparent;
+      color: #0f172a;
+      box-shadow: none;
+    }
+
+    .bachat-storefront .bachat-footer-main {
+      background: transparent;
+      padding: 34px 8px 20px;
+    }
+
+    .bachat-storefront .bachat-footer-columns {
+      max-width: none;
+      grid-template-columns: 1.4fr repeat(3, minmax(130px, 1fr));
+    }
+
+    .bachat-storefront .bachat-footer h3,
+    .bachat-storefront .bachat-footer-logo {
+      color: #0f172a;
+    }
+
+    .bachat-storefront .bachat-footer-list a,
+    .bachat-storefront .bachat-footer-list span,
+    .bachat-storefront .bachat-footer-list button {
+      color: #526174;
+      font-size: 12px;
+    }
+
+    .bachat-storefront .shopping-stat-grid p,
+    .bachat-storefront .shopping-mode-grid p {
+      color: inherit !important;
+    }
+
+    .bachat-storefront #shopping-home-shop-count,
+    .bachat-storefront #shopping-home-product-count {
+      color: #0f172a !important;
+    }
+
+    @media (max-width: 1040px) {
+      .bachat-storefront .shopping-hero::after {
+        opacity: 0.16;
+        width: 80%;
+      }
+
+      .bachat-storefront #shopping-home-lanes {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+
+      .bachat-storefront .shopping-hero {
+        height: auto !important;
+      }
+
+      .bachat-storefront .shopping-hero-title {
+        white-space: normal;
+      }
+
+      .bachat-storefront .shopping-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .bachat-storefront .store-hero-visual {
+        min-height: 180px;
+      }
+
+      .bachat-storefront .store-hero-visual img {
+        width: min(88vw, 360px);
+        transform: translateY(-2px);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .bachat-storefront #shopping-home-lanes {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .bachat-storefront .store-hero-visual {
+        display: none;
+      }
+    }
+
+    .bachat-storefront .amazon-top-header {
+      background: #fff;
+      border-bottom: 1px solid #e9eff7;
+      box-shadow: none !important;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+
+    .bachat-storefront .amazon-main {
+      background: #f8fbff !important;
+      padding: 24px 28px 28px !important;
+    }
+
+    .bachat-storefront #shopping-home:not(.hidden) {
+      display: grid;
+      gap: 18px;
+    }
+
+    .bachat-storefront #shopping-home.hidden {
+      display: none !important;
+    }
+
+    .bachat-storefront #shopping-home > :not([hidden]) ~ :not([hidden]) {
+      margin-top: 0 !important;
+    }
+
+    .bachat-storefront .home-category-rail {
+      border: 1px solid #e5edf8 !important;
+      border-radius: 20px !important;
+      background: #fff !important;
+      padding: 14px 24px !important;
+      box-shadow: 0 16px 42px -36px rgba(15, 23, 42, 0.28) !important;
+    }
+
+    .bachat-storefront .home-lower-grid {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.86fr) minmax(0, 0.86fr) !important;
+    }
+
+    .bachat-storefront .bachat-exact-head {
+      display: grid;
+      grid-template-columns: 178px 146px minmax(520px, 1fr) 42px max-content;
+      gap: 22px;
+      width: 100%;
+      max-width: none;
+      min-height: 86px;
+      align-items: center;
+      margin: 0;
+      padding: 14px 28px 12px;
+    }
+
+    .bachat-storefront .bachat-head-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #0f172a;
+      text-decoration: none;
+      font-size: 25px;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .bachat-storefront .bachat-head-mark {
+      display: inline-flex;
+      height: 42px;
+      width: 42px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: #0b6df6;
+      box-shadow: 0 8px 18px -12px rgba(0, 86, 210, 0.7);
+    }
+
+    .bachat-storefront .bachat-head-mark img {
+      height: 31px;
+      width: 31px;
+      display: block;
+    }
+
+    .bachat-storefront .bachat-head-city {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid #d6e4fb;
+      border-radius: 18px;
+      background: #fff;
+      color: #0f172a;
+      padding: 0 24px;
+      font-size: 15px;
+      font-weight: 950;
+      letter-spacing: 0.01em;
+    }
+
+    .bachat-storefront .bachat-head-city svg {
+      color: #0056d2 !important;
+      width: 14px;
+      height: 14px;
+    }
+
+    .bachat-storefront .bachat-head-search {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 124px;
+      min-height: 52px;
+      overflow: hidden;
+      border: 1px solid #d6e4fb;
+      border-radius: 22px;
+      background: #fbfdff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    .bachat-storefront .bachat-head-search #search-q {
+      border: 0 !important;
+      background: #fbfdff !important;
+      color: #334155 !important;
+      padding: 0 20px 0 24px !important;
+      font-size: 15px !important;
+      font-weight: 800 !important;
+      outline: 0 !important;
+      box-shadow: none !important;
+    }
+
+    .bachat-storefront .bachat-head-search #search-q::placeholder {
+      color: #8d98aa;
+      opacity: 1;
+    }
+
+    .bachat-storefront .bachat-head-search #search-btn {
+      margin: 4px;
+      border: 0 !important;
+      border-radius: 19px !important;
+      background: #0056d2 !important;
+      color: #fff !important;
+      font-size: 14px !important;
+      font-weight: 950 !important;
+      text-transform: none !important;
+      box-shadow: 0 10px 20px -14px rgba(0, 86, 210, 0.9);
+    }
+
+    .bachat-storefront .bachat-head-notif {
+      justify-self: center;
+    }
+
+    .bachat-storefront .bachat-head-notif #notif-btn {
+      position: relative;
+      display: inline-flex;
+      height: 42px;
+      width: 42px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e1eaf7;
+      border-radius: 14px;
+      background: #fff;
+      color: #94a3b8;
+      font-size: 16px;
+      padding: 0;
+      box-shadow: 0 12px 26px -22px rgba(15, 23, 42, 0.34);
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    .bachat-storefront .bachat-head-notif #notif-btn:hover {
+      transform: translateY(-1px);
+      border-color: #bfd6fa;
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .head-bell {
+      display: block;
+      transform: translateY(1px);
+    }
+
+    .bachat-storefront .head-bell svg,
+    .bachat-storefront .bachat-head-action-icon svg {
+      height: 18px;
+      width: 18px;
+      stroke-width: 2.35;
+    }
+
+    .bachat-storefront .bachat-head-notif #notif-badge {
+      position: absolute;
+      top: -7px;
+      right: -4px;
+      display: flex;
+      min-width: 18px;
+      height: 18px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #ef4444;
+      border: 2px solid #fff;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .bachat-storefront .bachat-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-self: end;
+      color: #334155;
+    }
+
+    .bachat-storefront .bachat-head-action {
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      border-radius: 16px;
+      color: #334155 !important;
+      background: transparent !important;
+      padding: 0 11px;
+      font-size: 15px;
+      font-weight: 950;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    .bachat-storefront .bachat-head-action:hover {
+      transform: translateY(-1px);
+      border-color: #d6e4fb;
+      background: #f8fbff !important;
+    }
+
+    .bachat-storefront .bachat-head-action-icon {
+      display: inline-flex;
+      height: 30px;
+      width: 30px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: #f3f8ff;
+      color: #0056d2;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .bachat-storefront .bachat-head-action strong {
+      display: inline;
+      margin-left: 2px;
+      color: #334155;
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .bachat-head-account {
+      display: flex;
+      min-height: 50px;
+      min-width: 176px;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid #e1eaf7;
+      border-radius: 18px;
+      background: #fff;
+      padding: 7px 12px;
+      line-height: 1.05;
+      box-shadow: 0 12px 28px -24px rgba(15, 23, 42, 0.4);
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    .bachat-storefront .bachat-head-account:hover {
+      transform: translateY(-1px);
+      border-color: #bfd6fa;
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .bachat-head-account::before {
+      content: "";
+      display: inline-flex;
+      height: 34px;
+      width: 34px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 36%, #fff 0 18%, transparent 19%),
+        radial-gradient(circle at 50% 78%, #fff 0 28%, transparent 29%),
+        linear-gradient(135deg, #0b6df6, #0044a8);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    .bachat-storefront .head-account-copy {
+      min-width: 0;
+    }
+
+    .bachat-storefront .bachat-head-account #hello-label {
+      color: #334155 !important;
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .bachat-storefront .bachat-head-account #profile-menu-open {
+      border: 0;
+      background: transparent;
+      color: #334155 !important;
+      padding: 0;
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.15;
+      font-weight: 950;
+      letter-spacing: 0;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .bachat-storefront .amazon-nav-strip {
+      background: #fff;
+      border-top: 0;
+      border-bottom: 1px solid #e5e7eb;
+      color: #334155;
+    }
+
+    .bachat-storefront #departments-nav > div {
+      width: 100%;
+      max-width: none;
+      min-height: 52px;
+      align-items: center;
+      gap: 30px;
+      margin: 0;
+      padding: 0 28px !important;
+      overflow: visible;
+    }
+
+    .bachat-storefront #departments-nav > div > a.amazon-nav-link[href="#shopping-home"],
+    .bachat-storefront #departments-nav > div > a.amazon-nav-link[href="#browse-section"] {
+      display: none;
+    }
+
+    .bachat-storefront .amazon-nav-link,
+    .bachat-storefront #dept-all,
+    .bachat-storefront #departments-nav details > summary {
+      position: relative;
+      min-height: 52px;
+      border: 0 !important;
+      color: #334155 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      font-size: 14px !important;
+      font-weight: 950 !important;
+      letter-spacing: 0;
+      text-transform: none;
+      text-decoration: none;
+    }
+
+    .bachat-storefront .amazon-nav-link.active,
+    .bachat-storefront .amazon-nav-link:hover,
+    .bachat-storefront #dept-all:hover,
+    .bachat-storefront #departments-nav details > summary:hover {
+      color: #0056d2 !important;
+    }
+
+    .bachat-storefront #dept-all {
+      color: #0056d2 !important;
+    }
+
+    .bachat-storefront #dept-all::before,
+    .bachat-storefront #departments-nav details > summary::before {
+      display: inline-block;
+      margin-right: 8px;
+      color: currentColor;
+      font-size: 15px;
+      line-height: 1;
+      transform: translateY(1px);
+    }
+
+    .bachat-storefront #dept-all::before { content: "▦"; }
+    .bachat-storefront #departments-nav details:nth-of-type(1) > summary::before { content: "⌁"; }
+    .bachat-storefront #departments-nav details:nth-of-type(2) > summary::before { content: "□"; }
+    .bachat-storefront #departments-nav details:nth-of-type(3) > summary::before { content: "⌂"; }
+    .bachat-storefront #departments-nav details:nth-of-type(4) > summary::before { content: "◇"; }
+    .bachat-storefront #departments-nav details:nth-of-type(5) > summary::before { content: "✣"; }
+
+    .bachat-storefront .amazon-nav-link.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      border-radius: 999px 999px 0 0;
+      background: #f59e0b;
+    }
+
+    .bachat-storefront #dept-all-wrap {
+      border-right: 0 !important;
+    }
+
+    @media (max-width: 1100px) {
+      .bachat-storefront .bachat-exact-head {
+        grid-template-columns: 140px 120px minmax(260px, 1fr) 34px auto;
+        gap: 10px;
+        max-width: none;
+        padding-inline: 14px;
+      }
+
+      .bachat-storefront .bachat-head-actions {
+        gap: 14px;
+      }
+
+      .bachat-storefront #departments-nav > div {
+        max-width: none;
+        gap: 18px;
+        padding-inline: 14px !important;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .bachat-storefront .bachat-exact-head {
+        grid-template-columns: 1fr auto;
+      }
+
+      .bachat-storefront .bachat-head-city,
+      .bachat-storefront .bachat-head-notif,
+      .bachat-storefront .bachat-head-actions {
+        grid-row: auto;
+      }
+
+      .bachat-storefront .bachat-head-search {
+        grid-column: 1 / -1;
+      }
+
+      .bachat-storefront .bachat-head-actions {
+        grid-column: 1 / -1;
+        justify-self: start;
+      }
     }
   </style>
 </head>
-<body class="bachat-ui amazon-shell bg-[#f8f9fb] text-slate-900 min-h-screen">
+<body class="bachat-ui bachat-storefront amazon-shell bg-[#f8f9fb] text-slate-900 min-h-screen">
   <div id="deliver-to" class="hidden" aria-hidden="true"></div>
   <div class="flex min-h-screen">
     <aside class="hidden w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
@@ -939,23 +2301,25 @@
 
     <div class="flex-1 flex flex-col min-w-0">
       <div class="sticky top-0 z-40 shrink-0 amazon-top-header shadow-[0_2px_14px_rgba(0,0,0,0.28)]">
-      <header class="amazon-top-row">
-        <a href="/" class="flex items-center gap-2 rounded-lg border border-transparent px-2 py-1 hover:border-white">
-          <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/95 text-[#0f172a]"><img src="/assets/bachat-icon.svg" alt="" class="h-5 w-5" /></span>
-          <span class="text-sm font-black tracking-[0.08em]">BACHAT</span>
+      <header class="amazon-top-row bachat-exact-head">
+        <a href="/" class="bachat-head-brand">
+          <span class="bachat-head-mark"><img src="/assets/bachat-icon.svg" alt="" /></span>
+          <span>Bachat</span>
         </a>
-        <button type="button" id="header-city" class="amazon-city-btn flex items-center gap-2 px-3 py-2 text-sm font-semibold shrink-0" aria-label="Change city">
-          <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <span class="text-left leading-tight"><span class="block text-[10px] uppercase tracking-[0.12em] text-white/70">Deliver to</span><span id="header-city-label">Indore</span></span>
+        <button type="button" id="header-city" class="amazon-city-btn bachat-head-city" aria-label="Change city">
+          <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span id="header-city-label">Indore</span>
         </button>
-        <div class="amazon-search-wrap min-w-[140px]">
-          <input id="search-q" type="search" placeholder="Search catalog..." class="flex-1 rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] bg-[#f8f9fb]" />
+        <div class="amazon-search-wrap bachat-head-search min-w-[140px]">
+          <input id="search-q" type="search" placeholder="Search for products, stores and more..." class="flex-1 rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#0056d2]/25 focus:border-[#0056d2] bg-[#f8f9fb]" />
           <button type="button" id="search-btn" class="rounded-xl bg-[#0056d2] hover:bg-[#0044a8] text-white font-bold px-4 py-2.5 text-sm shrink-0">Search</button>
         </div>
-        <div class="relative shrink-0">
-          <button type="button" id="notif-btn" class="amazon-head-link relative" title="Notifications" aria-label="Notifications">
-            <span class="text-lg" aria-hidden="true">🔔</span>
-            <span id="notif-badge" class="absolute -top-1 -right-1 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
+        <div class="bachat-head-notif relative shrink-0">
+          <button type="button" id="notif-btn" class="relative" title="Notifications" aria-label="Notifications">
+            <span class="head-bell" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 17H9"/><path d="M18 14v-3a6 6 0 0 0-12 0v3l-2 3h16l-2-3Z"/><path d="M10 20h4"/></svg>
+            </span>
+            <span id="notif-badge">0</span>
           </button>
           <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-[min(92vw,360px)] rounded-2xl border border-[#e5e7eb] bg-white shadow-xl z-[70] overflow-hidden">
             <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#e5e7eb]">
@@ -969,22 +2333,27 @@
             <p id="notif-empty" class="hidden px-4 py-8 text-center text-sm text-slate-500">No notifications yet.</p>
           </div>
         </div>
-        <div id="amazon-head-actions" class="relative flex items-center gap-2 shrink-0 ml-auto">
-          <a href="#orders-section" data-section="orders-section" class="amazon-head-link" aria-label="View your orders">
-            <span class="text-left leading-tight">
-              <span class="hidden lg:block text-[10px] font-semibold uppercase tracking-[0.08em] text-white/70">My</span>
-              <span class="font-black">Orders</span>
+        <div id="amazon-head-actions" class="bachat-head-actions relative flex items-center gap-2 shrink-0 ml-auto">
+          <a href="#orders-section" data-section="orders-section" class="amazon-head-link bachat-head-action" aria-label="View your orders">
+            <span class="bachat-head-action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
             </span>
+            <span>Orders</span>
           </a>
-          <a href="#cart-section" data-cart-link data-section="cart-section" class="amazon-head-link">
-            <span class="hidden sm:inline">Basket</span>
+          <a href="#cart-section" data-cart-link data-section="cart-section" class="amazon-head-link bachat-head-action">
+            <span class="bachat-head-action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 7h15l-1.5 9h-12L6 7Z"/><path d="M6 7 5 3H2"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+            </span>
+            <span>Basket</span>
             <strong data-cart-badge>0</strong>
           </a>
-          <div id="header-avatar" class="w-9 h-9 rounded-full border border-white/30 shrink-0 bg-cover bg-center bg-slate-200" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&q=60')"></div>
-          <div class="hidden sm:block min-w-0 max-w-[188px]">
-            <p id="hello-label" class="text-[10px] uppercase tracking-[0.12em] text-white/70">Hello</p>
-            <p id="hello-user" class="text-sm font-bold text-white truncate"></p>
-            <button type="button" id="profile-menu-open" class="font-semibold text-[#0056d2] hover:underline">Account &amp; Lists ▾</button>
+          <div class="bachat-head-account">
+            <div id="header-avatar" class="hidden"></div>
+            <div class="head-account-copy">
+              <p id="hello-label">HELLO, SIGN IN</p>
+              <p id="hello-user" class="hidden"></p>
+              <button type="button" id="profile-menu-open">Account &amp; Lists <span aria-hidden="true">▾</span></button>
+            </div>
           </div>
           <div id="profile-menu" class="hidden absolute right-0 top-full mt-1 w-52 rounded-xl border border-[#e5e7eb] bg-white shadow-lg py-1 z-50 text-sm">
             <button type="button" class="profile-menu-item w-full text-left px-4 py-2.5 hover:bg-[#f8f9fa] font-medium text-slate-700" data-action="profile">View profile</button>
@@ -999,10 +2368,10 @@
 
       <nav id="departments-nav" class="amazon-nav-strip text-sm" aria-label="Shop by category">
         <div class="flex items-stretch gap-0 px-1 sm:px-2 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/25">
-          <a href="#shopping-home" data-section="shopping-home" class="amazon-nav-link">Home</a>
+          <a href="#shopping-home" data-section="shopping-home" class="amazon-nav-link active">Home</a>
           <a href="#browse-section" data-section="browse-section" class="amazon-nav-link">Catalog</a>
           <div id="dept-all-wrap" class="relative shrink-0 border-r border-white/10">
-            <button type="button" id="dept-all" aria-expanded="false" class="h-full shrink-0 px-3 sm:px-4 py-2.5 font-semibold text-white hover:bg-white/10 whitespace-nowrap">All categories <span class="text-white/50 text-[10px]" aria-hidden="true">▾</span></button>
+            <button type="button" id="dept-all" aria-expanded="false" class="h-full shrink-0 px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap">All categories</button>
             <div id="dept-all-panel" class="hidden absolute left-0 top-full z-[70] w-[min(94vw,760px)] max-h-[min(72vh,520px)] overflow-y-auto rounded-b-2xl border border-[#e5e7eb] bg-white p-4 text-slate-900 shadow-2xl">
               <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
                 <div>
@@ -1145,100 +2514,160 @@
         <section id="shopping-home" class="space-y-6">
           <div class="shopping-hero relative overflow-hidden rounded-[34px] border border-[#d4deec] bg-[linear-gradient(100deg,#0b2247_0%,#193763_36%,#496b98_72%,#6787b0_100%)] px-6 py-7 text-white shadow-[0_26px_80px_-44px_rgba(15,23,42,0.62)] lg:px-8 lg:py-8">
             <div class="absolute inset-y-0 left-0 w-[52%] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.06),_transparent_48%)]"></div>
-            <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_360px] xl:items-start">
+            <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] xl:items-center">
               <div>
-                <p class="text-xs font-black uppercase tracking-[0.28em] text-blue-100/90">Bachat Home</p>
-                <h1 class="shopping-hero-title mt-4 max-w-4xl text-4xl font-black leading-[0.95] tracking-[-0.045em] text-white sm:text-5xl lg:text-[4.1rem]">Everything local in one place for <span id="shopping-home-city" class="text-[#8ec1ff]">your city</span>.</h1>
-                <p class="shopping-hero-copy mt-5 max-w-3xl text-base leading-8 text-blue-50/92 sm:text-lg">Browse shops and products across everyday shopping, quick essentials, food categories, and trusted neighborhood stores, all filtered to the city you selected above.</p>
-                <div class="shopping-stat-grid mt-7 grid max-w-3xl gap-3 sm:grid-cols-3">
-                  <div class="rounded-[22px] border border-white/14 bg-white/10 px-5 py-4 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100/80">Local shops</p>
-                    <p id="shopping-home-shop-count" class="mt-3 text-4xl font-black leading-none text-white">0</p>
-                    <p class="mt-2 text-xs text-blue-100/72">Trusted stores ready in your city</p>
-                  </div>
-                  <div class="rounded-[22px] border border-white/14 bg-white/10 px-5 py-4 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100/80">Live products</p>
-                    <p id="shopping-home-product-count" class="mt-3 text-4xl font-black leading-none text-white">0</p>
-                    <p class="mt-2 text-xs text-blue-100/72">Updated listings from nearby sellers</p>
-                  </div>
-                  <div class="rounded-[22px] border border-white/14 bg-white/10 px-5 py-4 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100/80">Shopping modes</p>
-                    <p class="mt-3 text-4xl font-black leading-none text-white">4</p>
-                    <p class="mt-2 text-xs text-blue-100/72">Different ways to browse and buy</p>
-                  </div>
+                <p class="text-sm font-black text-[#0056d2]">Good evening, <span id="shopping-home-greeting-name">there</span>!</p>
+                <h1 class="shopping-hero-title mt-3 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">What do you need today?</h1>
+                <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7 text-slate-600">Shop from trusted local stores and get the best prices near <span id="shopping-home-city" class="font-black text-[#0056d2]">your city</span>.</p>
+                <div class="shopping-stat-grid mt-7 grid max-w-3xl gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <a href="#browse-section" data-section="browse-section" class="store-action-tile">
+                    <span class="store-action-icon bg-emerald-50 text-emerald-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg>
+                    </span>
+                    <strong>Buy Again</strong>
+                    <span>Shop your previous items</span>
+                  </a>
+                  <a href="#browse-section" data-section="browse-section" class="store-action-tile">
+                    <span class="store-action-icon bg-blue-50 text-[#0056d2]">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11Z"/><circle cx="12" cy="10" r="2.2"/></svg>
+                    </span>
+                    <strong>Nearby Shops</strong>
+                    <span>Find trusted local shops</span>
+                  </a>
+                  <a href="#post-section" data-section="post-section" class="store-action-tile">
+                    <span class="store-action-icon bg-orange-50 text-orange-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 3h10v18l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3V3Z"/><path d="M10 8h4"/><path d="M10 12h4"/><path d="M10 16h2"/></svg>
+                    </span>
+                    <strong>Request Quote</strong>
+                    <span>Get quotes from sellers</span>
+                  </a>
+                  <a href="#saved-section" data-section="saved-section" class="store-action-tile">
+                    <span class="store-action-icon bg-violet-50 text-violet-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20.5 8.8c0 5.3-8.5 10-8.5 10s-8.5-4.7-8.5-10A4.8 4.8 0 0 1 12 5.6a4.8 4.8 0 0 1 8.5 3.2Z"/></svg>
+                    </span>
+                    <strong>Saved Items</strong>
+                    <span>View saved products</span>
+                  </a>
+                </div>
+                <div class="sr-only">
+                  <span id="shopping-home-shop-count">0</span>
+                  <span id="shopping-home-product-count">0</span>
                 </div>
               </div>
-              <div class="shopping-mode-grid grid gap-3 sm:grid-cols-2">
-                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
-                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Everyday shopping</p>
-                  <p class="mt-2 text-lg font-black leading-7 text-white">Electronics, fashion, home and everyday discovery.</p>
-                </div>
-                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
-                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Quick essentials</p>
-                  <p class="mt-2 text-lg font-black leading-7 text-white">Fast essentials, groceries, daily restocks and pharmacy.</p>
-                </div>
-                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
-                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Food and fresh picks</p>
-                  <p class="mt-2 text-lg font-black leading-7 text-white">Food, bakery, sweets, beverages and fresh local picks.</p>
-                </div>
-                <div class="rounded-[22px] border border-white/16 bg-[rgba(16,36,68,0.34)] px-5 py-4 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-24px_rgba(15,23,42,0.42)]">
-                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-white/68">Bachat local</p>
-                  <p class="mt-2 text-lg font-black leading-7 text-white">Trusted neighborhood shops grouped by what you need now.</p>
-                </div>
+              <div class="store-hero-visual" aria-hidden="true">
+                <span class="hero-cloud hero-cloud-one"></span>
+                <span class="hero-cloud hero-cloud-two"></span>
+                <span class="hero-tree hero-tree-one"></span>
+                <span class="hero-tree hero-tree-two"></span>
+                <img src="/assets/bachat-hero-mark-crop.png" alt="" />
               </div>
             </div>
           </div>
 
-          <div class="rounded-[24px] border border-white/80 bg-white/85 p-4 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.28)] backdrop-blur-sm sm:p-4">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p class="text-xs font-black uppercase tracking-[0.22em] text-[#0056d2]">Browse By Need</p>
-                <h2 class="mt-1 text-2xl font-black tracking-[-0.03em] text-slate-900 sm:text-[1.8rem]">Jump into a shopping lane</h2>
-                <p class="mt-1 max-w-2xl text-sm leading-6 text-slate-600">Pick a lane and we will show the shops and products available in your selected city. You can still use the top search and the full catalog below.</p>
-              </div>
-              <button type="button" id="shopping-home-see-all" class="rounded-full border border-[#d6e4fb] bg-[#f8fbff] px-5 py-2.5 text-sm font-black text-[#0056d2] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#e8f1fc]">See all products</button>
-            </div>
-            <div id="shopping-home-lanes" class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4"></div>
+          <div class="home-category-rail rounded-[24px] border border-white/80 bg-white/85 p-4 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.28)] backdrop-blur-sm sm:p-4">
+            <button type="button" id="shopping-home-see-all" class="sr-only">View all categories</button>
+            <div id="shopping-home-lanes" class="grid gap-0"></div>
           </div>
 
-          <div class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_380px]">
-            <section class="rounded-[30px] border border-white/80 bg-white/92 p-5 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.28)] backdrop-blur-sm sm:p-6">
+          <div class="home-main-grid grid gap-4 xl:grid-cols-[minmax(320px,0.62fr)_minmax(0,1.08fr)]">
+            <section class="home-panel p-5">
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="text-xs font-black uppercase tracking-[0.22em] text-[#0056d2]">Shops Near You</p>
-                  <h2 class="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-900 sm:text-[2rem]">Local shops in <span id="shopping-home-shops-city">your city</span></h2>
+                  <h2 class="text-xl font-black text-slate-950">Shops near you in <span id="shopping-home-shops-city">your city</span></h2>
                 </div>
-                <span class="rounded-full border border-[#d6e4fb] bg-[#f8fbff] px-3 py-1 text-xs font-black text-[#0056d2]">City-aware</span>
+                <button type="button" class="text-xs font-black text-[#0056d2]" onclick="selectShopCategory('')">View all shops -></button>
               </div>
-              <div id="shopping-home-shop-grid" class="mt-6 grid gap-4 md:grid-cols-2"></div>
+              <div id="shopping-home-shop-grid" class="mt-5 grid gap-0"></div>
+              <button type="button" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-[#d6e4fb] bg-[#f8fbff] px-4 py-3 text-sm font-black text-[#0056d2]" onclick="selectShopCategory('')">Explore more shops</button>
             </section>
 
-            <section class="rounded-[30px] border border-white/80 bg-white/92 p-5 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.28)] backdrop-blur-sm sm:p-6">
-              <p class="text-xs font-black uppercase tracking-[0.22em] text-[#0056d2]">Why It Feels Familiar</p>
-              <h2 class="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-900">One app, many shopping patterns</h2>
-              <div class="mt-5 space-y-4">
-                <div class="rounded-[24px] border border-[#dbeafe] bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-                  <p class="text-sm font-black text-slate-900">Marketplace discovery</p>
-                  <p class="mt-1 text-sm leading-6 text-slate-600">Scroll broad categories like electronics, home, fashion, and gifts the way you would on a big marketplace.</p>
-                </div>
-                <div class="rounded-[24px] border border-[#dcfce7] bg-[linear-gradient(180deg,#f9fff8_0%,#effbf1_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.84)]">
-                  <p class="text-sm font-black text-slate-900">Quick daily essentials</p>
-                  <p class="mt-1 text-sm leading-6 text-slate-600">Jump straight to groceries, fruits, pharmacy, tea, snacks, and household refill items from nearby stores.</p>
-                </div>
-                <div class="rounded-[24px] border border-[#ffedd5] bg-[linear-gradient(180deg,#fff8f1_0%,#fff2e2_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
-                  <p class="text-sm font-black text-slate-900">Food-led browsing</p>
-                  <p class="mt-1 text-sm leading-6 text-slate-600">Open food, bakery, sweets, beverages, and meat categories like a food-first ordering experience.</p>
-                </div>
-                <div class="rounded-[24px] border border-[#ede9fe] bg-[linear-gradient(180deg,#faf5ff_0%,#f4edff_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
-                  <p class="text-sm font-black text-slate-900">Request anything else</p>
-                  <p class="mt-1 text-sm leading-6 text-slate-600">If you do not find a listing, switch to Dashboard or Requests and ask local sellers to quote for it.</p>
-                </div>
+            <section class="home-panel p-5">
+              <div class="flex items-center justify-between gap-4">
+                <h2 class="text-xl font-black text-slate-950">Recommended for you</h2>
+                <button type="button" class="text-xs font-black text-[#0056d2]" onclick="selectShopCategory('')">View all products -></button>
               </div>
+              <div id="shopping-home-sections" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
             </section>
           </div>
 
-          <div id="shopping-home-sections" class="space-y-6"></div>
           <p id="shopping-home-empty" class="hidden rounded-[28px] border border-dashed border-slate-300 bg-white/90 px-5 py-12 text-center text-sm text-slate-500 shadow-[0_18px_55px_-35px_rgba(15,23,42,0.24)] backdrop-blur-sm">No products are live in this city yet. Try another city from the location button above, or ask sellers to add listings.</p>
+
+          <section class="home-lower-grid grid gap-4 lg:grid-cols-[1.08fr_0.86fr_0.86fr]">
+            <div class="home-panel p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-xl font-black text-slate-950">Your orders</h2>
+                <a href="#orders-section" data-section="orders-section" class="text-xs font-black text-[#0056d2]">View all orders -></a>
+              </div>
+              <div id="home-orders-preview" class="space-y-3"></div>
+              <a href="#orders-section" data-section="orders-section" class="mt-4 flex w-full items-center justify-center rounded-xl border border-[#d6e4fb] bg-[#f8fbff] px-4 py-3 text-sm font-black text-[#0056d2]">Track all orders</a>
+            </div>
+            <div class="home-panel p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-xl font-black text-slate-950">Saved for later</h2>
+                <a href="#saved-section" data-section="saved-section" class="text-xs font-black text-[#0056d2]">View all -></a>
+              </div>
+              <div id="home-saved-preview" class="space-y-3"></div>
+            </div>
+            <div class="home-panel p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-xl font-black text-slate-950">Local offers for you</h2>
+                <button type="button" class="text-xs font-black text-[#0056d2]" data-footer-toast="More offers are coming soon.">View all offers -></button>
+              </div>
+              <div id="home-offers-preview" class="space-y-3">
+                <div class="offer-card offer-green"><strong>10% OFF</strong><span>On orders above Rs699</span><small>Amit Shop</small></div>
+                <div class="offer-card offer-orange"><strong>Rs50 OFF</strong><span>On your first order</span><small>Fresh Mart Indore</small></div>
+                <div class="offer-card offer-purple"><strong>5% OFF</strong><span>On grocery orders</span><small>Shree Kirana Store</small></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="trust-strip grid gap-4 md:grid-cols-4">
+            <div><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3 5 6v5c0 4.2 2.8 7.7 7 10 4.2-2.3 7-5.8 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-5"/></svg></span><strong>100% Secure</strong><small>Your payments are safe with us.</small></div>
+            <div><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20 7 9 18l-5-5"/><circle cx="12" cy="12" r="9"/></svg></span><strong>Verified Local Shops</strong><small>Only trusted and verified sellers.</small></div>
+            <div><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20 12 12 20 4 12l8-8 8 8Z"/><path d="M9 12h6"/></svg></span><strong>Best Local Prices</strong><small>Compare and choose the best.</small></div>
+            <div><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 13a8 8 0 0 1 16 0"/><path d="M5 13h3v5H5z"/><path d="M16 13h3v5h-3z"/><path d="M19 18c0 2-2 3-5 3"/></svg></span><strong>Help &amp; Support</strong><small>We're here to help you anytime.</small></div>
+          </section>
+
+          <footer class="bachat-footer" aria-label="Bachat footer">
+            <div class="bachat-footer-main">
+              <div class="bachat-footer-columns">
+                <section>
+                  <a class="bachat-footer-logo" href="#shopping-home" aria-label="Bachat home">
+                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[#0056d2] text-white"><img src="/assets/bachat-icon.svg" alt="" /></span>
+                    <span>Bachat</span>
+                  </a>
+                  <p class="mt-4 text-xs text-slate-500">&copy; 2026 Bachat. All rights reserved.</p>
+                </section>
+                <section>
+                  <h3>Company</h3>
+                  <ul class="bachat-footer-list">
+                    <li><a href="/privacy-policy.html">About us</a></li>
+                    <li><button type="button" data-footer-toast="Careers are coming soon.">Careers</button></li>
+                    <li><button type="button" data-footer-toast="Blog is coming soon.">Blog</button></li>
+                    <li><button type="button" data-footer-toast="Contact page is coming soon.">Contact us</button></li>
+                  </ul>
+                </section>
+                <section>
+                  <h3>For Shoppers</h3>
+                  <ul class="bachat-footer-list">
+                    <li><a href="#shopping-home" data-section="shopping-home">How it works</a></li>
+                    <li><a href="#orders-section" data-section="orders-section">Delivery</a></li>
+                    <li><a href="#payments-section" data-section="payments-section">Returns &amp; refunds</a></li>
+                    <li><a href="#profile-strip" data-section="profile-strip">Help center</a></li>
+                  </ul>
+                </section>
+                <section>
+                  <h3>For Sellers</h3>
+                  <ul class="bachat-footer-list">
+                    <li><a href="/signup.html?role=seller">Sell on Bachat</a></li>
+                    <li><a href="/login.html?role=seller">Seller dashboard</a></li>
+                    <li><a href="/seller-kyc.html">Pricing</a></li>
+                    <li><a href="/signup.html?role=seller">Resources</a></li>
+                  </ul>
+                </section>
+              </div>
+            </div>
+          </footer>
         </section>
 
         <section id="dashboard-home" class="space-y-6">
@@ -2228,6 +3657,8 @@
       if (helloLabel) helloLabel.textContent = "Hello, sign in";
       const helloUser = document.getElementById("hello-user");
       if (helloUser) helloUser.textContent = "";
+      const greetingName = document.getElementById("shopping-home-greeting-name");
+      if (greetingName) greetingName.textContent = "Guest";
       const menuOpen = document.getElementById("profile-menu-open");
       if (menuOpen) menuOpen.textContent = "Account & Lists ▾";
       document.getElementById("profile-menu")?.classList.add("hidden");
@@ -2235,6 +3666,11 @@
       updateCartBadges(guestCartItemCount());
       const notifBadge = document.getElementById("notif-badge");
       if (notifBadge) notifBadge.textContent = "0";
+      const homeOrders = document.getElementById("home-orders-preview");
+      if (homeOrders) homeOrders.innerHTML = '<p class="text-sm font-semibold text-slate-500">Sign in to view your orders.</p>';
+      const homeSaved = document.getElementById("home-saved-preview");
+      if (homeSaved) homeSaved.innerHTML = '<p class="text-sm font-semibold text-slate-500">Sign in to save products for later.</p>';
+      renderHomeOffers();
     }
 
     function applySignedInHeader(user) {
@@ -2245,6 +3681,8 @@
       if (menuOpen) menuOpen.textContent = "Account & Lists ▾";
       const helloUser = document.getElementById("hello-user");
       if (helloUser) helloUser.textContent = user.name || user.email || "";
+      const greetingName = document.getElementById("shopping-home-greeting-name");
+      if (greetingName) greetingName.textContent = (user.name || user.email || "there").split("@")[0];
     }
 
     const SHOPPING_HOME_GROUPS = [
@@ -2588,13 +4026,16 @@
 
     async function loadSaved() {
       const box = document.getElementById("saved-list");
+      const homeBox = document.getElementById("home-saved-preview");
       if (!box) return;
       try {
         const d = await api("GET", "/api/saved");
         const items = (d && d.items) || [];
         box.innerHTML = "";
+        if (homeBox) homeBox.innerHTML = "";
         if (!items.length) {
           box.innerHTML = '<p class="text-slate-500">No saved items yet. Save from Shop near you.</p>';
+          if (homeBox) homeBox.innerHTML = '<p class="text-sm font-semibold text-slate-500">No saved items yet.</p>';
           return;
         }
         items.forEach((p) => {
@@ -2612,6 +4053,15 @@
           </div>`;
           box.appendChild(div);
         });
+        if (homeBox) {
+          items.slice(0, 3).forEach((p) => {
+            const row = document.createElement("div");
+            row.className = "saved-row flex items-center gap-3";
+            const image = Array.isArray(p.images) && p.images[0] ? p.images[0] : "";
+            row.innerHTML = `<div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e5edf8] bg-[#f8fbff]">${image ? `<img src="${escapeHtml(image)}" alt="" class="h-full w-full object-contain" />` : `<div class="flex h-full w-full items-center justify-center text-xs font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "B"))}</div>`}</div><div class="min-w-0 flex-1"><p class="truncate text-sm font-black text-slate-950">${escapeHtml(p.title || "Saved item")}</p><p class="text-xs font-semibold text-slate-500">${escapeHtml(p.category || p.shop_name || "")}</p></div><strong class="text-sm font-black text-slate-950">${rupee(p.price)}</strong><button type="button" class="sk-saved-browse rounded-lg border border-[#d6e4fb] px-2 py-1 text-[#0056d2]" data-search="${encodeURIComponent(p.title || "")}">🧺</button>`;
+            homeBox.appendChild(row);
+          });
+        }
         box.querySelectorAll(".sk-saved-browse").forEach((btn) => {
           btn.addEventListener("click", async () => {
             let q = "";
@@ -3113,39 +4563,30 @@
       });
     }
 
+    function renderHomeOffers() {
+      const box = document.getElementById("home-offers-preview");
+      if (!box) return;
+      box.innerHTML =
+        '<div class="offer-card offer-green"><strong>10% OFF</strong><span>On orders above Rs699</span><small>Amit Shop</small></div>' +
+        '<div class="offer-card offer-orange"><strong>Rs50 OFF</strong><span>On your first order</span><small>Fresh Mart Indore</small></div>' +
+        '<div class="offer-card offer-purple"><strong>5% OFF</strong><span>On grocery orders</span><small>Shree Kirana Store</small></div>';
+    }
+
     function makeHomeProductCard(p) {
       const img =
         p.images && p.images[0]
-          ? `<img src="${String(p.images[0]).replace(/"/g, "&quot;")}" alt="${escapeHtml(p.title || "Local item")}" class="h-44 w-full object-cover bg-slate-100 transition duration-500 group-hover:scale-[1.03]" />`
-          : `<div class="h-44 w-full bg-[radial-gradient(circle_at_top_left,_rgba(147,197,253,0.35),_transparent_38%),linear-gradient(135deg,#0b2348_0%,#123f82_50%,#0b2447_100%)] flex items-center justify-center font-black tracking-[0.18em] text-white text-xl">${escapeHtml(shopMonogram(p.shop_name || "Bachat"))}</div>`;
+          ? `<img src="${String(p.images[0]).replace(/"/g, "&quot;")}" alt="${escapeHtml(p.title || "Local item")}" loading="lazy" />`
+          : `<div class="flex h-full w-full items-center justify-center rounded-xl bg-[#e8f1fc] text-lg font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.shop_name || "Bachat"))}</div>`;
       return (
-        `<article data-product-detail="${escapeHtml(p.product_id)}" role="button" tabindex="0" aria-label="Open details for ${escapeHtml(p.title || "local item")}" class="group cursor-pointer overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_20px_55px_-34px_rgba(15,23,42,0.34)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_-36px_rgba(15,23,42,0.4)] flex flex-col">` +
-        `<div class="relative overflow-hidden">` +
-        img +
-        `<div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950/40 to-transparent"></div>
-          <div class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-slate-950/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-md">${escapeHtml(p.category || "Local pick")}</div>
-        </div>` +
-        `<div class="flex flex-1 flex-col p-4 sm:p-5">
-          <div class="flex items-center justify-between gap-2">
-            <span class="inline-flex items-center gap-2 text-[11px] font-bold text-slate-500"><span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#e8f1fc] text-[10px] font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.shop_name || "Shop"))}</span>${escapeHtml(p.shop_name || "Shop")}</span>
-            <span class="rounded-full ${p.seller_verified ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"} px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]">${p.seller_verified ? "Verified" : "Local"}</span>
-          </div>
-          <p class="mt-3 text-lg font-black leading-7 tracking-[-0.02em] text-slate-900 line-clamp-2">${escapeHtml(p.title)}</p>
-          <p class="mt-2 text-sm text-slate-500 line-clamp-1">${escapeHtml(p.city || "")}${p.region ? `, ${escapeHtml(p.region)}` : ""}</p>
-          <div class="mt-auto pt-5">
-            <div class="flex items-end justify-between gap-3">
-            <div>
-                <p class="text-2xl font-black tracking-[-0.03em] text-slate-900">${rupee(p.price)}</p>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Local city pricing</p>
-              </div>
-              <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-xl bg-[#0056d2] px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-white shadow-sm transition hover:bg-[#0044a8] home-add-cart">Add to basket</button>
-            </div>
-            <div class="mt-4 flex gap-2">
-              <button type="button" data-pid="${escapeHtml(p.product_id)}" class="rounded-xl border border-[#cfe1ff] bg-[#f8fbff] px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-[#0056d2] transition hover:bg-[#e8f1fc] home-save-catalog">Save for later</button>
-            </div>
-          </div>
-        </div>
-      </article>`
+        `<article data-product-detail="${escapeHtml(p.product_id)}" role="button" tabindex="0" aria-label="Open details for ${escapeHtml(p.title || "local item")}" class="home-product-card cursor-pointer">` +
+        `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-save-catalog absolute right-3 top-3 rounded-full text-slate-400 hover:text-[#0056d2]" aria-label="Save ${escapeHtml(p.title || "item")}">&#9825;</button>` +
+        `<div class="home-product-img">${img}</div>` +
+        `<p class="home-product-title line-clamp-2">${escapeHtml(p.title || "Local item")}</p>` +
+        `<p class="home-product-meta">${escapeHtml(p.category || "Local pick")}</p>` +
+        `<p class="home-product-price">${rupee(p.price)}</p>` +
+        `<p class="home-product-meta">Best local price</p>` +
+        `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-add-cart">Add to basket</button>` +
+        `</article>`
       );
     }
 
@@ -3170,11 +4611,8 @@
         const items = Array.isArray(data && data.items) ? data.items : [];
         cacheProductDetailItems(items);
         const shopMap = new Map();
-        const grouped = new Map(SHOPPING_HOME_GROUPS.map((group) => [group.id, []]));
 
         items.forEach((item) => {
-          const group = shoppingGroupForCategory(item.category);
-          grouped.get(group.id).push(item);
           const key = `${item.shop_name || "Shop"}|${item.city || ""}|${item.region || ""}`;
           if (!shopMap.has(key)) {
             shopMap.set(key, {
@@ -3182,6 +4620,7 @@
               city: item.city || city,
               region: item.region || region,
               verified: Boolean(item.seller_verified),
+              image: Array.isArray(item.images) ? item.images.find(Boolean) : "",
               count: 0,
               categories: new Set(),
             });
@@ -3205,63 +4644,48 @@
         }
         emptyEl.classList.add("hidden");
 
-        SHOPPING_HOME_GROUPS.forEach((group) => {
-          const list = grouped.get(group.id) || [];
+        const categoryTiles = [
+          { label: "Electronics", value: "Electronics", icon: "📱" },
+          { label: "Groceries", value: "Groceries", icon: "🧺" },
+          { label: "Fruits", value: "Fruits", icon: "🍊" },
+          { label: "Atta, Rice, Oil & Dal", value: "Atta, rice, dal & oil", icon: "🛍" },
+          { label: "Kitchen & Dining", value: "Kitchen & dining", icon: "🍲" },
+          { label: "Beauty & Health", value: "Beauty & personal care", icon: "🧴" },
+          { label: "View all categories", value: "", icon: "▦" },
+        ];
+        categoryTiles.forEach((tile) => {
           const lane = document.createElement("button");
           lane.type = "button";
-          lane.className = `group rounded-[18px] border px-4 py-3 text-left shadow-[0_14px_34px_-30px_rgba(15,23,42,0.18)] transition duration-300 hover:-translate-y-0.5 hover:border-[#bfd6fa] hover:shadow-[0_18px_42px_-34px_rgba(15,23,42,0.24)] ${group.panel}`;
-          lane.innerHTML = `<div class="flex items-start justify-between gap-3"><div><p class="text-[11px] font-black uppercase tracking-[0.18em] ${group.accent}">${escapeHtml(group.badge)}</p><p class="mt-1 text-base font-black tracking-[-0.02em] text-slate-900">${escapeHtml(group.title)}</p></div><span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-slate-700 shadow-sm">${list.length}</span></div><p class="mt-2 text-xs leading-5 text-slate-600">${escapeHtml(group.subtitle)}</p><div class="mt-3 flex flex-wrap gap-2">${group.categories.slice(0, 2).map((category) => `<span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">${escapeHtml(category)}</span>`).join("")}</div>`;
-          lane.addEventListener("click", () => {
-            const section = document.getElementById(`shopping-home-group-${group.id}`);
-            if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-          });
+          lane.className = "category-tile";
+          lane.innerHTML = `<span class="category-icon">${tile.icon}</span><span>${escapeHtml(tile.label)}</span>`;
+          lane.addEventListener("click", () => selectShopCategory(tile.value));
           lanesEl.appendChild(lane);
-
-          if (!list.length) return;
-          const familyShops = [...new Set(list.map((item) => item.shop_name || "Shop"))].slice(0, 6);
-          const section = document.createElement("section");
-          section.id = `shopping-home-group-${group.id}`;
-          section.className = "rounded-[28px] border border-white/85 bg-white/92 p-5 shadow-[0_18px_48px_-36px_rgba(15,23,42,0.22)] backdrop-blur-sm sm:p-6";
-          section.innerHTML =
-            `<div class="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p class="text-xs font-black uppercase tracking-[0.22em] ${group.accent}">${escapeHtml(group.badge)}</p>
-                <h3 class="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-900 sm:text-[2rem]">${escapeHtml(group.title)}</h3>
-                <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">${escapeHtml(group.subtitle)}</p>
-              </div>
-              <button type="button" data-home-category="${escapeHtml(list[0].category || "")}" class="rounded-full border border-[#d6e4fb] bg-[#f8fbff] px-5 py-2.5 text-sm font-black text-[#0056d2] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#e8f1fc] home-open-category">Open in catalog</button>
-            </div>
-            <div class="mt-5 flex flex-wrap gap-2.5">${familyShops
-              .map(
-                (shop) =>
-                  `<span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm"><span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#e8f1fc] text-[10px] font-black text-[#0056d2]">${escapeHtml(shopMonogram(shop))}</span>${escapeHtml(shop)}</span>`
-              )
-              .join("")}</div>
-            <div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">${list.map((item) => makeHomeProductCard(item)).join("")}</div>`;
-          sectionsEl.appendChild(section);
         });
+        sectionsEl.innerHTML = items.slice(0, 8).map((item) => makeHomeProductCard(item)).join("");
 
-        shops.slice(0, 8).forEach((shop) => {
+        shops.slice(0, 3).forEach((shop, index) => {
           const card = document.createElement("article");
-          card.className = "overflow-hidden rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-5 shadow-[0_20px_60px_-38px_rgba(15,23,42,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_-38px_rgba(15,23,42,0.34)]";
+          card.className = "shop-row";
           const categories = [...shop.categories].slice(0, 3);
           card.innerHTML =
-            `<div class="flex items-start justify-between gap-3">
-              <div class="inline-flex h-14 w-14 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,#e8f1fc_0%,#d8e9ff_100%)] text-sm font-black tracking-[0.14em] text-[#0056d2]">${escapeHtml(shopMonogram(shop.name))}</div>
-              <span class="rounded-full ${shop.verified ? "border border-emerald-100 bg-emerald-50 text-emerald-700" : "border border-slate-200 bg-slate-100 text-slate-600"} px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]">${shop.verified ? "Verified" : "Local"}</span>
-            </div>
-            <p class="mt-5 text-xl font-black tracking-[-0.02em] text-slate-900">${escapeHtml(shop.name)}</p>
-            <p class="mt-1 text-sm text-slate-500">${escapeHtml(shop.city)}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
-            <div class="mt-4 flex items-end justify-between gap-4">
-              <div>
-                <p class="text-3xl font-black tracking-[-0.04em] text-slate-900">${shop.count}</p>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Live products</p>
+            `<div class="flex gap-3">
+              <div class="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl border border-[#e5edf8] bg-[#f8fbff]">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="" class="h-full w-full object-cover" />` : `<div class="flex h-full w-full items-center justify-center text-sm font-black text-[#0056d2]">${escapeHtml(shopMonogram(shop.name))}</div>`}</div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 class="truncate text-base font-black text-slate-950">${escapeHtml(shop.name)}</h3>
+                  <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">${shop.verified ? "Verified" : "Local"}</span>
+                </div>
+                <p class="mt-1 truncate text-xs font-semibold text-slate-500">${escapeHtml(shop.city)}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
+                <div class="mt-2 flex items-center justify-between gap-2 text-xs font-bold text-slate-500">
+                  <span class="text-amber-500">★ <span class="text-slate-600">${(4.8 - index * 0.1).toFixed(1)} (${124 - index * 26})</span></span>
+                  <span>${(1.2 + index * 0.9).toFixed(1)} km away</span>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-2">${categories
+                  .map((category) => `<button type="button" data-home-category="${escapeHtml(category)}" class="home-open-category rounded-full border border-[#d6e4fb] px-2.5 py-1 text-[11px] font-bold text-[#345078]">${escapeHtml(category)}</button>`)
+                  .join("")}</div>
               </div>
-              <div class="h-12 w-12 rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.18),_rgba(37,99,235,0.02))]"></div>
             </div>
-            <div class="mt-4 flex flex-wrap gap-2">${categories
-              .map((category) => `<button type="button" data-home-category="${escapeHtml(category)}" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm transition hover:border-[#0056d2] hover:text-[#0056d2] home-open-category">${escapeHtml(category)}</button>`)
-              .join("")}</div>`;
+            `;
           shopGridEl.appendChild(card);
         });
 
@@ -3275,6 +4699,7 @@
         document.querySelectorAll(".home-open-category").forEach((btn) => {
           btn.addEventListener("click", () => selectShopCategory(btn.getAttribute("data-home-category") || ""));
         });
+        renderHomeOffers();
       } catch (e) {
         emptyEl.classList.remove("hidden");
         emptyEl.textContent = e.message || "Could not load shopping home.";
@@ -3747,6 +5172,7 @@
     async function loadOrders() {
       const box = document.getElementById("orders-list");
       const dash = document.getElementById("orders-list-dash");
+      const homeOrders = document.getElementById("home-orders-preview");
       ordersByRequestId = {};
       latestOrders = [];
       try {
@@ -3754,9 +5180,11 @@
         latestOrders = Array.isArray(rows) ? rows : [];
         box.innerHTML = "";
         if (dash) dash.innerHTML = "";
+        if (homeOrders) homeOrders.innerHTML = "";
         if (!listCount(rows)) {
           box.innerHTML = '<p class="text-slate-500">No orders yet.</p>';
           if (dash) dash.innerHTML = '<p class="text-slate-500 text-sm">No orders yet.</p>';
+          if (homeOrders) homeOrders.innerHTML = '<p class="text-sm font-semibold text-slate-500">No orders yet.</p>';
           renderNotifications();
           return;
         }
@@ -3976,10 +5404,21 @@
             dash.appendChild(row);
           });
         }
+        if (homeOrders) {
+          rows.slice(0, 2).forEach((o) => {
+            const row = document.createElement("div");
+            row.className = "order-row";
+            const st = String(o.order_status || "").toLowerCase();
+            const badge = st === "delivered" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-[#0056d2]";
+            row.innerHTML = `<div class="flex items-start justify-between gap-3"><div><p class="text-sm font-black text-slate-950">Order #${escapeHtml((o.order_id || "").slice(-8) || "Bachat")}</p><p class="mt-1 text-xs font-semibold text-slate-500">${escapeHtml(o.summary || "Local order")}</p><span class="mt-2 inline-flex rounded-full ${badge} px-2 py-0.5 text-[10px] font-black uppercase">${escapeHtml(o.order_status || "Placed")}</span></div><strong class="text-sm font-black text-slate-950">${rupee(o.final_price)}</strong></div>`;
+            homeOrders.appendChild(row);
+          });
+        }
         renderNotifications();
       } catch (e) {
         box.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message) + "</p>";
         if (dash) dash.innerHTML = "";
+        if (homeOrders) homeOrders.innerHTML = "";
         latestOrders = [];
         renderNotifications();
       }
@@ -4574,13 +6013,18 @@
       paintUserNavActive(sectionId);
       return true;
     }
-    document.querySelectorAll("#user-sidebar-nav a[data-section], #user-mobile-nav a[data-section], #departments-nav a[data-section], #amazon-head-actions a[data-section]").forEach((a) => {
+    document.querySelectorAll("#user-sidebar-nav a[data-section], #user-mobile-nav a[data-section], #departments-nav a[data-section], #amazon-head-actions a[data-section], .bachat-footer a[data-section]").forEach((a) => {
       a.addEventListener("click", (e) => {
         e.preventDefault();
         const id = a.getAttribute("data-section");
         if (!id) return;
         const opened = openUserSection(id);
         if (opened && history && history.replaceState) history.replaceState(null, "", "#" + id);
+      });
+    });
+    document.querySelectorAll("[data-footer-toast]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        showToast(btn.getAttribute("data-footer-toast") || "This link is coming soon.");
       });
     });
     window.addEventListener("hashchange", () => {

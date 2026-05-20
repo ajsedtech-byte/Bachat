@@ -31,3 +31,19 @@
 .ring-bachat-active {
   box-shadow: inset 3px 0 0 var(--bachat-primary);
 }
+
+.bachat-storefront {
+  background: #f8fbff;
+}
+
+.bachat-storefront details > summary {
+  outline: none;
+}
+
+.bachat-storefront details[open] > summary {
+  color: var(--bachat-primary);
+}
+
+.bachat-storefront #shopping-home {
+  color: #0f172a;
+}
