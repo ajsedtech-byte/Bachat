@@ -1287,15 +1287,15 @@
     }
 
     .bachat-storefront .shopping-hero {
+      position: relative !important;
+      display: block !important;
       border-color: #d6e4fb !important;
       border-radius: 22px !important;
-      background:
-        radial-gradient(ellipse at 78% 48%, rgba(0, 86, 210, 0.12), transparent 34%),
-        linear-gradient(100deg, #f8fbff 0%, #eef7ff 48%, #dcefff 100%) !important;
+      background: #f8fbff !important;
       color: #0f172a !important;
       min-height: 0 !important;
-      height: clamp(390px, 28vw, 460px) !important;
-      padding: clamp(42px, 3.2vw, 58px) clamp(44px, 3.4vw, 64px) !important;
+      height: clamp(430px, 31.7vw, 500px) !important;
+      padding: 0 !important;
     }
 
     .bachat-storefront .shopping-hero-grid {
@@ -1334,6 +1334,433 @@
     .bachat-storefront .shopping-hero-grid {
       position: relative;
       z-index: 1;
+    }
+
+    .bachat-storefront .hero-carousel-track {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      flex: 1 1 auto;
+    }
+
+    .bachat-storefront .hero-slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-items: center;
+      padding: clamp(42px, 3.2vw, 58px) clamp(44px, 3.4vw, 64px) !important;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(18px);
+      transition: opacity 520ms ease, transform 520ms ease;
+    }
+
+    .bachat-storefront .hero-slide.is-active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .bachat-storefront .hero-slide-local {
+      background:
+        url("/assets/bachat-chappan-dukan-hero.png") center center / cover no-repeat,
+        linear-gradient(100deg, #f8fbff 0%, #eef7ff 52%, #dcefff 100%);
+    }
+
+    .bachat-storefront .hero-slide-local .hero-palace-art,
+    .bachat-storefront .hero-slide-local > .max-w-3xl {
+      display: none;
+    }
+
+    .bachat-storefront .hero-slide-local .shopping-hero-title {
+      width: min(520px, 44vw);
+      max-width: 520px !important;
+      font-size: clamp(32px, 2.58vw, 48px) !important;
+      line-height: 1.04 !important;
+      white-space: normal;
+    }
+
+    .bachat-storefront .hero-slide-local .shopping-hero-copy {
+      max-width: 440px !important;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-trust-row {
+      width: min(520px, 44vw);
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-trust-item {
+      grid-template-columns: 34px minmax(0, 1fr);
+      min-width: 0;
+      width: 150px;
+      padding: 10px 12px;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-trust-item svg {
+      height: 27px;
+      width: 27px;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-trust-item strong {
+      font-size: 13px;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-trust-item span {
+      font-size: 12px;
+      line-height: 1.15;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-primary-cta {
+      margin-top: 16px;
+    }
+
+    .bachat-storefront .hero-slide-actions {
+      background:
+        linear-gradient(90deg, rgba(248, 251, 255, 0.92) 0%, rgba(248, 251, 255, 0.7) 36%, rgba(248, 251, 255, 0.08) 56%, rgba(248, 251, 255, 0) 72%),
+        url("/assets/bachat-actions-hero.png") center center / cover no-repeat,
+        linear-gradient(100deg, #f8fbff 0%, #eef7ff 48%, #dcefff 100%);
+    }
+
+    .bachat-storefront .hero-slide-actions .shopping-hero-grid {
+      grid-template-columns: minmax(0, 0.92fr) minmax(470px, 0.92fr) !important;
+      gap: clamp(38px, 5.4vw, 92px) !important;
+    }
+
+    .bachat-storefront .hero-slide-actions .shopping-stat-grid {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(118px, 1fr)) !important;
+      max-width: 660px !important;
+      gap: 18px !important;
+      margin-top: 34px !important;
+    }
+
+    .bachat-storefront .hero-slide-actions .store-action-tile {
+      min-height: 124px;
+      padding: 14px 12px;
+      border-radius: 16px;
+    }
+
+    .bachat-storefront .hero-slide-actions .store-action-icon {
+      height: 48px;
+      width: 48px;
+      border-radius: 15px;
+    }
+
+    .bachat-storefront .hero-slide-actions .store-action-icon svg {
+      height: 24px;
+      width: 24px;
+    }
+
+    .bachat-storefront .hero-slide-actions .store-hero-visual {
+      justify-content: flex-end;
+      padding-right: clamp(44px, 5vw, 88px);
+    }
+
+    .bachat-storefront .hero-slide-actions .store-hero-visual::before {
+      width: min(104%, 780px);
+      height: 330px;
+      right: 0;
+      left: auto;
+      transform: none;
+    }
+
+    .bachat-storefront .hero-slide-actions .store-hero-visual img {
+      width: clamp(292px, 20vw, 356px);
+      transform: translateY(8px);
+    }
+
+    .bachat-storefront .hero-slide-actions .store-hero-visual {
+      display: none;
+    }
+
+    .bachat-storefront .hero-slide-market {
+      background:
+        url("/assets/bachat-indore-market-hero.png") center center / cover no-repeat,
+        linear-gradient(100deg, #0b2247 0%, #16406f 58%, #8fc6ff 100%);
+      color: #fff !important;
+    }
+
+    .bachat-storefront .hero-slide-market .shopping-hero-title,
+    .bachat-storefront .hero-slide-market .shopping-hero-copy {
+      color: #fff !important;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-stat-card {
+      border-color: rgba(255, 255, 255, 0.18) !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+    }
+
+    .bachat-storefront .hero-slide-market .shopping-hero-title {
+      max-width: 520px !important;
+      font-size: clamp(34px, 2.85vw, 50px) !important;
+      line-height: 1.03 !important;
+      white-space: normal;
+    }
+
+    .bachat-storefront .hero-slide-market .shopping-hero-copy {
+      max-width: 520px !important;
+    }
+
+    .bachat-storefront .hero-slide-market .shopping-hero-grid {
+      grid-template-columns: minmax(0, 540px) minmax(0, 1fr) !important;
+      gap: 28px !important;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 132px);
+      max-width: 420px;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-stat-card {
+      min-width: 0;
+      grid-template-columns: 32px minmax(0, 1fr);
+      padding: 10px 11px;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-stat-card strong {
+      font-size: 14px;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-stat-card span {
+      font-size: 11px;
+      line-height: 1.18;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-palace-art,
+    .bachat-storefront .hero-slide-market .hero-market-art {
+      display: none;
+    }
+
+    .bachat-storefront .hero-eyebrow {
+      color: #0056d2;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .hero-trust-row,
+    .bachat-storefront .hero-stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .bachat-storefront .hero-trust-item,
+    .bachat-storefront .hero-stat-card {
+      display: inline-grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      min-width: 168px;
+      border-radius: 14px;
+      border: 1px solid rgba(214, 228, 251, 0.9);
+      background: rgba(255, 255, 255, 0.72);
+      padding: 12px 14px;
+      box-shadow: 0 18px 42px -34px rgba(15, 23, 42, 0.42);
+    }
+
+    .bachat-storefront .hero-trust-item svg,
+    .bachat-storefront .hero-stat-card svg {
+      height: 30px;
+      width: 30px;
+      color: #0056d2;
+      stroke-width: 2.25;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .bachat-storefront .hero-trust-item strong,
+    .bachat-storefront .hero-stat-card strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .hero-trust-item span,
+    .bachat-storefront .hero-stat-card span {
+      display: block;
+      margin-top: 2px;
+      color: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      opacity: 0.78;
+    }
+
+    .bachat-storefront .hero-primary-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 44px;
+      margin-top: 22px;
+      border-radius: 12px;
+      background: #0056d2;
+      color: #fff;
+      padding: 0 22px;
+      font-size: 14px;
+      font-weight: 950;
+      text-decoration: none;
+      box-shadow: 0 16px 28px -18px rgba(0, 86, 210, 0.7);
+    }
+
+    .bachat-storefront .hero-market-art {
+      position: relative;
+      min-height: 250px;
+      align-self: stretch;
+      overflow: hidden;
+      border-radius: 18px;
+    }
+
+    .bachat-storefront .hero-delivery-badge,
+    .bachat-storefront .hero-shop-badge {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #0056d2;
+      font-weight: 950;
+      box-shadow: 0 22px 46px -28px rgba(15, 23, 42, 0.48);
+    }
+
+    .bachat-storefront .hero-delivery-badge {
+      right: 34%;
+      bottom: 26px;
+      height: 92px;
+      width: 92px;
+      font-size: 42px;
+    }
+
+    .bachat-storefront .hero-shop-badge {
+      right: 5%;
+      bottom: 40px;
+      height: 112px;
+      width: 150px;
+      color: #0f172a;
+      font-size: 18px;
+    }
+
+    .bachat-storefront .hero-shop-badge span {
+      display: block;
+      color: #0056d2;
+      font-size: 28px;
+    }
+
+    .bachat-storefront .hero-carousel-nav {
+      position: absolute;
+      left: 51%;
+      bottom: 14px;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(214, 228, 251, 0.86);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.84);
+      padding: 6px 8px;
+      box-shadow: 0 16px 34px -28px rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    .bachat-storefront .hero-carousel[data-active-hero="local"] .hero-carousel-nav {
+      display: none;
+    }
+
+    .bachat-storefront .hero-slide-local ~ .hero-carousel-nav,
+    .bachat-storefront .hero-carousel-nav {
+      max-width: max-content;
+    }
+
+    .bachat-storefront .hero-palace-art {
+      position: absolute;
+      right: clamp(18px, 4vw, 72px);
+      bottom: 0;
+      z-index: 1;
+      width: 58vw;
+      min-width: 680px;
+      max-width: 860px;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .bachat-storefront .hero-palace-art::before {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background: url("/assets/bachat-hero-palace-bg.svg") right bottom / contain no-repeat;
+      opacity: 0.98;
+      filter: saturate(1.5) contrast(1.12) drop-shadow(0 22px 34px rgba(0, 86, 210, 0.16));
+    }
+
+    .bachat-storefront .hero-slide-local .hero-palace-art {
+      display: none;
+    }
+
+    .bachat-storefront .hero-palace-art img {
+      display: none;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-palace-art {
+      right: 0;
+      width: 64vw;
+      min-width: 760px;
+      max-width: 940px;
+      opacity: 0.96;
+    }
+
+    .bachat-storefront .hero-slide-market .hero-palace-art::before {
+      filter: drop-shadow(0 28px 42px rgba(0, 0, 0, 0.26));
+    }
+
+    .bachat-storefront .hero-slide > :not(.hero-palace-art) {
+      position: relative;
+      z-index: 2;
+    }
+
+    .bachat-storefront .hero-nav-arrow,
+    .bachat-storefront .hero-dot {
+      border: 0;
+      background: transparent;
+      color: #334155;
+      cursor: pointer;
+    }
+
+    .bachat-storefront .hero-nav-arrow {
+      display: grid;
+      place-items: center;
+      height: 28px;
+      width: 28px;
+      border-radius: 50%;
+      font-size: 20px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .bachat-storefront .hero-nav-arrow:hover {
+      background: #eef6ff;
+      color: #0056d2;
+    }
+
+    .bachat-storefront .hero-dot {
+      height: 9px;
+      width: 9px;
+      border-radius: 999px;
+      background: #bfd1e8;
+      padding: 0;
+      transition: width 180ms ease, background-color 180ms ease;
+    }
+
+    .bachat-storefront .hero-dot.is-active {
+      width: 28px;
+      background: #0056d2;
     }
 
     .bachat-storefront .shopping-stat-grid > div,
@@ -1897,12 +2324,49 @@
         height: auto !important;
       }
 
+      .bachat-storefront .hero-carousel-track {
+        min-height: 620px;
+      }
+
+      .bachat-storefront .hero-slide {
+        align-items: start;
+      }
+
+      .bachat-storefront .hero-slide-local,
+      .bachat-storefront .hero-slide-market {
+        background-size: auto, cover, auto;
+        background-position: center, right center, center;
+      }
+
+      .bachat-storefront .hero-palace-art {
+        right: -40px;
+        width: 74%;
+        opacity: 0.68;
+      }
+
       .bachat-storefront .shopping-hero-title {
         white-space: normal;
       }
 
       .bachat-storefront .shopping-stat-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .bachat-storefront .hero-slide-actions .shopping-hero-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .bachat-storefront .hero-slide-market .shopping-hero-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
+
+      .bachat-storefront .hero-slide-actions .shopping-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        max-width: 100% !important;
+      }
+
+      .bachat-storefront .hero-slide-market .hero-stat-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .bachat-storefront .store-hero-visual {
@@ -1918,6 +2382,68 @@
     @media (max-width: 560px) {
       .bachat-storefront #shopping-home-lanes {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .bachat-storefront .shopping-hero {
+        border-radius: 18px !important;
+      }
+
+      .bachat-storefront .hero-carousel-track {
+        min-height: 650px;
+      }
+
+      .bachat-storefront .hero-slide {
+        padding: 28px 20px 64px !important;
+      }
+
+      .bachat-storefront .hero-slide-local,
+      .bachat-storefront .hero-slide-market {
+        background-position: center, right center, center;
+        background-size: auto, cover, auto;
+      }
+
+      .bachat-storefront .hero-slide-market {
+        background-image:
+          url("/assets/bachat-indore-market-hero.png"),
+          linear-gradient(180deg, rgba(10, 35, 75, 0.98) 0%, rgba(11, 49, 93, 0.88) 58%, rgba(13, 71, 125, 0.46) 100%);
+        background-position: center, center;
+        background-size: cover, auto;
+      }
+
+      .bachat-storefront .hero-palace-art {
+        right: -72px;
+        width: 118%;
+        opacity: 0.24;
+      }
+
+      .bachat-storefront .hero-trust-row,
+      .bachat-storefront .hero-stat-row {
+        gap: 8px;
+      }
+
+      .bachat-storefront .hero-trust-item,
+      .bachat-storefront .hero-stat-card {
+        min-width: 100%;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-row {
+        width: 100%;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-item {
+        width: 100%;
+      }
+
+      .bachat-storefront .hero-slide-actions .shopping-stat-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .bachat-storefront .hero-slide-market .hero-stat-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bachat-storefront .hero-market-art {
+        display: none;
       }
 
       .bachat-storefront .store-hero-visual {
@@ -2657,55 +3183,120 @@
         <p id="msg" class="text-sm text-slate-500 hidden"></p>
 
         <section id="shopping-home" class="space-y-6">
-          <div class="shopping-hero relative overflow-hidden rounded-[34px] border border-[#d4deec] bg-[linear-gradient(100deg,#0b2247_0%,#193763_36%,#496b98_72%,#6787b0_100%)] px-6 py-7 text-white shadow-[0_26px_80px_-44px_rgba(15,23,42,0.62)] lg:px-8 lg:py-8">
-            <div class="absolute inset-y-0 left-0 w-[52%] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.06),_transparent_48%)]"></div>
-            <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] xl:items-center">
-              <div>
-                <p class="text-sm font-black text-[#0056d2]"><span id="shopping-home-greeting-period">Good evening</span>, <span id="shopping-home-greeting-name">there</span>!</p>
-                <h1 class="shopping-hero-title mt-3 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">What do you need today?</h1>
-                <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7 text-slate-600">Shop from trusted local stores and get the best prices near <span id="shopping-home-city" class="font-black text-[#0056d2]">your city</span>.</p>
-                <div class="shopping-stat-grid mt-7 grid max-w-3xl gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <a href="#browse-section" data-section="browse-section" class="store-action-tile">
-                    <span class="store-action-icon bg-emerald-50 text-emerald-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6.5 8.5h11l-1 10h-9l-1-10Z"/><path d="M9 8.5a3 3 0 0 1 6 0"/><path d="M13.7 13.2h3.2v-3.1"/><path d="M17 13a4.4 4.4 0 0 1-7.4 3.2"/><path d="M10.3 10.8H7.1v3.1"/><path d="M7 11a4.4 4.4 0 0 1 7.4-3.2"/></svg>
-                    </span>
-                    <strong>Buy Again</strong>
-                    <span>Shop your previous items</span>
-                  </a>
-                  <a href="#browse-section" data-section="browse-section" class="store-action-tile">
-                    <span class="store-action-icon bg-blue-50 text-[#0056d2]">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 21s6.2-5.3 6.2-11.1a6.2 6.2 0 0 0-12.4 0C5.8 15.7 12 21 12 21Z"/><circle cx="12" cy="9.9" r="2.15"/><path d="M4.5 20.5h15"/></svg>
-                    </span>
-                    <strong>Nearby Shops</strong>
-                    <span>Find trusted local shops</span>
-                  </a>
-                  <a href="#post-section" data-section="post-section" class="store-action-tile">
-                    <span class="store-action-icon bg-orange-50 text-orange-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 4.5h10v15l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2v-15Z"/><path d="M10 8.5h4"/><path d="M10 12h4"/><path d="M10 15.5h2.3"/><path d="M16.7 7.3h3.1"/><path d="M18.25 5.75v3.1"/></svg>
-                    </span>
-                    <strong>Request Quote</strong>
-                    <span>Get quotes from sellers</span>
-                  </a>
-                  <a href="#saved-section" data-section="saved-section" class="store-action-tile">
-                    <span class="store-action-icon bg-violet-50 text-violet-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20.4 8.8c0 5.3-8.4 10-8.4 10s-8.4-4.7-8.4-10A4.75 4.75 0 0 1 12 5.7a4.75 4.75 0 0 1 8.4 3.1Z"/><path d="m9.4 11.5 1.75 1.75 3.65-4"/></svg>
-                    </span>
-                    <strong>Saved Items</strong>
-                    <span>View saved products</span>
-                  </a>
+          <div class="shopping-hero hero-carousel relative overflow-hidden rounded-[34px] border border-[#d4deec] bg-white shadow-[0_26px_80px_-44px_rgba(15,23,42,0.62)]" data-active-hero="market" aria-roledescription="carousel" aria-label="Bachat home highlights">
+            <div class="hero-carousel-track">
+              <article class="hero-slide hero-slide-local" data-hero-slide aria-label="Chappan Dukan food street">
+                <div class="hero-palace-art" aria-hidden="true">
+                  <img src="/assets/bachat-hero-palace-bg.svg" alt="" />
                 </div>
-                <div class="sr-only">
-                  <span id="shopping-home-shop-count">0</span>
-                  <span id="shopping-home-product-count">0</span>
+                <div class="max-w-3xl">
+                  <h1 class="shopping-hero-title mt-0 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">Everything&nbsp;local,<br>beautifully&nbsp;organized<br>for&nbsp;<span class="text-[#0056d2]">Indore.</span></h1>
+                  <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7 text-slate-600">Discover neighborhood stores, quick essentials, fresh food and trusted local shopping at the best local price.</p>
+                  <div class="hero-trust-row">
+                    <div class="hero-trust-item">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m12 3 2.1 2.7 3.4-.1.8 3.3 2.8 1.9-1.5 3 1.1 3.2-3.2 1.1-1.9 2.8-3-1.5-3.2 1.1-1.1-3.2-2.8-1.9 1.5-3L3.9 9.2l3.2-1.1L9 5.3 12 3Z"/><path d="m9.4 12.3 1.8 1.8 3.6-4.2"/></svg>
+                      <span><strong>Best local</strong>price</span>
+                    </div>
+                    <div class="hero-trust-item">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m13 2-8 12h6l-1 8 9-13h-6l0-7Z"/></svg>
+                      <span><strong>Fast local</strong>delivery</span>
+                    </div>
+                    <div class="hero-trust-item">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3 20 6v5.5c0 5-3.4 8-8 9.5-4.6-1.5-8-4.5-8-9.5V6l8-3Z"/><path d="m8.8 12 2.1 2.1 4.4-4.8"/></svg>
+                      <span><strong>Trusted local</strong>stores</span>
+                    </div>
+                  </div>
+                  <a href="#browse-section" data-section="browse-section" class="hero-primary-cta">Shop Now <span aria-hidden="true">›</span></a>
                 </div>
-              </div>
-              <div class="store-hero-visual" aria-hidden="true">
-                <span class="hero-cloud hero-cloud-one"></span>
-                <span class="hero-cloud hero-cloud-two"></span>
-                <span class="hero-tree hero-tree-one"></span>
-                <span class="hero-tree hero-tree-two"></span>
-                <img src="/assets/bachat-hero-mark-crop.png" alt="" />
-              </div>
+              </article>
+
+              <article class="hero-slide hero-slide-actions" data-hero-slide aria-label="Quick shopping actions">
+                <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] xl:items-center">
+                  <div>
+                    <p class="hero-eyebrow"><span id="shopping-home-greeting-period">Good evening</span>, <span id="shopping-home-greeting-name">there</span>!</p>
+                    <h1 class="shopping-hero-title mt-3 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">What do you need today?</h1>
+                    <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7 text-slate-600">Shop from trusted local stores and get the best prices near <span id="shopping-home-city" class="font-black text-[#0056d2]">your city</span>.</p>
+                    <div class="shopping-stat-grid mt-7 grid max-w-3xl gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                      <a href="#browse-section" data-section="browse-section" class="store-action-tile">
+                        <span class="store-action-icon bg-emerald-50 text-emerald-600">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6.5 8.5h11l-1 10h-9l-1-10Z"/><path d="M9 8.5a3 3 0 0 1 6 0"/><path d="M13.7 13.2h3.2v-3.1"/><path d="M17 13a4.4 4.4 0 0 1-7.4 3.2"/><path d="M10.3 10.8H7.1v3.1"/><path d="M7 11a4.4 4.4 0 0 1 7.4-3.2"/></svg>
+                        </span>
+                        <strong>Buy Again</strong>
+                        <span>Shop your previous items</span>
+                      </a>
+                      <a href="#browse-section" data-section="browse-section" class="store-action-tile">
+                        <span class="store-action-icon bg-blue-50 text-[#0056d2]">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 21s6.2-5.3 6.2-11.1a6.2 6.2 0 0 0-12.4 0C5.8 15.7 12 21 12 21Z"/><circle cx="12" cy="9.9" r="2.15"/><path d="M4.5 20.5h15"/></svg>
+                        </span>
+                        <strong>Nearby Shops</strong>
+                        <span>Find trusted local shops</span>
+                      </a>
+                      <a href="#post-section" data-section="post-section" class="store-action-tile">
+                        <span class="store-action-icon bg-orange-50 text-orange-600">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 4.5h10v15l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2v-15Z"/><path d="M10 8.5h4"/><path d="M10 12h4"/><path d="M10 15.5h2.3"/><path d="M16.7 7.3h3.1"/><path d="M18.25 5.75v3.1"/></svg>
+                        </span>
+                        <strong>Request Quote</strong>
+                        <span>Get quotes from sellers</span>
+                      </a>
+                      <a href="#saved-section" data-section="saved-section" class="store-action-tile">
+                        <span class="store-action-icon bg-violet-50 text-violet-600">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20.4 8.8c0 5.3-8.4 10-8.4 10s-8.4-4.7-8.4-10A4.75 4.75 0 0 1 12 5.7a4.75 4.75 0 0 1 8.4 3.1Z"/><path d="m9.4 11.5 1.75 1.75 3.65-4"/></svg>
+                        </span>
+                        <strong>Saved Items</strong>
+                        <span>View saved products</span>
+                      </a>
+                    </div>
+                    <div class="sr-only">
+                      <span id="shopping-home-shop-count">0</span>
+                      <span id="shopping-home-product-count">0</span>
+                    </div>
+                  </div>
+                  <div class="store-hero-visual" aria-hidden="true">
+                    <span class="hero-cloud hero-cloud-one"></span>
+                    <span class="hero-cloud hero-cloud-two"></span>
+                    <span class="hero-tree hero-tree-one"></span>
+                    <span class="hero-tree hero-tree-two"></span>
+                    <img src="/assets/bachat-hero-mark-crop.png" alt="" />
+                  </div>
+                </div>
+              </article>
+
+              <article class="hero-slide hero-slide-market is-active" data-hero-slide aria-label="Local market promise">
+                <div class="hero-palace-art" aria-hidden="true">
+                  <img src="/assets/bachat-hero-palace-bg.svg" alt="" />
+                </div>
+                <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] xl:items-center">
+                  <div>
+                    <h1 class="shopping-hero-title mt-0 max-w-3xl text-4xl font-black leading-[1.05] sm:text-5xl lg:text-[3.4rem]">Everything local in one place for Indore</h1>
+                    <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7">From everyday essentials to special finds, shop local products, support nearby stores, and enjoy trusted delivery across Indore.</p>
+                    <div class="hero-stat-row">
+                      <div class="hero-stat-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 10h16l-1.2-5.5H5.2L4 10Z"/><path d="M5 10v9h14v-9"/><path d="M8 14h3v5"/><path d="M15 14h2"/></svg>
+                        <span><strong>1,250+</strong>Local Shops</span>
+                      </div>
+                      <div class="hero-stat-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.7 7.6 4.4 7.6-4.4"/><path d="M12 12.1V21"/></svg>
+                        <span><strong>25,000+</strong>Live Products</span>
+                      </div>
+                      <div class="hero-stat-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 8h10l-1 12H8L7 8Z"/><path d="M9.5 8a2.5 2.5 0 0 1 5 0"/><path d="M12 12v4"/><path d="M10 14h4"/></svg>
+                        <span><strong>4</strong>Shopping Modes</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="hero-market-art" aria-hidden="true">
+                    <div class="hero-delivery-badge">B</div>
+                    <div class="hero-shop-badge"><span>INDORE</span>Stores</div>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="hero-carousel-nav" aria-label="Hero carousel navigation">
+              <button type="button" class="hero-nav-arrow" data-hero-prev aria-label="Previous hero slide">‹</button>
+              <button type="button" class="hero-dot is-active" data-hero-dot="0" aria-label="Show first hero slide" aria-current="true"></button>
+              <button type="button" class="hero-dot" data-hero-dot="1" aria-label="Show second hero slide"></button>
+              <button type="button" class="hero-dot" data-hero-dot="2" aria-label="Show third hero slide"></button>
+              <button type="button" class="hero-nav-arrow" data-hero-next aria-label="Next hero slide">›</button>
             </div>
           </div>
 
@@ -5937,8 +6528,78 @@
       });
     });
 
+    function initHeroCarousel() {
+      const hero = document.querySelector(".hero-carousel");
+      if (!hero) return;
+      const slides = [
+        hero.querySelector(".hero-slide-market"),
+        hero.querySelector(".hero-slide-actions"),
+        hero.querySelector(".hero-slide-local"),
+      ].filter(Boolean);
+      const dots = Array.from(hero.querySelectorAll("[data-hero-dot]"));
+      const prev = hero.querySelector("[data-hero-prev]");
+      const next = hero.querySelector("[data-hero-next]");
+      if (slides.length <= 1) return;
+      let active = 0;
+      let timer = null;
+
+      function showSlide(index) {
+        active = (index + slides.length) % slides.length;
+        slides.forEach((slide, i) => {
+          const on = i === active;
+          slide.classList.toggle("is-active", on);
+          slide.setAttribute("aria-hidden", on ? "false" : "true");
+        });
+        const activeSlide = slides[active];
+        const activeHero = activeSlide?.classList.contains("hero-slide-local")
+          ? "local"
+          : activeSlide?.classList.contains("hero-slide-actions")
+            ? "actions"
+            : "market";
+        hero.setAttribute("data-active-hero", activeHero);
+        dots.forEach((dot, i) => {
+          const on = i === active;
+          dot.classList.toggle("is-active", on);
+          if (on) dot.setAttribute("aria-current", "true");
+          else dot.removeAttribute("aria-current");
+        });
+      }
+
+      function stopAuto() {
+        if (timer) window.clearInterval(timer);
+        timer = null;
+      }
+
+      function startAuto() {
+        stopAuto();
+        timer = window.setInterval(() => showSlide(active + 1), 5200);
+      }
+
+      prev?.addEventListener("click", () => {
+        showSlide(active - 1);
+        startAuto();
+      });
+      next?.addEventListener("click", () => {
+        showSlide(active + 1);
+        startAuto();
+      });
+      dots.forEach((dot) => {
+        dot.addEventListener("click", () => {
+          showSlide(Number(dot.getAttribute("data-hero-dot") || 0));
+          startAuto();
+        });
+      });
+      hero.addEventListener("mouseenter", stopAuto);
+      hero.addEventListener("mouseleave", startAuto);
+      hero.addEventListener("focusin", stopAuto);
+      hero.addEventListener("focusout", startAuto);
+      showSlide(0);
+      startAuto();
+    }
+
     (async function boot() {
       try {
+        initHeroCarousel();
         await loadAllCategories();
         if (!hasSession()) {
           applyGuestHeader();
