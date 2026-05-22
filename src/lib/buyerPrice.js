@@ -6,6 +6,7 @@ const PRICE_MARKUP_BANDS = Object.freeze([
   { maxBasePrice: 1000, minMarkup: 0.12, maxMarkup: 0.2 },
   { maxBasePrice: Infinity, minMarkup: 0.1, maxMarkup: 0.18 },
 ]);
+const PRICE_MARKUP_SALT = "bachat_buyer_markup_v1";
 
 function markupBandForPrice(basePrice) {
   const base = Number(basePrice);
@@ -31,10 +32,9 @@ function markupRateForPriceBand(sellerPrice, productId, secret) {
 }
 
 function buyerDisplayPrice(sellerPrice, productId) {
-  const secret = process.env.PRICE_MARKUP_SECRET || "bachat_dev_markup_change_me";
   const base = Number(sellerPrice);
   if (!Number.isFinite(base) || base <= 0) return 0;
-  const m = markupRateForPriceBand(base, productId, secret);
+  const m = markupRateForPriceBand(base, productId, PRICE_MARKUP_SALT);
   return Math.ceil(base * (1 + m));
 }
 
