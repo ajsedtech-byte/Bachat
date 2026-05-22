@@ -4086,7 +4086,7 @@
   </div>
 
   <div id="product-detail-modal" class="hidden fixed inset-0 z-[95] overflow-y-auto bg-slate-950/65 p-3 sm:p-6">
-    <div class="mx-auto my-4 max-w-6xl overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl">
+    <div class="mx-auto my-4 w-full max-w-[1380px] overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl">
       <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-6">
         <div>
           <p class="text-xs font-black uppercase tracking-[0.18em] text-[#0056d2]">Product details</p>
@@ -5363,7 +5363,7 @@
               <span class="text-[10px] font-black uppercase tracking-[0.12em] text-[#0056d2]">${escapeHtml(p.category || "Near you")}</span>
               <p class="mt-1 line-clamp-2 min-h-[38px] text-sm font-black leading-tight text-slate-950">${escapeHtml(p.title)}</p>
               <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(p.shop_name || "")}</p>
-              ${productQuantitySummary(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productQuantitySummary(p))}</p>` : ""}
+              ${productPackText(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(p))}</p>` : ""}
               <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
               <div class="mt-2 grid grid-cols-2 gap-2">
                 <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8]">Basket</button>
@@ -5425,6 +5425,41 @@
       return parts.join(" - ");
     }
 
+    function productPackText(p) {
+      const size = String((p && p.package_size) || "").trim();
+      const unit = String((p && p.stock_unit) || "").trim();
+      const type = String((p && p.package_type) || "").trim();
+      const sizeText = size ? size + (unit && !size.toLowerCase().includes(unit.toLowerCase()) ? " " + unit : "") : "";
+      return [sizeText, type].filter(Boolean).join(" ");
+    }
+
+    function productAvailableText(p) {
+      const qty = p && p.stock_quantity != null && p.stock_quantity !== "" ? String(p.stock_quantity) : "";
+      const type = String((p && p.package_type) || "").trim().toLowerCase();
+      const unit = String((p && p.stock_unit) || "").trim();
+      if (!qty) return "Ask seller";
+      if (type) return qty + " " + type + (Number(qty) === 1 || type.endsWith("s") ? "" : "s");
+      return qty + (unit ? " " + unit : "");
+    }
+
+    function productFeatureBullets(p) {
+      const bullets = [];
+      const pack = productPackText(p);
+      const available = productAvailableText(p);
+      if (pack) bullets.push("Pack size: " + pack);
+      if (available && available !== "Ask seller") bullets.push("Available stock: " + available);
+      if (p && p.shop_name) bullets.push("Sold by local seller: " + p.shop_name);
+      if (p && p.category) bullets.push("Category: " + p.category);
+      String((p && p.description) || "")
+        .trim()
+        .split(/(?<=[.!?])\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, Math.max(0, 5 - bullets.length))
+        .forEach((s) => bullets.push(s.replace(/[.!?]+$/, "")));
+      return bullets.slice(0, 5);
+    }
+
     function productImageHtml(p, imageClass, fallbackClass) {
       const title = String((p && p.title) || "Local item");
       const image = Array.isArray(p && p.images) ? String(p.images.find(Boolean) || "") : "";
@@ -5441,7 +5476,9 @@
       const shop = escapeHtml(p.shop_name || "Local shop");
       const locationText = escapeHtml(productLocationText(p));
       const description = escapeHtml(p.description || "No description has been added yet. Contact or order from the seller for more details.");
-      const quantitySummary = escapeHtml(productQuantitySummary(p) || "Ask seller for quantity details");
+      const packText = escapeHtml(productPackText(p) || "Ask seller");
+      const availableText = escapeHtml(productAvailableText(p));
+      const features = productFeatureBullets(p);
       const images = Array.isArray(p.images) ? p.images.filter(Boolean).slice(0, 4) : [];
       const primaryImage = images[0] || "";
       const mainMedia = primaryImage
@@ -5459,9 +5496,9 @@
       const verifiedBadge = p.seller_verified
         ? '<span class="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Verified seller</span>'
         : '<span class="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-slate-600">Local seller</span>';
-      return `<div class="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)_320px]">
+      return `<div class="grid gap-6 xl:grid-cols-[minmax(260px,0.9fr)_minmax(360px,1.25fr)_minmax(300px,0.85fr)]">
         <section>
-          <div class="flex h-[340px] items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white sm:h-[430px]">
+          <div class="flex min-h-[320px] items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white sm:min-h-[430px]">
             ${mainMedia}
           </div>
           ${gallery}
@@ -5471,11 +5508,18 @@
             <span class="rounded-full bg-[#e8f1fc] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#0056d2]">${category}</span>
             ${verifiedBadge}
           </div>
-          <h2 class="mt-4 text-2xl font-black leading-tight tracking-[-0.03em] text-slate-950 sm:text-4xl">${title}</h2>
+          <h2 class="mt-4 text-2xl font-black leading-tight text-slate-950 sm:text-4xl">${title}</h2>
           <p class="mt-3 text-sm font-semibold text-slate-500">New local listing | Reviews coming soon</p>
+          <div class="mt-5 border-t border-slate-200 pt-5">
+            <h3 class="text-base font-black text-slate-950">Product highlights</h3>
+            <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-700">
+              ${features.map((item) => `<li>${escapeHtml(item)}</li>`).join("") || "<li>Ask seller for more product details</li>"}
+            </ul>
+          </div>
           <div class="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-            <p><span class="font-black text-slate-950">Sold by:</span> ${shop}</p>
-            <p><span class="font-black text-slate-950">Quantity:</span> ${quantitySummary}</p>
+            <p><span class="font-black text-slate-950">Brand / shop:</span> ${shop}</p>
+            <p><span class="font-black text-slate-950">Pack size:</span> ${packText}</p>
+            <p><span class="font-black text-slate-950">Available:</span> ${availableText}</p>
             <p><span class="font-black text-slate-950">Ships from:</span> ${locationText}</p>
             <p><span class="font-black text-slate-950">Delivery:</span> Local delivery or pickup after seller confirmation.</p>
           </div>
@@ -5494,7 +5538,8 @@
           <p class="mt-2 text-4xl font-black tracking-[-0.04em] text-slate-950">${rupee(p.price)}</p>
           <p class="mt-1 text-sm text-slate-500">Local city pricing for ${locationText}.</p>
           <div class="mt-5 space-y-3 text-sm text-slate-700">
-            <p><span class="font-black text-slate-950">Stock:</span> ${quantitySummary}</p>
+            <p><span class="font-black text-slate-950">Pack:</span> ${packText}</p>
+            <p><span class="font-black text-slate-950">Stock:</span> ${availableText}</p>
             <p><span class="font-black text-slate-950">Payment:</span> Secure checkout on Bachat</p>
             <p><span class="font-black text-slate-950">Seller:</span> ${shop}</p>
           </div>
