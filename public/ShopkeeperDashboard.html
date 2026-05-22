@@ -732,24 +732,29 @@
 
     function setTab(name) {
       currentTab = name;
+      const home = document.getElementById("dashboard-home");
+      const profileStrip = document.getElementById("profile-strip");
+      const payouts = document.getElementById("payouts-section");
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+      home?.classList.add("hidden");
+      profileStrip?.classList.add("hidden");
+      payouts?.classList.add("hidden");
+
       if (name === "home") {
-        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
-        document.getElementById("payouts-section")?.classList.add("hidden");
+        home?.classList.remove("hidden");
+        profileStrip?.classList.remove("hidden");
         paintSidebarNav("home");
-        document.getElementById("dashboard-home")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
       if (name === "payouts") {
-        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
-        const ps = document.getElementById("payouts-section");
-        if (ps) ps.classList.remove("hidden");
+        payouts?.classList.remove("hidden");
         paintSidebarNav("payouts");
-        ps?.scrollIntoView({ behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: "smooth" });
         loadPayoutsSummary();
         return;
       }
-      document.getElementById("payouts-section")?.classList.add("hidden");
-      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+
       const panel = document.getElementById("panel-" + name);
       if (panel) panel.classList.remove("hidden");
       paintSidebarNav(name);
@@ -757,7 +762,7 @@
       if (name === "quotes") loadQuotes();
       if (name === "orders") loadOrders();
       if (name === "me") renderMe();
-      panel?.scrollIntoView({ behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function wireNav(btn) {
