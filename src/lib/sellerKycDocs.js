@@ -11,14 +11,7 @@ const SELLER_KYC_DOC_KINDS = Object.freeze([
   "other",
 ]);
 
-const FIELD_SALES_REQUIRED_DOC_KINDS = Object.freeze([
-  "aadhaar",
-  "pan",
-  "government_id",
-  "proof_of_address",
-  "business_registration",
-  "banking_details",
-]);
+const FIELD_SALES_REQUIRED_DOC_KINDS = Object.freeze([]);
 
 const MAX_DOC_CHARS = 900000;
 const MAX_DOCS = 12;

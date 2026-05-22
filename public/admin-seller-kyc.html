@@ -17,7 +17,7 @@
         <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
           <div>
             <h1 class="text-2xl font-extrabold">Seller eKYC queue</h1>
-            <p class="text-slate-500 text-sm mt-1">Review pending shop verifications, upload field-visit documents, fill ID values, and approve from one place.</p>
+            <p class="text-slate-500 text-sm mt-1">Review pending shop verifications, upload field-visit documents when available, and approve from one place.</p>
           </div>
           <button type="button" id="btn-refresh" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Refresh</button>
         </div>
@@ -92,7 +92,7 @@
 
               <div class="p-5 space-y-6">
                 <div class="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-950">
-                  Manual verification only. Sales must compare the typed values with the uploaded images before approval.
+                  Manual verification only. Documents are optional; compare typed values with uploaded images when the seller has provided them.
                 </div>
 
                 <div class="rounded-xl border border-slate-200">
@@ -106,7 +106,7 @@
                 <div class="rounded-xl border border-slate-200">
                   <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
                     <h3 class="font-bold text-slate-900">Field verification form</h3>
-                    <p class="text-xs text-slate-500 mt-1">Required for field-visit approvals. Direct upload reviews can use this optionally.</p>
+                    <p class="text-xs text-slate-500 mt-1">Optional notes and ID values for field visits. Leave document fields blank when the seller does not have them.</p>
                   </div>
                   <form id="review-form" class="p-4 space-y-4">
                     <div class="grid md:grid-cols-2 gap-4">
@@ -210,12 +210,12 @@
   <script>
     (function () {
       var DOC_FIELDS = [
-        { kind: "aadhaar", label: "Aadhaar", requiredForSalesman: true },
-        { kind: "pan", label: "PAN card", requiredForSalesman: true },
-        { kind: "government_id", label: "Government-issued ID", requiredForSalesman: true },
-        { kind: "proof_of_address", label: "Proof of address", requiredForSalesman: true },
-        { kind: "business_registration", label: "Business registration document", requiredForSalesman: true },
-        { kind: "banking_details", label: "Banking details", requiredForSalesman: true },
+        { kind: "aadhaar", label: "Aadhaar", requiredForSalesman: false },
+        { kind: "pan", label: "PAN card", requiredForSalesman: false },
+        { kind: "government_id", label: "Government-issued ID", requiredForSalesman: false },
+        { kind: "proof_of_address", label: "Proof of address", requiredForSalesman: false },
+        { kind: "business_registration", label: "Business registration document", requiredForSalesman: false },
+        { kind: "banking_details", label: "Banking details", requiredForSalesman: false },
         { kind: "shop_photo", label: "Shop photo", requiredForSalesman: false },
         { kind: "gst_cert", label: "GST certificate", requiredForSalesman: false },
         { kind: "udyam", label: "Udyam document", requiredForSalesman: false },
@@ -377,7 +377,6 @@
       function renderDocGrid() {
         var grid = document.getElementById("doc-grid");
         grid.innerHTML = "";
-        var path = state.detail && state.detail.kyc ? state.detail.kyc.path : "";
         DOC_FIELDS.forEach(function (field) {
           var doc = kindDoc(field.kind);
           var wrap = document.createElement("div");
@@ -386,7 +385,7 @@
             '<div class="flex items-start justify-between gap-2">' +
             '<div><p class="text-sm font-bold text-slate-900">' + esc(field.label) + '</p>' +
             '<p class="text-[11px] text-slate-500 mt-1">' +
-            (field.requiredForSalesman && path === "salesman" ? "Required for field-sales approval" : "Optional") +
+            "Optional" +
             "</p></div>" +
             '<label class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0056d2] cursor-pointer hover:bg-slate-50">Upload' +
             '<input type="file" data-kind="' + esc(field.kind) + '" class="hidden doc-input" accept="image/*,.pdf" />' +

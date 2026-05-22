@@ -10,7 +10,7 @@ const AnalyticsEvent = require("../models/AnalyticsEvent");
 const Lead = require("../models/Lead");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest, formatOrder, formatDispute, formatSeller } = require("../lib/format");
-const { SELLER_KYC_DOC_KINDS, FIELD_SALES_REQUIRED_DOC_KINDS, MAX_DOC_CHARS, MAX_DOCS } = require("../lib/sellerKycDocs");
+const { SELLER_KYC_DOC_KINDS, MAX_DOC_CHARS, MAX_DOCS } = require("../lib/sellerKycDocs");
 const { sendMail } = require("../services/email");
 
 const router = express.Router();
@@ -186,48 +186,55 @@ function validateFieldSalesApproval(seller) {
   const review = kyc.fieldReview || {};
   const docs = Array.isArray(kyc.documents) ? kyc.documents : [];
   const docKinds = new Set(docs.map((doc) => String(doc && doc.kind ? doc.kind : "")));
-  const missingDocs = FIELD_SALES_REQUIRED_DOC_KINDS.filter((kind) => !docKinds.has(kind));
-  if (missingDocs.length) {
-    return `Upload these documents before approval: ${missingDocs.map(docLabel).join(", ")}`;
-  }
-  if (!/^\d{4}$/.test(String(review.aadhaarLast4 || ""))) {
+  const hasDoc = (kind) => docKinds.has(kind);
+  const hasAny = (...values) => values.some((value) => cleanText(value, 120));
+  const aadhaarLast4 = String(review.aadhaarLast4 || "");
+  const panNumber = String(review.panNumber || "");
+  const hasGovernmentId = hasDoc("government_id") || hasAny(review.governmentIdType, review.governmentIdNumber);
+  const hasProofOfAddress = hasDoc("proof_of_address") || hasAny(review.proofOfAddressType, review.proofOfAddressNumber);
+  const hasBusinessRegistration =
+    hasDoc("business_registration") || hasAny(review.businessRegistrationType, review.businessRegistrationNumber);
+  const hasBankingDetails =
+    hasDoc("banking_details") || hasAny(review.bankAccountHolder, review.bankIfsc, review.bankAccountNumber);
+
+  if ((hasDoc("aadhaar") || aadhaarLast4) && !/^\d{4}$/.test(aadhaarLast4)) {
     return "Enter Aadhaar last 4 digits";
   }
-  if (!PAN_RE.test(String(review.panNumber || ""))) {
+  if ((hasDoc("pan") || panNumber) && !PAN_RE.test(panNumber)) {
     return "Enter a valid PAN number";
   }
-  if (!cleanText(review.governmentIdType, 80)) {
+  if (hasGovernmentId && !cleanText(review.governmentIdType, 80)) {
     return "Enter the government-issued ID type";
   }
-  if (!cleanText(review.governmentIdNumber, 80)) {
+  if (hasGovernmentId && !cleanText(review.governmentIdNumber, 80)) {
     return "Enter the government-issued ID number";
   }
-  if (!cleanText(review.proofOfAddressType, 80)) {
+  if (hasProofOfAddress && !cleanText(review.proofOfAddressType, 80)) {
     return "Enter the proof of address type";
   }
-  if (!cleanText(review.businessRegistrationType, 80)) {
+  if (hasBusinessRegistration && !cleanText(review.businessRegistrationType, 80)) {
     return "Enter the business registration document type";
   }
-  if (!cleanText(review.businessRegistrationNumber, 80)) {
+  if (hasBusinessRegistration && !cleanText(review.businessRegistrationNumber, 80)) {
     return "Enter the business registration number";
   }
-  if (!cleanText(review.bankAccountHolder, 120)) {
+  if (hasBankingDetails && !cleanText(review.bankAccountHolder, 120)) {
     return "Enter the bank account holder name";
   }
-  if (!IFSC_RE.test(String(review.bankIfsc || ""))) {
+  if (hasBankingDetails && !IFSC_RE.test(String(review.bankIfsc || ""))) {
     return "Enter a valid IFSC code";
   }
-  if (cleanText(review.bankAccountNumber, 24).length < 5) {
+  if (hasBankingDetails && cleanText(review.bankAccountNumber, 24).length < 5) {
     return "Enter a valid bank account number";
   }
   const confirmations = [
-    ["aadhaarMatchesImage", "Aadhaar"],
-    ["panMatchesImage", "PAN card"],
-    ["governmentIdMatchesImage", "Government-issued ID"],
-    ["proofOfAddressMatchesImage", "Proof of address"],
-    ["businessRegistrationMatchesImage", "Business registration"],
-    ["bankingDetailsMatchImage", "Banking details"],
-  ].filter(([key]) => !review[key]);
+    ["aadhaarMatchesImage", "Aadhaar", hasDoc("aadhaar")],
+    ["panMatchesImage", "PAN card", hasDoc("pan")],
+    ["governmentIdMatchesImage", "Government-issued ID", hasDoc("government_id")],
+    ["proofOfAddressMatchesImage", "Proof of address", hasDoc("proof_of_address")],
+    ["businessRegistrationMatchesImage", "Business registration", hasDoc("business_registration")],
+    ["bankingDetailsMatchImage", "Banking details", hasDoc("banking_details")],
+  ].filter(([key, _label, required]) => required && !review[key]);
   if (confirmations.length) {
     return `Confirm the document match checks for: ${confirmations.map((row) => row[1]).join(", ")}`;
   }

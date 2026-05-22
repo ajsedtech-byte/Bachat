@@ -1321,6 +1321,7 @@
     }
 
     .bachat-storefront .shopping-stat-grid {
+      display: grid !important;
       grid-template-columns: repeat(4, minmax(106px, 1fr)) !important;
       max-width: 820px !important;
       margin-top: 34px !important;
@@ -1374,11 +1375,11 @@
     }
 
     .bachat-storefront .hero-slide-local .shopping-hero-title {
-      width: min(640px, 48vw);
-      max-width: 640px !important;
+      width: min(560px, 43vw);
+      max-width: 560px !important;
       color: #fff !important;
-      font-size: clamp(34px, 3.15vw, 60px) !important;
-      line-height: 1.05 !important;
+      font-size: clamp(30px, 2.55vw, 48px) !important;
+      line-height: 1.08 !important;
       white-space: normal;
     }
 
@@ -1387,23 +1388,23 @@
     }
 
     .bachat-storefront .hero-slide-local .shopping-hero-copy {
-      max-width: 570px !important;
+      max-width: 540px !important;
       color: rgba(255, 255, 255, 0.92) !important;
-      font-size: clamp(14px, 1.05vw, 17px) !important;
-      line-height: 1.45 !important;
+      font-size: clamp(13px, 0.98vw, 16px) !important;
+      line-height: 1.48 !important;
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-row {
-      width: min(500px, 40vw);
+      width: min(500px, 41vw);
       flex-wrap: nowrap;
       gap: 12px;
-      margin-top: 18px;
+      margin-top: 20px;
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-item {
-      grid-template-columns: 34px minmax(0, 1fr);
+      grid-template-columns: 30px minmax(0, 1fr);
       min-width: 0 !important;
-      width: 148px !important;
+      width: 154px !important;
       box-sizing: border-box;
       border-color: rgba(255, 255, 255, 0.12);
       background: rgba(255, 255, 255, 0.1);
@@ -1413,17 +1414,17 @@
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-item svg {
-      height: 27px;
-      width: 27px;
+      height: 25px;
+      width: 25px;
       color: #ffc83d;
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-item strong {
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-item span {
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.15;
       opacity: 0.9;
     }
@@ -1438,7 +1439,7 @@
       background: rgba(7, 21, 45, 0.54);
       color: #fff;
       padding: 10px 16px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 900;
       backdrop-filter: blur(12px);
     }
@@ -2391,16 +2392,44 @@
       }
 
       .bachat-storefront .hero-carousel-track {
-        min-height: 620px;
+        min-height: 560px;
       }
 
       .bachat-storefront .hero-slide {
         align-items: start;
+        padding: 36px 30px 72px !important;
       }
 
       .bachat-storefront .hero-slide-local,
       .bachat-storefront .hero-slide-market {
         background-size: auto, cover, auto;
+        background-position: center, 62% center, center;
+      }
+
+      .bachat-storefront .hero-slide-local .shopping-hero-title {
+        width: min(560px, 74vw);
+        max-width: 560px !important;
+        font-size: clamp(34px, 5.3vw, 46px) !important;
+      }
+
+      .bachat-storefront .hero-slide-local .shopping-hero-copy {
+        max-width: min(560px, 76vw) !important;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-row {
+        width: min(520px, 82vw);
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-item {
+        width: calc((100% - 24px) / 3) !important;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-local-pill {
+        margin-bottom: 12px;
+      }
+
+      .bachat-storefront .hero-slide-actions {
+        background-size: auto, auto 82%, auto;
         background-position: center, right center, center;
       }
 
@@ -2445,6 +2474,28 @@
       }
     }
 
+    @media (min-width: 561px) and (max-width: 820px) {
+      .bachat-storefront .hero-carousel-track {
+        min-height: 520px;
+      }
+
+      .bachat-storefront .hero-slide-local {
+        background:
+          linear-gradient(90deg, rgba(3, 13, 31, 0.98) 0%, rgba(4, 17, 39, 0.92) 44%, rgba(4, 17, 39, 0.42) 68%, rgba(4, 17, 39, 0.12) 100%),
+          url("/assets/bachat-chappan-night-hero.png") 62% center / cover no-repeat,
+          #07152d;
+      }
+
+      .bachat-storefront .hero-slide-local .shopping-hero-title {
+        width: min(520px, 76vw);
+        font-size: clamp(34px, 5.4vw, 42px) !important;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-row {
+        width: min(500px, 80vw);
+      }
+    }
+
     @media (max-width: 560px) {
       .bachat-storefront #shopping-home-lanes {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -2455,17 +2506,43 @@
       }
 
       .bachat-storefront .hero-carousel-track {
-        min-height: 650px;
+        min-height: 610px;
       }
 
       .bachat-storefront .hero-slide {
-        padding: 28px 20px 64px !important;
+        padding: 24px 18px 66px !important;
       }
 
       .bachat-storefront .hero-slide-local,
       .bachat-storefront .hero-slide-market {
         background-position: center, right center, center;
         background-size: auto, cover, auto;
+      }
+
+      .bachat-storefront .hero-slide-local {
+        background:
+          linear-gradient(180deg, rgba(3, 13, 31, 0.98) 0%, rgba(4, 17, 39, 0.94) 52%, rgba(4, 17, 39, 0.66) 100%),
+          url("/assets/bachat-chappan-night-hero.png") 66% center / cover no-repeat,
+          #07152d;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-local-pill {
+        max-width: 100%;
+        padding: 8px 11px;
+        font-size: 12px;
+      }
+
+      .bachat-storefront .hero-slide-local .shopping-hero-title {
+        width: 100%;
+        max-width: 100% !important;
+        font-size: clamp(30px, 9vw, 38px) !important;
+        line-height: 1.08 !important;
+      }
+
+      .bachat-storefront .hero-slide-local .shopping-hero-copy {
+        max-width: 100% !important;
+        font-size: 13px !important;
+        line-height: 1.42 !important;
       }
 
       .bachat-storefront .hero-slide-market {
@@ -2493,15 +2570,66 @@
       }
 
       .bachat-storefront .hero-slide-local .hero-trust-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         width: 100%;
+        gap: 7px;
+        margin-top: 16px;
       }
 
       .bachat-storefront .hero-slide-local .hero-trust-item {
-        width: 100%;
+        display: flex;
+        min-width: 0 !important;
+        width: 100% !important;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 7px !important;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-item svg {
+        width: 21px;
+        height: 21px;
+        flex: 0 0 auto;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-item strong {
+        font-size: 10px;
+      }
+
+      .bachat-storefront .hero-slide-local .hero-trust-item span {
+        font-size: 9px;
+        line-height: 1.08;
+      }
+
+      .bachat-storefront .hero-carousel-nav {
+        left: 50%;
+        bottom: 12px;
       }
 
       .bachat-storefront .hero-slide-actions .shopping-stat-grid {
         grid-template-columns: 1fr !important;
+      }
+
+      .bachat-storefront .hero-slide-actions {
+        background:
+          linear-gradient(180deg, rgba(248, 251, 255, 0.96) 0%, rgba(248, 251, 255, 0.8) 42%, rgba(248, 251, 255, 0.18) 100%),
+          url("/assets/bachat-actions-hero.png") center bottom / auto 58% no-repeat,
+          linear-gradient(100deg, #f8fbff 0%, #eef7ff 48%, #dcefff 100%);
+      }
+
+      .bachat-storefront .hero-slide-actions .shopping-hero-title,
+      .bachat-storefront .hero-slide-market .shopping-hero-title {
+        font-size: clamp(30px, 8vw, 38px) !important;
+      }
+
+      .bachat-storefront .hero-slide-actions .shopping-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+      }
+
+      .bachat-storefront .hero-slide-actions .store-action-tile {
+        min-height: 104px;
+        padding: 12px 10px;
       }
 
       .bachat-storefront .hero-slide-market .hero-stat-row {
@@ -2517,6 +2645,21 @@
       }
     }
 
+    @media (max-width: 560px) {
+      .bachat-storefront .hero-carousel .hero-slide-actions .shopping-stat-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        gap: 10px !important;
+      }
+
+      .bachat-storefront .hero-carousel .hero-slide-actions .store-action-tile {
+        flex: 0 0 calc((100% - 10px) / 2);
+        box-sizing: border-box;
+        width: auto !important;
+      }
+    }
+
     .bachat-storefront .amazon-top-header {
       background: #fff;
       border-bottom: 1px solid #e9eff7;
@@ -2527,6 +2670,18 @@
     .bachat-storefront .amazon-main {
       background: #f8fbff !important;
       padding: 24px 28px 28px !important;
+    }
+
+    .bachat-storefront .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
     }
 
     .bachat-storefront #shopping-home:not(.hidden) {
@@ -3283,8 +3438,7 @@
               <article class="hero-slide hero-slide-actions" data-hero-slide aria-label="Quick shopping actions">
                 <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] xl:items-center">
                   <div>
-                    <p class="hero-eyebrow"><span id="shopping-home-greeting-period">Good evening</span>, <span id="shopping-home-greeting-name">there</span>!</p>
-                    <h1 class="shopping-hero-title mt-3 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">What do you need today?</h1>
+                    <h1 class="shopping-hero-title mt-0 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">What do you need today?</h1>
                     <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7 text-slate-600">Shop from trusted local stores and get the best prices near <span id="shopping-home-city" class="font-black text-[#0056d2]">your city</span>.</p>
                     <div class="shopping-stat-grid mt-7 grid max-w-3xl gap-4 sm:grid-cols-2 xl:grid-cols-4">
                       <a href="#browse-section" data-section="browse-section" class="store-action-tile">
