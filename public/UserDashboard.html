@@ -1364,43 +1364,56 @@
 
     .bachat-storefront .hero-slide-local {
       background:
-        url("/assets/bachat-chappan-dukan-hero.png") center center / cover no-repeat,
-        linear-gradient(100deg, #f8fbff 0%, #eef7ff 52%, #dcefff 100%);
+        linear-gradient(90deg, rgba(3, 13, 31, 0.98) 0%, rgba(4, 17, 39, 0.94) 33%, rgba(4, 17, 39, 0.48) 53%, rgba(4, 17, 39, 0.08) 72%),
+        url("/assets/bachat-chappan-night-hero.png") center center / cover no-repeat,
+        #07152d;
     }
 
-    .bachat-storefront .hero-slide-local .hero-palace-art,
-    .bachat-storefront .hero-slide-local > .max-w-3xl {
+    .bachat-storefront .hero-slide-local .hero-palace-art {
       display: none;
     }
 
     .bachat-storefront .hero-slide-local .shopping-hero-title {
-      width: min(520px, 44vw);
-      max-width: 520px !important;
-      font-size: clamp(32px, 2.58vw, 48px) !important;
-      line-height: 1.04 !important;
+      width: min(560px, 46vw);
+      max-width: 560px !important;
+      color: #fff !important;
+      font-size: clamp(34px, 3vw, 54px) !important;
+      line-height: 1.05 !important;
       white-space: normal;
     }
 
+    .bachat-storefront .hero-slide-local .shopping-hero-title span {
+      color: #ffc83d !important;
+    }
+
     .bachat-storefront .hero-slide-local .shopping-hero-copy {
-      max-width: 440px !important;
+      max-width: 570px !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+      font-size: clamp(15px, 1.15vw, 19px) !important;
+      line-height: 1.52 !important;
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-row {
-      width: min(520px, 44vw);
-      gap: 10px;
+      width: min(560px, 46vw);
+      gap: 12px;
       margin-top: 24px;
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-item {
       grid-template-columns: 34px minmax(0, 1fr);
-      min-width: 0;
-      width: 150px;
-      padding: 10px 12px;
+      min-width: 0 !important;
+      width: 166px !important;
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 12px 14px !important;
+      backdrop-filter: blur(10px);
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-item svg {
       height: 27px;
       width: 27px;
+      color: #ffc83d;
     }
 
     .bachat-storefront .hero-slide-local .hero-trust-item strong {
@@ -1410,10 +1423,61 @@
     .bachat-storefront .hero-slide-local .hero-trust-item span {
       font-size: 12px;
       line-height: 1.15;
+      opacity: 0.9;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-local-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      background: rgba(7, 21, 45, 0.54);
+      color: #fff;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 900;
+      backdrop-filter: blur(12px);
+    }
+
+    .bachat-storefront .hero-slide-local .hero-local-pill svg {
+      width: 19px;
+      height: 19px;
+      color: #ffc83d;
+      stroke-width: 2.4;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-local-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .bachat-storefront .hero-slide-local .hero-primary-cta,
+    .bachat-storefront .hero-slide-local .hero-secondary-cta {
+      margin-top: 0;
+      min-width: 190px;
+      justify-content: center;
+      border-radius: 11px;
+      padding: 15px 24px;
+      font-size: 16px;
+      font-weight: 950;
     }
 
     .bachat-storefront .hero-slide-local .hero-primary-cta {
-      margin-top: 16px;
+      background: linear-gradient(135deg, #ffd45a 0%, #ffb91f 100%);
+      color: #06142b;
+      box-shadow: 0 18px 34px -28px rgba(255, 201, 54, 0.8);
+    }
+
+    .bachat-storefront .hero-slide-local .hero-secondary-cta {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 200, 61, 0.95);
+      color: #ffc83d;
+      background: rgba(7, 21, 45, 0.36);
     }
 
     .bachat-storefront .hero-slide-actions {
@@ -1668,10 +1732,6 @@
       padding: 6px 8px;
       box-shadow: 0 16px 34px -28px rgba(15, 23, 42, 0.45);
       backdrop-filter: blur(12px);
-    }
-
-    .bachat-storefront .hero-carousel[data-active-hero="local"] .hero-carousel-nav {
-      display: none;
     }
 
     .bachat-storefront .hero-slide-local ~ .hero-carousel-nav,
@@ -3190,20 +3250,24 @@
                   <img src="/assets/bachat-hero-palace-bg.svg" alt="" />
                 </div>
                 <div class="max-w-3xl">
-                  <h1 class="shopping-hero-title mt-0 max-w-3xl text-4xl font-black leading-[1.05] text-slate-950 sm:text-5xl lg:text-[3.4rem]">Everything&nbsp;local,<br>beautifully&nbsp;organized<br>for&nbsp;<span class="text-[#0056d2]">Indore.</span></h1>
-                  <p class="shopping-hero-copy mt-3 max-w-2xl text-base leading-7 text-slate-600">Discover neighborhood stores, quick essentials, fresh food and trusted local shopping at the best local price.</p>
+                  <div class="hero-local-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 21s6.2-5.3 6.2-11.1a6.2 6.2 0 0 0-12.4 0C5.8 15.7 12 21 12 21Z"/><circle cx="12" cy="9.9" r="2.15"/></svg>
+                    Chappan Dukan, Indore
+                  </div>
+                  <h1 class="shopping-hero-title mt-0 max-w-3xl text-4xl font-black leading-[1.05] sm:text-5xl lg:text-[3.4rem]">Indore ka swaad,<br>ab aapke saath.<br><span>Chappan Dukan</span><br>se seedha Bachat pe.</h1>
+                  <p class="shopping-hero-copy mt-5 max-w-2xl text-base leading-7">Indore ke famous food street se lekar daily needs tak, sab kuch mile best local price par.</p>
                   <div class="hero-trust-row">
                     <div class="hero-trust-item">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m12 3 2.1 2.7 3.4-.1.8 3.3 2.8 1.9-1.5 3 1.1 3.2-3.2 1.1-1.9 2.8-3-1.5-3.2 1.1-1.1-3.2-2.8-1.9 1.5-3L3.9 9.2l3.2-1.1L9 5.3 12 3Z"/><path d="m9.4 12.3 1.8 1.8 3.6-4.2"/></svg>
-                      <span><strong>Best local</strong>price</span>
+                      <span><strong>Best Local</strong>Prices</span>
                     </div>
                     <div class="hero-trust-item">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m13 2-8 12h6l-1 8 9-13h-6l0-7Z"/></svg>
-                      <span><strong>Fast local</strong>delivery</span>
+                      <span><strong>Fast Local</strong>Delivery</span>
                     </div>
                     <div class="hero-trust-item">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3 20 6v5.5c0 5-3.4 8-8 9.5-4.6-1.5-8-4.5-8-9.5V6l8-3Z"/><path d="m8.8 12 2.1 2.1 4.4-4.8"/></svg>
-                      <span><strong>Trusted local</strong>stores</span>
+                      <span><strong>Trusted</strong>Local Shops</span>
                     </div>
                   </div>
                   <a href="#browse-section" data-section="browse-section" class="hero-primary-cta">Shop Now <span aria-hidden="true">›</span></a>
