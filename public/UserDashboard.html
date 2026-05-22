@@ -5363,6 +5363,7 @@
               <span class="text-[10px] font-black uppercase tracking-[0.12em] text-[#0056d2]">${escapeHtml(p.category || "Near you")}</span>
               <p class="mt-1 line-clamp-2 min-h-[38px] text-sm font-black leading-tight text-slate-950">${escapeHtml(p.title)}</p>
               <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(p.shop_name || "")}</p>
+              ${productQuantitySummary(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productQuantitySummary(p))}</p>` : ""}
               <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
               <div class="mt-2 grid grid-cols-2 gap-2">
                 <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8]">Basket</button>
@@ -5412,6 +5413,18 @@
       return [city, region].filter(Boolean).join(", ") || "Your selected city";
     }
 
+    function productQuantitySummary(p) {
+      const parts = [];
+      if (p && p.stock_quantity != null && p.stock_quantity !== "") {
+        parts.push(String(p.stock_quantity) + (p.stock_unit ? " " + p.stock_unit : ""));
+      } else if (p && p.stock_unit) {
+        parts.push(p.stock_unit);
+      }
+      if (p && p.package_type) parts.push(p.package_type);
+      if (p && p.package_size) parts.push(p.package_size);
+      return parts.join(" - ");
+    }
+
     function productImageHtml(p, imageClass, fallbackClass) {
       const title = String((p && p.title) || "Local item");
       const image = Array.isArray(p && p.images) ? String(p.images.find(Boolean) || "") : "";
@@ -5428,6 +5441,7 @@
       const shop = escapeHtml(p.shop_name || "Local shop");
       const locationText = escapeHtml(productLocationText(p));
       const description = escapeHtml(p.description || "No description has been added yet. Contact or order from the seller for more details.");
+      const quantitySummary = escapeHtml(productQuantitySummary(p) || "Ask seller for quantity details");
       const images = Array.isArray(p.images) ? p.images.filter(Boolean).slice(0, 4) : [];
       const primaryImage = images[0] || "";
       const mainMedia = primaryImage
@@ -5461,6 +5475,7 @@
           <p class="mt-3 text-sm font-semibold text-slate-500">New local listing | Reviews coming soon</p>
           <div class="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
             <p><span class="font-black text-slate-950">Sold by:</span> ${shop}</p>
+            <p><span class="font-black text-slate-950">Quantity:</span> ${quantitySummary}</p>
             <p><span class="font-black text-slate-950">Ships from:</span> ${locationText}</p>
             <p><span class="font-black text-slate-950">Delivery:</span> Local delivery or pickup after seller confirmation.</p>
           </div>
@@ -5479,7 +5494,7 @@
           <p class="mt-2 text-4xl font-black tracking-[-0.04em] text-slate-950">${rupee(p.price)}</p>
           <p class="mt-1 text-sm text-slate-500">Local city pricing for ${locationText}.</p>
           <div class="mt-5 space-y-3 text-sm text-slate-700">
-            <p><span class="font-black text-slate-950">Stock:</span> Available from local seller</p>
+            <p><span class="font-black text-slate-950">Stock:</span> ${quantitySummary}</p>
             <p><span class="font-black text-slate-950">Payment:</span> Secure checkout on Bachat</p>
             <p><span class="font-black text-slate-950">Seller:</span> ${shop}</p>
           </div>

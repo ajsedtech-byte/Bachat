@@ -40,6 +40,26 @@ function normalizeImages(raw) {
     .slice(0, 8);
 }
 
+function cleanText(value, max) {
+  return String(value == null ? "" : value).trim().slice(0, max);
+}
+
+function normalizeStockQuantity(raw) {
+  if (raw === "" || raw == null) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return NaN;
+  return Math.round(n * 1000) / 1000;
+}
+
+function productQuantityFields(doc) {
+  return {
+    stock_quantity: doc.stockQuantity == null ? null : doc.stockQuantity,
+    stock_unit: doc.stockUnit || "",
+    package_type: doc.packageType || "",
+    package_size: doc.packageSize || "",
+  };
+}
+
 /** Buyer catalog: marked-up price only, no sellerPrice. */
 function formatCatalogProduct(doc, seller) {
   const id = doc._id;
@@ -51,6 +71,7 @@ function formatCatalogProduct(doc, seller) {
     category: doc.category,
     images: doc.images || [],
     price,
+    ...productQuantityFields(doc),
     shop_name: seller?.shopName || "Shop",
     city: seller?.city || "",
     region: seller?.region || "",
@@ -67,6 +88,7 @@ function formatSellerProduct(doc) {
     category: doc.category,
     images: doc.images || [],
     price: doc.sellerPrice,
+    ...productQuantityFields(doc),
     is_active: doc.isActive,
     created_at: doc.createdAt,
     updated_at: doc.updatedAt,
@@ -240,7 +262,8 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
     const seller = await sellerForUser(req.user.id);
     if (!seller) return res.status(404).json({ error: "Seller profile not found" });
 
-    const { title, description, category, images, price } = req.body || {};
+    const { title, description, category, images, price, stock_quantity, stock_unit, package_type, package_size } =
+      req.body || {};
     if (!title || !category || price == null) {
       return badRequest(res, "title, category, and price are required");
     }
@@ -251,6 +274,11 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
     const sellerPrice = Number(price);
     if (!Number.isFinite(sellerPrice) || sellerPrice < 1) {
       return badRequest(res, "price must be a number ≥ 1");
+    }
+
+    const stockQuantity = normalizeStockQuantity(stock_quantity);
+    if (Number.isNaN(stockQuantity)) {
+      return badRequest(res, "stock quantity must be a number >= 0");
     }
 
     const imgs = normalizeImages(images);
@@ -265,6 +293,10 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
       category: canonical,
       images: imgs,
       sellerPrice,
+      stockQuantity,
+      stockUnit: cleanText(stock_unit, 40),
+      packageType: cleanText(package_type, 80),
+      packageSize: cleanText(package_size, 80),
       isActive: true,
     });
 
@@ -285,7 +317,8 @@ router.patch("/:productId", requireAuth, requireRole("seller"), requireSellerTra
     const doc = await Product.findOne({ _id: pid, seller: seller._id });
     if (!doc) return res.status(404).json({ error: "Not found" });
 
-    const { title, description, category, images, price, is_active } = req.body || {};
+    const { title, description, category, images, price, stock_quantity, stock_unit, package_type, package_size, is_active } =
+      req.body || {};
     if (title != null) doc.title = String(title).trim().slice(0, 200);
     if (description != null) doc.description = String(description).slice(0, 8000);
     if (category != null) {
@@ -307,6 +340,16 @@ router.patch("/:productId", requireAuth, requireRole("seller"), requireSellerTra
       }
       doc.sellerPrice = sellerPrice;
     }
+    if (stock_quantity !== undefined) {
+      const stockQuantity = normalizeStockQuantity(stock_quantity);
+      if (Number.isNaN(stockQuantity)) {
+        return badRequest(res, "stock quantity must be a number >= 0");
+      }
+      doc.stockQuantity = stockQuantity;
+    }
+    if (stock_unit !== undefined) doc.stockUnit = cleanText(stock_unit, 40);
+    if (package_type !== undefined) doc.packageType = cleanText(package_type, 80);
+    if (package_size !== undefined) doc.packageSize = cleanText(package_size, 80);
     if (is_active != null) doc.isActive = Boolean(is_active);
 
     await doc.save();

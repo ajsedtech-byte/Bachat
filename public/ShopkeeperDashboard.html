@@ -302,7 +302,7 @@
         <section id="panel-shop" class="tab-panel space-y-6 scroll-mt-24">
           <div>
             <h2 class="text-xl font-extrabold text-slate-900">Your listings</h2>
-            <p class="text-slate-600 text-sm mt-1">Only your shop categories (from signup) appear below. Pick one, then add price, details, and photos.</p>
+            <p class="text-slate-600 text-sm mt-1">Only your shop categories (from signup) appear below. Pick one, then add price, quantity, package details, and photos.</p>
           </div>
           <div id="shop-cat-pills" class="flex flex-wrap gap-2"></div>
           <p id="no-cats-warn" class="hidden text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
@@ -330,6 +330,33 @@
                   <span class="px-3 py-3 bg-white text-slate-600 font-bold">₹</span>
                   <input name="price" type="number" min="1" step="1" required class="flex-1 min-w-0 px-3 py-3 outline-none" />
                 </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Available quantity</label>
+                <input name="stock_quantity" type="number" min="0" step="0.001" class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0056d2]/30" placeholder="50" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Quantity unit</label>
+                <select name="stock_unit" class="w-full rounded-xl border border-slate-200 px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-[#0056d2]/30">
+                  <option value="">Select unit</option>
+                  <option value="kg">kg</option>
+                  <option value="g">g</option>
+                  <option value="litre">litre</option>
+                  <option value="ml">ml</option>
+                  <option value="piece">piece</option>
+                  <option value="pack">pack</option>
+                  <option value="bag">bag</option>
+                  <option value="box">box</option>
+                  <option value="dozen">dozen</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Package type</label>
+                <input name="package_type" class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0056d2]/30" placeholder="Loose / bag / bottle / carton" maxlength="80" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Package size / variant</label>
+                <input name="package_size" class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0056d2]/30" placeholder="1 kg pack, 5 litre tin, 500 g pouch" maxlength="80" />
               </div>
               <div class="md:col-span-2">
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Photos (up to 4)</label>
@@ -587,6 +614,18 @@
       return "₹" + Math.round(x).toLocaleString("en-IN");
     }
 
+    function productQuantityLine(p) {
+      const parts = [];
+      if (p.stock_quantity != null && p.stock_quantity !== "") {
+        parts.push(String(p.stock_quantity) + (p.stock_unit ? " " + p.stock_unit : ""));
+      } else if (p.stock_unit) {
+        parts.push(p.stock_unit);
+      }
+      if (p.package_type) parts.push(p.package_type);
+      if (p.package_size) parts.push(p.package_size);
+      return parts.join(" - ");
+    }
+
     function clearSellerTrackLayers() {
       if (!sellerTrack.map) return;
       sellerTrack.layers.forEach((l) => {
@@ -821,6 +860,7 @@
           `<div class="p-3 flex-1 flex flex-col">
             <p class="font-bold text-sm line-clamp-2">${escapeHtml(p.title)}</p>
             <p class="text-[#0056d2] font-black mt-1">${rupee(p.price)}</p>
+            ${productQuantityLine(p) ? `<p class="text-xs text-slate-500 mt-1">${escapeHtml(productQuantityLine(p))}</p>` : ""}
             <button type="button" data-del="${escapeHtml(p.product_id)}" class="mt-2 text-xs font-bold text-red-600 hover:underline text-left del-p">Remove listing</button>
           </div>`;
         grid.appendChild(card);
@@ -1235,6 +1275,10 @@
           description: String(fd.get("description") || "").trim(),
           category: String(fd.get("category") || "").trim(),
           price: Number(fd.get("price")),
+          stock_quantity: fd.get("stock_quantity") === "" ? null : Number(fd.get("stock_quantity")),
+          stock_unit: String(fd.get("stock_unit") || "").trim(),
+          package_type: String(fd.get("package_type") || "").trim(),
+          package_size: String(fd.get("package_size") || "").trim(),
           images,
         };
         await api("POST", "/api/products", body);
