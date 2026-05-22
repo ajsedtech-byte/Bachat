@@ -68,7 +68,10 @@
       }
     }
 
-    .tab-panel.hidden { display: none; }
+    #dashboard-home.hidden,
+    #profile-strip.hidden,
+    #payouts-section.hidden,
+    .tab-panel.hidden { display: none !important; }
   </style>
 </head>
 <body class="bachat-ui bg-[#f8f9fb] text-slate-900 min-h-screen">
@@ -299,7 +302,7 @@
         </section>
 
         <!-- Shop tab -->
-        <section id="panel-shop" class="tab-panel space-y-6 scroll-mt-24">
+        <section id="panel-shop" class="tab-panel hidden space-y-6 scroll-mt-24">
           <div>
             <h2 class="text-xl font-extrabold text-slate-900">Your listings</h2>
             <p class="text-slate-600 text-sm mt-1">Only your shop categories (from signup) appear below. Pick one, then add price, quantity, package details, and photos.</p>
