@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Product = require("../models/Product");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
+const { canViewShopNames, maskedShopName, publicShopKey } = require("../lib/buyerPlan");
 
 const router = express.Router();
 const MAX_SAVED = 80;
@@ -23,6 +24,7 @@ router.get("/", requireAuth, requireRole("buyer"), async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+    const showShopNames = canViewShopNames(user);
     const items = (user.savedProducts || [])
       .filter((p) => p && p._id && p.isActive !== false && p.title)
       .map((p) => {
@@ -33,7 +35,9 @@ router.get("/", requireAuth, requireRole("buyer"), async (req, res, next) => {
           price: buyerDisplayPrice(p.sellerPrice, p._id),
           category: p.category,
           images: p.images || [],
-          shop_name: seller?.shopName || "Shop",
+          shop_name: showShopNames ? seller?.shopName || "Shop" : maskedShopName("shop"),
+          shop_name_locked: !showShopNames,
+          shop_key: publicShopKey(seller),
           city: seller?.city || "",
           region: seller?.region || "",
         };

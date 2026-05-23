@@ -1,11 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bachat">
   <title>Bachat</title>
-  <defs>
-    <linearGradient id="ibg" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2b7fff"/>
-      <stop offset="1" stop-color="#0056d2"/>
-    </linearGradient>
-  </defs>
-  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#ibg)"/>
-  <text x="32" y="42" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="32" font-weight="800" fill="#ffffff">�</text>
+  <image href="bachat-icon-original.png" x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid meet"/>
 </svg>

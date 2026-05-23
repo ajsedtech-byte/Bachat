@@ -3,8 +3,10 @@ const mongoose = require("mongoose");
 const Quote = require("../models/Quote");
 const Request = require("../models/Request");
 const Seller = require("../models/Seller");
+const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatQuote } = require("../lib/format");
+const { canViewShopNames } = require("../lib/buyerPlan");
 const { recordEvent } = require("../lib/analytics");
 const { requireSellerTradeUnblocked, sellerTradeBlocked, forbiddenKyc } = require("../lib/sellerKycGate");
 
@@ -91,7 +93,12 @@ router.get("/request/:requestId", requireAuth, async (req, res, next) => {
     const sellerIds = [...new Set(rows.map((r) => String(r.seller)))];
     const sellers = await Seller.find({ _id: { $in: sellerIds } }).lean();
     const sellerMap = Object.fromEntries(sellers.map((s) => [String(s._id), s]));
-    return res.json(rows.map((q) => formatQuote(q, sellerMap[String(q.seller)])));
+    let showShopNames = req.user.role !== "buyer";
+    if (req.user.role === "buyer") {
+      const buyer = await User.findById(req.user.id).lean();
+      showShopNames = canViewShopNames(buyer);
+    }
+    return res.json(rows.map((q) => formatQuote(q, sellerMap[String(q.seller)], { showShopNames })));
   } catch (err) {
     return next(err);
   }

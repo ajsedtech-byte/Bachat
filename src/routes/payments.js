@@ -91,8 +91,15 @@ async function markOrderPaid(orderId, paymentId, payload) {
   const order = await Order.findById(orderId);
   if (!order) return null;
   const becamePaid = order.paymentStatus !== "paid";
+  const wasFailed = order.paymentStatus === "failed";
   if (order.paymentStatus !== "paid") {
     order.paymentStatus = "paid";
+    if (wasFailed && order.orderStatus === "cancelled") {
+      order.orderStatus = "processing";
+      if (order.delivery?.status === "cancelled") {
+        order.delivery.status = "none";
+      }
+    }
     await order.save();
   }
   let paidOrder = order;
@@ -149,6 +156,45 @@ async function markOrderPaid(orderId, paymentId, payload) {
   return paidOrder;
 }
 
+async function markOrderPaymentFailed(orderId, payload) {
+  const order = await Order.findById(orderId);
+  if (!order) return null;
+  if (order.paymentStatus === "paid") {
+    return order;
+  }
+
+  const becameFailed = order.paymentStatus !== "failed" || order.orderStatus !== "cancelled";
+  order.paymentStatus = "failed";
+  order.orderStatus = "cancelled";
+  if (order.delivery) {
+    order.delivery.status = "cancelled";
+  }
+  await order.save();
+
+  await Payment.findOneAndUpdate(
+    { order: order._id, provider: "razorpay" },
+    {
+      $set: {
+        amount: order.totalAmount,
+        status: "failed",
+        providerOrderId: String(payload?.razorpay_order_id || payload?.order_id || payload?.provider_order_id || ""),
+        providerPaymentId: String(payload?.razorpay_payment_id || payload?.payment_id || payload?.provider_payment_id || ""),
+        rawPayload: payload || null,
+      },
+    },
+    { upsert: true, new: true }
+  );
+
+  if (becameFailed) {
+    recordEvent("order_payment_failed", {
+      userId: order.user,
+      orderId: order._id,
+      meta: { provider: "razorpay" },
+    });
+  }
+  return order;
+}
+
 async function createBachatPaymentOrder(req, res, next) {
   try {
     const { order_id } = req.body || {};
@@ -163,6 +209,9 @@ async function createBachatPaymentOrder(req, res, next) {
     }
     if (order.paymentStatus === "paid") {
       return res.status(409).json({ error: "Order is already paid" });
+    }
+    if (order.paymentStatus === "failed") {
+      return res.status(409).json({ error: "Payment failed for this order. Please place a new order." });
     }
 
     const amountPaise = Math.round(Number(order.totalAmount) * 100);
@@ -300,6 +349,24 @@ async function verifyBachatPayment(req, res, next) {
   }
 }
 
+async function failBachatPayment(req, res, next) {
+  try {
+    const { order_id } = req.body || {};
+    if (!order_id || !mongoose.isValidObjectId(order_id)) {
+      return res.status(400).json({ error: "order_id is required" });
+    }
+    const order = await Order.findById(order_id);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (String(order.user) !== String(req.user.id)) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const failedOrder = await markOrderPaymentFailed(order._id, req.body || null);
+    return res.json({ order: formatOrder(failedOrder) });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 function verifyStandalonePayment(req, res, next) {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
@@ -311,6 +378,7 @@ function verifyStandalonePayment(req, res, next) {
 }
 
 router.post("/verify", requireAuth, requireRole("buyer"), verifyBachatPayment);
+router.post("/fail", requireAuth, requireRole("buyer"), failBachatPayment);
 apiRouter.post("/verify-payment", requireAuth, requireRole("buyer"), verifyStandalonePayment);
 
 async function handleRazorpayWebhook(req, res) {
@@ -328,6 +396,12 @@ async function handleRazorpayWebhook(req, res) {
       const orderId = entity?.notes?.order_id;
       if (orderId && mongoose.isValidObjectId(orderId)) {
         await markOrderPaid(orderId, entity.id, event);
+      }
+    } else if (event?.event === "payment.failed") {
+      const entity = event?.payload?.payment?.entity || {};
+      const orderId = entity?.notes?.order_id;
+      if (orderId && mongoose.isValidObjectId(orderId)) {
+        await markOrderPaymentFailed(orderId, event);
       }
     }
     return res.json({ ok: true });

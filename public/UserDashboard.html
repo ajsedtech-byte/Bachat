@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bachat - Your dashboard</title>
-  <link rel="icon" href="/assets/bachat-icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/bachat-icon-original.png" type="image/png" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -675,6 +675,11 @@
     .payment-status-pill.is-pending {
       background: #fff7ed;
       color: #c2410c;
+    }
+
+    .payment-status-pill.is-failed {
+      background: #fef2f2;
+      color: #b91c1c;
     }
 
     .cart-empty {
@@ -2207,6 +2212,92 @@
       padding: 12px;
     }
 
+    .bachat-storefront .shop-detail-shell {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .bachat-storefront .shop-detail-summary {
+      border: 1px solid #dbeafe;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+      padding: 18px;
+    }
+
+    .bachat-storefront .shop-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 210px));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .bachat-storefront .shop-detail-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bachat-storefront .shop-detail-search {
+      min-height: 42px;
+      border: 1px solid #d6e4fb;
+      border-radius: 14px;
+      background: #fff;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .bachat-storefront .shop-detail-search:focus {
+      border-color: #0056d2;
+      box-shadow: 0 0 0 3px rgba(0, 86, 210, 0.12);
+    }
+
+    .bachat-storefront .shop-detail-card {
+      min-height: 292px;
+      border: 1px solid #dce8f8;
+      border-radius: 16px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 18px 42px -36px rgba(15, 23, 42, 0.45);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .bachat-storefront .shop-detail-card:hover {
+      transform: translateY(-2px);
+      border-color: #b9d3fb;
+      box-shadow: 0 22px 52px -36px rgba(15, 23, 42, 0.52);
+    }
+
+    .bachat-storefront .shop-detail-image {
+      height: 138px;
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .shop-detail-image img {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+      padding: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .bachat-storefront .shop-detail-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .bachat-storefront .shop-detail-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+
+      .bachat-storefront .shop-detail-toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .bachat-storefront .shop-row,
     .bachat-storefront .saved-row,
     .bachat-storefront .order-row {
@@ -2220,6 +2311,19 @@
       background: #fff;
       padding: 14px;
       box-shadow: 0 16px 34px -30px rgba(15, 23, 42, 0.35);
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .bachat-storefront .shop-row:hover {
+      transform: translateY(-2px);
+      border-color: #bfd6fa;
+      box-shadow: 0 22px 52px -34px rgba(15, 23, 42, 0.5);
+    }
+
+    .bachat-storefront .shop-row:focus-visible {
+      outline: 3px solid rgba(0, 86, 210, 0.28);
+      outline-offset: 3px;
     }
 
     .bachat-storefront .shop-row + .shop-row {
@@ -2738,14 +2842,11 @@
       width: 42px;
       align-items: center;
       justify-content: center;
-      border-radius: 10px;
-      background: #0b6df6;
-      box-shadow: 0 8px 18px -12px rgba(0, 86, 210, 0.7);
     }
 
     .bachat-storefront .bachat-head-mark img {
-      height: 31px;
-      width: 31px;
+      height: 42px;
+      width: 42px;
       display: block;
     }
 
@@ -2993,7 +3094,8 @@
       max-width: none;
       min-height: 52px;
       align-items: center;
-      gap: 30px;
+      justify-content: flex-start;
+      gap: clamp(18px, 2vw, 34px);
       margin: 0;
       padding: 0 28px !important;
       overflow: visible;
@@ -3095,8 +3197,10 @@
 
       .bachat-storefront #departments-nav > div {
         max-width: none;
+        justify-content: flex-start;
         gap: 18px;
         padding-inline: 14px !important;
+        overflow-x: auto;
       }
     }
 
@@ -3168,7 +3272,7 @@
       <div class="sticky top-0 z-40 shrink-0 amazon-top-header shadow-[0_2px_14px_rgba(0,0,0,0.28)]">
       <header class="amazon-top-row bachat-exact-head">
         <a href="/" class="bachat-head-brand">
-          <span class="bachat-head-mark"><img src="/assets/bachat-icon.svg" alt="" /></span>
+          <span class="bachat-head-mark"><img src="/assets/bachat-icon-original.png" alt="" /></span>
           <span>Bachat</span>
         </a>
         <button type="button" id="header-city" class="amazon-city-btn bachat-head-city" aria-label="Change city">
@@ -3364,22 +3468,50 @@
               <button type="button" data-shop-cat="Mom &amp; maternity" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Mom &amp; maternity</button>
             </div>
           </details>
+          <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 18 18 6"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="7" r="3"/><path d="M8.5 8.5 15.5 15.5"/></svg>
+              <span>Sports &amp; toys</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,320px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Sports, toys &amp; fitness" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Sports, toys &amp; fitness</button>
+              <button type="button" data-shop-cat="Pet supplies" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Pet supplies</button>
+              <button type="button" data-shop-cat="Automotive" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Automotive</button>
+            </div>
+          </details>
+          <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+              <span>Books &amp; stationery</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,320px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Books &amp; media" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Books &amp; media</button>
+              <button type="button" data-shop-cat="Stationery &amp; office supplies" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Stationery &amp; office supplies</button>
+              <button type="button" data-shop-cat="Puja, festive &amp; gifts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Puja, festive &amp; gifts</button>
+            </div>
+          </details>
+          <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
+            <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-3-3 2.4-2.4Z"/></svg>
+              <span>Services</span>
+              <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
+            </summary>
+            <div class="absolute left-0 top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,320px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
+              <button type="button" data-shop-cat="Services — repairs &amp; more" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Services — repairs &amp; more</button>
+              <button type="button" data-shop-cat="Mobile Services" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Mobile services</button>
+              <button type="button" data-shop-cat="Two wheelers &amp; parts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Two wheelers &amp; parts</button>
+            </div>
+          </details>
           <details name="shop-dept" class="relative shrink-0 min-w-0">
             <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
               <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
               <span>More</span>
               <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
             </summary>
-            <div class="absolute right-0 sm:left-0 left-auto top-full min-w-[min(100vw-1rem,260px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
-              <button type="button" data-shop-cat="Books &amp; media" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Books &amp; media</button>
-              <button type="button" data-shop-cat="Sports, toys &amp; fitness" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Sports, toys &amp; fitness</button>
-              <button type="button" data-shop-cat="Automotive" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Automotive</button>
-              <button type="button" data-shop-cat="Pet supplies" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Pet supplies</button>
-              <button type="button" data-shop-cat="Stationery &amp; office supplies" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Stationery &amp; office supplies</button>
-              <button type="button" data-shop-cat="Puja, festive &amp; gifts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Puja, festive &amp; gifts</button>
-              <button type="button" data-shop-cat="Two wheelers &amp; parts" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Two wheelers &amp; parts</button>
+            <div class="absolute right-0 top-full w-[min(92vw,320px)] max-h-[min(70vh,380px)] overflow-y-auto rounded-b-xl bg-white text-slate-900 shadow-xl border border-[#e5e7eb] py-2 z-[60]">
               <button type="button" data-shop-cat="Agriculture &amp; gardening" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Agriculture &amp; gardening</button>
-              <button type="button" data-shop-cat="Services — repairs &amp; more" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">Services — repairs &amp; more</button>
               <button type="button" data-shop-cat="General items" class="shop-cat-link w-full text-left px-4 py-2 text-sm hover:bg-[#f8f9fb]">General items</button>
             </div>
           </details>
@@ -3593,7 +3725,7 @@
               <div class="bachat-footer-columns">
                 <section>
                   <a class="bachat-footer-logo" href="#shopping-home" aria-label="Bachat home">
-                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[#0056d2] text-white"><img src="/assets/bachat-icon.svg" alt="" /></span>
+                    <span class="inline-flex h-8 w-8 items-center justify-center"><img src="/assets/bachat-icon-original.png" alt="" class="h-8 w-8 object-contain" /></span>
                     <span>Bachat</span>
                   </a>
                   <p class="mt-4 text-xs text-slate-500">&copy; 2026 Bachat. All rights reserved.</p>
@@ -3628,6 +3760,42 @@
               </div>
             </div>
           </footer>
+        </section>
+
+        <section id="shop-page-section" class="hidden space-y-5 scroll-mt-28">
+          <div class="rounded-[28px] border border-[#d6e4fb] bg-gradient-to-br from-[#f4f8ff] to-white p-5 shadow-sm sm:p-7">
+            <button type="button" id="shop-page-back" class="mb-5 inline-flex items-center rounded-full border border-[#cfe0f8] bg-white px-4 py-2 text-sm font-black text-[#0056d2] hover:bg-[#e8f1fc]">Back to shops</button>
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-[#0056d2]">Shop page</p>
+                <h1 id="shop-page-title" class="mt-1 text-3xl font-black text-slate-950">Local shop</h1>
+                <p id="shop-page-subtitle" class="mt-1 text-sm font-semibold text-slate-500">Browse this shop's items.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="shop-page-status" class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black uppercase text-emerald-700">Verified</span>
+                <span id="shop-page-premium" class="hidden rounded-full bg-white px-3 py-1 text-xs font-black uppercase text-[#0056d2]">Premium unlocks shop name</span>
+              </div>
+            </div>
+            <div id="shop-page-categories" class="mt-5 flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-[#0056d2]">Inventory</p>
+                <h2 class="mt-1 text-xl font-black text-slate-950">Items available now</h2>
+              </div>
+              <span id="shop-page-count" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">0 items</span>
+            </div>
+            <div class="shop-detail-toolbar mb-5">
+              <input type="search" id="shop-page-search" class="shop-detail-search" placeholder="Search this shop's items..." aria-label="Search this shop's items">
+              <span id="shop-page-showing" class="text-xs font-black uppercase tracking-[0.12em] text-slate-400"></span>
+            </div>
+            <div id="shop-page-grid" class="shop-detail-grid"></div>
+            <div class="mt-6 flex justify-center">
+              <button type="button" id="shop-page-load-more" class="hidden rounded-full border border-[#0056d2] bg-white px-5 py-2.5 text-sm font-black text-[#0056d2] hover:bg-[#e8f1fc]">Load more items</button>
+            </div>
+          </div>
         </section>
 
         <section id="dashboard-home" class="space-y-6">
@@ -4098,6 +4266,20 @@
     </div>
   </div>
 
+  <div id="shop-detail-modal" class="hidden fixed inset-0 z-[94] overflow-y-auto bg-slate-950/65 p-3 sm:p-6">
+    <div class="mx-auto my-4 w-full max-w-[1180px] overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl">
+      <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-6">
+        <div>
+          <p class="text-xs font-black uppercase tracking-[0.18em] text-[#0056d2]">Shop details</p>
+          <h2 id="shop-detail-title" class="mt-1 text-xl font-black text-slate-950">Local shop</h2>
+          <p id="shop-detail-subtitle" class="text-sm text-slate-500">Review available products from this shop.</p>
+        </div>
+        <button type="button" id="shop-detail-close" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">Close</button>
+      </div>
+      <div id="shop-detail-body" class="max-h-[calc(90vh-92px)] overflow-y-auto p-4 sm:p-6"></div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let token = localStorage.getItem("ajs_token") || "";
@@ -4501,7 +4683,24 @@
     let latestOrders = [];
     let latestQuoteNotifications = [];
     const productDetailCache = new Map();
+    const shopDetailCache = new Map();
     const GUEST_CART_KEY = "bachat_guest_cart_v1";
+
+    function buyerCanViewShopNames() {
+      return Boolean(meUser && meUser.can_view_shop_names);
+    }
+
+    function shopDisplayName(row, kind) {
+      if (!row) return kind === "seller" ? "Local seller" : "Local shop";
+      if (row.shop_name_locked && !buyerCanViewShopNames()) {
+        return kind === "seller" ? "Local seller" : "Local shop";
+      }
+      return row.shop_name || row.name || (kind === "seller" ? "Local seller" : "Local shop");
+    }
+
+    function shopUnlockHint(row) {
+      return row && row.shop_name_locked && !buyerCanViewShopNames() ? "Premium unlocks shop name" : "";
+    }
 
     function updateCartBadges(count) {
       const safeCount = Math.max(0, Number(count) || 0);
@@ -4915,7 +5114,14 @@
         list.innerHTML = "";
         items.forEach((row) => {
           const div = document.createElement("div");
-          const paid = String(row.order_payment_status || "").toLowerCase() === "paid";
+          const paymentStatus = String(row.order_payment_status || "").toLowerCase();
+          const paid = paymentStatus === "paid";
+          const failed = paymentStatus === "failed" || String(row.status || "").toLowerCase() === "failed";
+          const action = paid
+            ? '<span class="payment-status-pill is-paid">Paid</span>'
+            : failed
+              ? '<span class="payment-status-pill is-failed">Failed</span>'
+              : `<button type="button" data-pay-order="${escapeHtml(row.order_id)}" class="pay-now-btn">Pay now</button>`;
           div.className = "rounded-lg border border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3";
           div.innerHTML =
             `<div>
@@ -4923,7 +5129,7 @@
             <p class="text-xs text-slate-500">${escapeHtml(row.status || "")} · order ${escapeHtml(row.order_payment_status || "")}</p>
           </div>
           <div class="flex items-center gap-3 text-right text-sm">
-            ${paid ? '<span class="payment-status-pill is-paid">Paid</span>' : `<button type="button" data-pay-order="${escapeHtml(row.order_id)}" class="pay-now-btn">Pay now</button>`}
+            ${action}
             <p class="font-extrabold">${rupee(row.amount)}</p>
             <p class="text-[11px] text-slate-400">${escapeHtml((row.created_at || "").slice(0, 10))}</p>
           </div>`;
@@ -4946,6 +5152,26 @@
       if (typeof openUserSection === "function") {
         openUserSection("orders-section");
         if (history && history.replaceState) history.replaceState(null, "", "#orders-section");
+      }
+    }
+
+    async function markPaymentFailed(orderId, payload) {
+      if (!orderId) return null;
+      try {
+        const failed = await api("POST", "/api/payments/fail", {
+          order_id: orderId,
+          ...(payload || {}),
+        });
+        loadOrders();
+        loadPayments();
+        updateKpis();
+        return failed;
+      } catch (e) {
+        console.warn("Could not mark payment failed", e);
+        loadOrders();
+        loadPayments();
+        updateKpis();
+        return null;
       }
     }
 
@@ -4974,6 +5200,7 @@
           return false;
         }
         const user = meUser || {};
+        let paymentCompleted = false;
         const checkout = new Razorpay({
           key: pay.key_id,
           amount: pay.amount,
@@ -4988,6 +5215,7 @@
           },
           theme: { color: "#0056d2" },
           handler: async function (response) {
+            paymentCompleted = true;
             const verified = await api("POST", "/api/payments/verify", {
               order_id: pay.order_id,
               razorpay_order_id: response.razorpay_order_id || pay.razorpay_order_id,
@@ -5005,15 +5233,28 @@
             await paymentSuccessNav();
           },
           modal: {
-            ondismiss: function () {
-              showToast("Payment not completed. You can pay from Orders or Payments.");
+            ondismiss: async function () {
+              if (paymentCompleted) return;
+              await markPaymentFailed(pay.order_id, {
+                razorpay_order_id: pay.razorpay_order_id,
+                reason: "checkout_dismissed",
+              });
+              showToast("Payment not completed. Order marked as failed.", true);
             },
           },
         });
-        checkout.on("payment.failed", function (response) {
+        checkout.on("payment.failed", async function (response) {
+          paymentCompleted = true;
           const detail =
             (response && response.error && (response.error.description || response.error.reason)) ||
             "Payment failed. Please try again or use another payment method.";
+          await markPaymentFailed(pay.order_id, {
+            razorpay_order_id: pay.razorpay_order_id,
+            razorpay_payment_id: response?.error?.metadata?.payment_id || "",
+            reason: response?.error?.reason || "payment_failed",
+            description: response?.error?.description || "",
+            error: response?.error || null,
+          });
           showToast(detail, true);
         });
         checkout.open();
@@ -5049,7 +5290,7 @@
           div.innerHTML =
             `<div class="min-w-0">
             <p class="font-bold">${escapeHtml(p.title)}</p>
-            <p class="text-xs text-slate-500">${escapeHtml(p.shop_name || "")} · ${escapeHtml(p.city || "")}</p>
+            <p class="text-xs text-slate-500">${escapeHtml(shopDisplayName(p))}${shopUnlockHint(p) ? ` · ${escapeHtml(shopUnlockHint(p))}` : ""} · ${escapeHtml(p.city || "")}</p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <span class="font-extrabold text-[#0056d2]">${rupee(p.price)}</span>
@@ -5063,7 +5304,7 @@
             const row = document.createElement("div");
             row.className = "saved-row flex items-center gap-3";
             const image = Array.isArray(p.images) && p.images[0] ? p.images[0] : "";
-            row.innerHTML = `<div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e5edf8] bg-[#f8fbff]">${image ? `<img src="${escapeHtml(image)}" alt="" class="h-full w-full object-contain" />` : `<div class="flex h-full w-full items-center justify-center text-xs font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "B"))}</div>`}</div><div class="min-w-0 flex-1"><p class="truncate text-sm font-black text-slate-950">${escapeHtml(p.title || "Saved item")}</p><p class="text-xs font-semibold text-slate-500">${escapeHtml(p.category || p.shop_name || "")}</p></div><strong class="text-sm font-black text-slate-950">${rupee(p.price)}</strong><button type="button" class="sk-saved-browse rounded-lg border border-[#d6e4fb] px-2 py-1 text-[#0056d2]" data-search="${encodeURIComponent(p.title || "")}">🧺</button>`;
+            row.innerHTML = `<div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e5edf8] bg-[#f8fbff]">${image ? `<img src="${escapeHtml(image)}" alt="" class="h-full w-full object-contain" />` : `<div class="flex h-full w-full items-center justify-center text-xs font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "B"))}</div>`}</div><div class="min-w-0 flex-1"><p class="truncate text-sm font-black text-slate-950">${escapeHtml(p.title || "Saved item")}</p><p class="text-xs font-semibold text-slate-500">${escapeHtml(p.category || shopDisplayName(p))}</p></div><strong class="text-sm font-black text-slate-950">${rupee(p.price)}</strong><button type="button" class="sk-saved-browse rounded-lg border border-[#d6e4fb] px-2 py-1 text-[#0056d2]" data-search="${encodeURIComponent(p.title || "")}">🧺</button>`;
             homeBox.appendChild(row);
           });
         }
@@ -5362,7 +5603,7 @@
             `<div class="flex flex-1 flex-col p-3.5">
               <span class="text-[10px] font-black uppercase tracking-[0.12em] text-[#0056d2]">${escapeHtml(p.category || "Near you")}</span>
               <p class="mt-1 line-clamp-2 min-h-[38px] text-sm font-black leading-tight text-slate-950">${escapeHtml(p.title)}</p>
-              <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(p.shop_name || "")}</p>
+              <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(shopDisplayName(p))}${shopUnlockHint(p) ? ` · ${escapeHtml(shopUnlockHint(p))}` : ""}</p>
               ${productPackText(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(p))}</p>` : ""}
               <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
               <div class="mt-2 grid grid-cols-2 gap-2">
@@ -5448,7 +5689,7 @@
       const available = productAvailableText(p);
       if (pack) bullets.push("Pack size: " + pack);
       if (available && available !== "Ask seller") bullets.push("Available stock: " + available);
-      if (p && p.shop_name) bullets.push("Sold by local seller: " + p.shop_name);
+      if (p && p.shop_name) bullets.push(p.shop_name_locked ? "Shop name available on Premium" : "Sold by local seller: " + p.shop_name);
       if (p && p.category) bullets.push("Category: " + p.category);
       String((p && p.description) || "")
         .trim()
@@ -5466,14 +5707,15 @@
       if (image) {
         return `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" class="${imageClass}" loading="lazy" />`;
       }
-      return `<div class="${fallbackClass}">${escapeHtml(shopMonogram((p && p.shop_name) || title || "Bachat"))}</div>`;
+      return `<div class="${fallbackClass}">${escapeHtml(shopMonogram(title || "Bachat"))}</div>`;
     }
 
     function productDetailHtml(p) {
       const productId = escapeHtml(p.product_id);
       const title = escapeHtml(p.title || "Local item");
       const category = escapeHtml(p.category || "Local item");
-      const shop = escapeHtml(p.shop_name || "Local shop");
+      const shop = escapeHtml(shopDisplayName(p));
+      const unlockHint = escapeHtml(shopUnlockHint(p));
       const locationText = escapeHtml(productLocationText(p));
       const description = escapeHtml(p.description || "No description has been added yet. Contact or order from the seller for more details.");
       const packText = escapeHtml(productPackText(p) || "Ask seller");
@@ -5483,7 +5725,7 @@
       const primaryImage = images[0] || "";
       const mainMedia = primaryImage
         ? `<img src="${escapeHtml(primaryImage)}" alt="${title}" data-product-main-image class="h-full w-full object-contain p-3" loading="lazy" />`
-        : `<div class="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#0b2348,#123f82)] text-5xl font-black tracking-[0.18em] text-white">${escapeHtml(shopMonogram((p && p.shop_name) || p.title || "Bachat"))}</div>`;
+        : `<div class="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#0b2348,#123f82)] text-5xl font-black tracking-[0.18em] text-white">${escapeHtml(shopMonogram((p && p.title) || "Bachat"))}</div>`;
       const gallery =
         images.length > 1
           ? `<div class="mt-3 grid grid-cols-4 gap-2">${images
@@ -5517,7 +5759,7 @@
             </ul>
           </div>
           <div class="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-            <p><span class="font-black text-slate-950">Brand / shop:</span> ${shop}</p>
+            <p><span class="font-black text-slate-950">Shop:</span> ${shop}${unlockHint ? ` <span class="font-semibold text-[#0056d2]">(${unlockHint})</span>` : ""}</p>
             <p><span class="font-black text-slate-950">Pack size:</span> ${packText}</p>
             <p><span class="font-black text-slate-950">Available:</span> ${availableText}</p>
             <p><span class="font-black text-slate-950">Ships from:</span> ${locationText}</p>
@@ -5541,7 +5783,7 @@
             <p><span class="font-black text-slate-950">Pack:</span> ${packText}</p>
             <p><span class="font-black text-slate-950">Stock:</span> ${availableText}</p>
             <p><span class="font-black text-slate-950">Payment:</span> Secure checkout on Bachat</p>
-            <p><span class="font-black text-slate-950">Seller:</span> ${shop}</p>
+            <p><span class="font-black text-slate-950">Seller:</span> ${shop}${unlockHint ? ` <span class="font-semibold text-[#0056d2]">(${unlockHint})</span>` : ""}</p>
           </div>
           <div class="mt-6 grid gap-3">
             <button type="button" data-product-add="${productId}" class="rounded-full bg-[#0056d2] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-white shadow-sm hover:bg-[#0044a8]">Add to Basket</button>
@@ -5562,6 +5804,317 @@
 
     function closeProductDetail() {
       document.getElementById("product-detail-modal")?.classList.add("hidden");
+    }
+
+    function shopProductCard(item) {
+      return `<article data-product-detail="${escapeHtml(item.product_id)}" role="button" tabindex="0" aria-label="Open details for ${escapeHtml(item.title || "local item")}" class="shop-detail-card cursor-pointer flex flex-col">
+        ${item.images && item.images[0] ? `<div class="shop-detail-image"><img src="${escapeHtml(item.images[0])}" alt="${escapeHtml(item.title || "Local item")}" loading="lazy" /></div>` : `<div class="shop-detail-image flex items-center justify-center bg-[linear-gradient(135deg,#123f82,#1d4ed8)] font-display text-lg font-black text-white">Bachat</div>`}
+        <div class="flex flex-1 flex-col p-3">
+          <span class="text-[10px] font-black uppercase tracking-[0.12em] text-[#0056d2]">${escapeHtml(item.category || "Near you")}</span>
+          <p class="mt-1 line-clamp-2 min-h-[34px] text-sm font-black leading-tight text-slate-950">${escapeHtml(item.title || "Local item")}</p>
+          ${productPackText(item) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(item))}</p>` : ""}
+          <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(item.price)}</p>
+          <div class="mt-2 grid grid-cols-2 gap-2">
+            <button type="button" data-pid="${escapeHtml(item.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8]">Basket</button>
+            <button type="button" data-pid="${escapeHtml(item.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function closeShopDetail() {
+      document.getElementById("shop-detail-modal")?.classList.add("hidden");
+    }
+
+    let activeShopPage = null;
+
+    function renderShopPageInventory() {
+      if (!activeShopPage) return;
+      const { shop, pageSize } = activeShopPage;
+      const products = Array.isArray(shop.items) ? shop.items : [];
+      const grid = document.getElementById("shop-page-grid");
+      const search = document.getElementById("shop-page-search");
+      const count = document.getElementById("shop-page-count");
+      const showing = document.getElementById("shop-page-showing");
+      const loadMore = document.getElementById("shop-page-load-more");
+      const query = String(search?.value || "").trim().toLowerCase();
+      const filtered = products.filter((item) => {
+        if (activeShopPage.category && String(item.category || "") !== activeShopPage.category) return false;
+        if (!query) return true;
+        return [item.title, item.category, item.description, productPackText(item), productAvailableText(item)]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      });
+      const visible = filtered.slice(0, activeShopPage.visibleCount);
+      if (grid) {
+        grid.innerHTML =
+          visible.map(shopProductCard).join("") ||
+          '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-sm font-semibold text-slate-500">No matching items in this shop.</div>';
+        wireProductDetailCards(grid);
+        grid.querySelectorAll(".add-cart").forEach((btn) => {
+          btn.addEventListener("click", () => addToCart(btn.getAttribute("data-pid")));
+        });
+        grid.querySelectorAll(".save-catalog").forEach((btn) => {
+          btn.addEventListener("click", () => saveProduct(btn.getAttribute("data-pid")));
+        });
+      }
+      if (count) count.textContent = `${filtered.length} ${filtered.length === 1 ? "item" : "items"}`;
+      if (showing) showing.textContent = filtered.length ? `Showing ${visible.length} of ${filtered.length}` : "";
+      if (loadMore) loadMore.classList.toggle("hidden", visible.length >= filtered.length);
+    }
+
+    function openShopPage(shopKey) {
+      const shop = shopDetailCache.get(String(shopKey || ""));
+      if (!shop) return false;
+      closeShopDetail();
+      activeShopPage = { shop, visibleCount: 32, pageSize: 32, category: "" };
+
+      const products = Array.isArray(shop.items) ? shop.items : [];
+      const title = document.getElementById("shop-page-title");
+      const subtitle = document.getElementById("shop-page-subtitle");
+      const status = document.getElementById("shop-page-status");
+      const premium = document.getElementById("shop-page-premium");
+      const cats = document.getElementById("shop-page-categories");
+      const search = document.getElementById("shop-page-search");
+      const loadMore = document.getElementById("shop-page-load-more");
+
+      if (title) title.textContent = shop.display_name || "Local shop";
+      if (subtitle) subtitle.textContent = `${shop.city || "Nearby"}${shop.region ? ", " + shop.region : ""} - ${products.length} ${products.length === 1 ? "item" : "items"} available`;
+      if (status) status.textContent = shop.verified ? "Verified" : "Local";
+      if (premium) premium.classList.toggle("hidden", !(shop.shop_name_locked && !buyerCanViewShopNames()));
+      if (search) search.value = "";
+
+      const categories = [...shop.categories].slice(0, 18);
+      if (cats) {
+        cats.innerHTML = `
+          <button type="button" data-shop-page-filter="" class="shop-page-filter rounded-full border border-[#0056d2] bg-[#0056d2] px-3 py-1.5 text-xs font-bold text-white">All items</button>
+          ${categories.map((category) => `<button type="button" data-shop-page-filter="${escapeHtml(category)}" class="shop-page-filter rounded-full border border-[#d6e4fb] bg-white px-3 py-1.5 text-xs font-bold text-[#345078] hover:border-[#0056d2] hover:text-[#0056d2]">${escapeHtml(category)}</button>`).join("")}
+        `;
+        cats.querySelectorAll(".shop-page-filter").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            activeShopPage.category = btn.getAttribute("data-shop-page-filter") || "";
+            activeShopPage.visibleCount = activeShopPage.pageSize;
+            cats.querySelectorAll(".shop-page-filter").forEach((chip) => {
+              const selected = chip === btn;
+              chip.classList.toggle("bg-[#0056d2]", selected);
+              chip.classList.toggle("text-white", selected);
+              chip.classList.toggle("border-[#0056d2]", selected);
+            });
+            renderShopPageInventory();
+          });
+        });
+      }
+
+      if (search) {
+        search.oninput = () => {
+          if (!activeShopPage) return;
+          activeShopPage.visibleCount = activeShopPage.pageSize;
+          renderShopPageInventory();
+        };
+      }
+      if (loadMore) loadMore.replaceWith(loadMore.cloneNode(true));
+      document.getElementById("shop-page-load-more")?.addEventListener("click", () => {
+        if (!activeShopPage) return;
+        activeShopPage.visibleCount += activeShopPage.pageSize;
+        renderShopPageInventory();
+      });
+
+      renderShopPageInventory();
+      const opened = openUserSection("shop-page-section");
+      if (opened && history && history.replaceState) history.replaceState(null, "", "#shop-page-section");
+      return opened;
+    }
+
+    function openShopDetail(shopKey) {
+      const shop = shopDetailCache.get(String(shopKey || ""));
+      const modal = document.getElementById("shop-detail-modal");
+      const body = document.getElementById("shop-detail-body");
+      const title = document.getElementById("shop-detail-title");
+      const subtitle = document.getElementById("shop-detail-subtitle");
+      if (!shop || !modal || !body) return;
+      const products = Array.isArray(shop.items) ? shop.items : [];
+      if (title) title.textContent = shop.display_name || "Local shop";
+      if (subtitle) {
+        subtitle.textContent = `${shop.city || "Nearby"}${shop.region ? ", " + shop.region : ""} · ${products.length} ${products.length === 1 ? "item" : "items"} available`;
+      }
+      if (subtitle) {
+        subtitle.textContent = `${shop.city || "Nearby"}${shop.region ? ", " + shop.region : ""} - ${products.length} ${products.length === 1 ? "item" : "items"} available`;
+      }
+      const categoryButtons = [...shop.categories]
+        .slice(0, 8)
+        .map((category) => `<button type="button" data-home-category="${escapeHtml(category)}" class="home-open-category rounded-full border border-[#d6e4fb] bg-white px-3 py-1.5 text-xs font-bold text-[#345078] hover:border-[#0056d2] hover:text-[#0056d2]">${escapeHtml(category)}</button>`)
+        .join("");
+      body.innerHTML = `
+        <div class="shop-detail-shell">
+          <aside class="shop-detail-summary">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">${shop.verified ? "Verified" : "Local"}</span>
+              ${shop.shop_name_locked && !buyerCanViewShopNames() ? '<span class="rounded-full bg-white px-2 py-0.5 text-[10px] font-black uppercase text-[#0056d2]">Premium unlocks shop name</span>' : ""}
+            </div>
+            <div class="mt-5">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Available items</p>
+              <p class="mt-1 text-3xl font-black text-slate-950">${products.length}</p>
+              <p class="mt-1 text-sm font-semibold text-slate-500">${escapeHtml(shop.city || "Nearby")}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2">${categoryButtons || '<span class="text-sm font-semibold text-slate-500">No categories listed yet.</span>'}</div>
+          </aside>
+          <section class="min-w-0">
+            <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#0056d2]">Shop inventory</p>
+                <h3 class="mt-1 text-lg font-black text-slate-950">Items available now</h3>
+              </div>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">${products.length} ${products.length === 1 ? "item" : "items"}</span>
+            </div>
+            <div class="shop-detail-grid">${products.map(shopProductCard).join("") || '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-sm font-semibold text-slate-500">No items are available from this shop right now.</div>'}</div>
+          </section>
+        </div>
+      `;
+      modal.classList.remove("hidden");
+      wireProductDetailCards(body);
+      body.querySelectorAll(".add-cart").forEach((btn) => {
+        btn.addEventListener("click", () => addToCart(btn.getAttribute("data-pid")));
+      });
+      body.querySelectorAll(".save-catalog").forEach((btn) => {
+        btn.addEventListener("click", () => saveProduct(btn.getAttribute("data-pid")));
+      });
+      body.querySelectorAll(".home-open-category").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          closeShopDetail();
+          selectShopCategory(btn.getAttribute("data-home-category") || "");
+        });
+      });
+    }
+
+    function openShopDetail(shopKey) {
+      const shop = shopDetailCache.get(String(shopKey || ""));
+      const modal = document.getElementById("shop-detail-modal");
+      const body = document.getElementById("shop-detail-body");
+      const title = document.getElementById("shop-detail-title");
+      const subtitle = document.getElementById("shop-detail-subtitle");
+      if (!shop || !modal || !body) return;
+
+      const products = Array.isArray(shop.items) ? shop.items : [];
+      const categories = [...shop.categories].slice(0, 12);
+      if (title) title.textContent = shop.display_name || "Local shop";
+      if (subtitle) {
+        subtitle.textContent = `${shop.city || "Nearby"}${shop.region ? ", " + shop.region : ""} - ${products.length} ${products.length === 1 ? "item" : "items"} available`;
+      }
+
+      const categoryButtons = categories
+        .map((category) => `<button type="button" data-shop-filter="${escapeHtml(category)}" class="shop-filter-btn rounded-full border border-[#d6e4fb] bg-white px-3 py-1.5 text-xs font-bold text-[#345078] hover:border-[#0056d2] hover:text-[#0056d2]">${escapeHtml(category)}</button>`)
+        .join("");
+
+      body.innerHTML = `
+        <div class="shop-detail-shell">
+          <aside class="shop-detail-summary">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">${shop.verified ? "Verified" : "Local"}</span>
+              ${shop.shop_name_locked && !buyerCanViewShopNames() ? '<span class="rounded-full bg-white px-2 py-0.5 text-[10px] font-black uppercase text-[#0056d2]">Premium unlocks shop name</span>' : ""}
+            </div>
+            <div class="mt-5">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Available items</p>
+              <p class="mt-1 text-3xl font-black text-slate-950">${products.length}</p>
+              <p class="mt-1 text-sm font-semibold text-slate-500">${escapeHtml(shop.city || "Nearby")}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2">
+              <button type="button" data-shop-filter="" class="shop-filter-btn rounded-full border border-[#0056d2] bg-[#0056d2] px-3 py-1.5 text-xs font-bold text-white">All items</button>
+              ${categoryButtons || '<span class="text-sm font-semibold text-slate-500">No categories listed yet.</span>'}
+            </div>
+          </aside>
+          <section class="min-w-0">
+            <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#0056d2]">Shop inventory</p>
+                <h3 class="mt-1 text-lg font-black text-slate-950">Items available now</h3>
+              </div>
+              <span data-shop-result-count class="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">${products.length} ${products.length === 1 ? "item" : "items"}</span>
+            </div>
+            <div class="shop-detail-toolbar mb-4">
+              <input type="search" data-shop-search class="shop-detail-search" placeholder="Search this shop's items..." aria-label="Search this shop's items">
+              <span data-shop-page-count class="text-xs font-black uppercase tracking-[0.12em] text-slate-400"></span>
+            </div>
+            <div data-shop-products class="shop-detail-grid"></div>
+            <div class="mt-5 flex justify-center">
+              <button type="button" data-shop-load-more class="hidden rounded-full border border-[#0056d2] bg-white px-5 py-2.5 text-sm font-black text-[#0056d2] hover:bg-[#e8f1fc]">Load more items</button>
+            </div>
+          </section>
+        </div>
+      `;
+
+      modal.classList.remove("hidden");
+
+      const pageSize = 24;
+      let visibleCount = pageSize;
+      let activeCategory = "";
+      const grid = body.querySelector("[data-shop-products]");
+      const searchInput = body.querySelector("[data-shop-search]");
+      const loadMoreBtn = body.querySelector("[data-shop-load-more]");
+      const resultCount = body.querySelector("[data-shop-result-count]");
+      const pageCount = body.querySelector("[data-shop-page-count]");
+
+      const filteredProducts = () => {
+        const query = String(searchInput?.value || "").trim().toLowerCase();
+        return products.filter((item) => {
+          if (activeCategory && String(item.category || "") !== activeCategory) return false;
+          if (!query) return true;
+          return [item.title, item.category, item.description, productPackText(item), productAvailableText(item)]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(query);
+        });
+      };
+
+      const bindRenderedShopProducts = () => {
+        if (!grid) return;
+        wireProductDetailCards(grid);
+        grid.querySelectorAll(".add-cart").forEach((btn) => {
+          btn.addEventListener("click", () => addToCart(btn.getAttribute("data-pid")));
+        });
+        grid.querySelectorAll(".save-catalog").forEach((btn) => {
+          btn.addEventListener("click", () => saveProduct(btn.getAttribute("data-pid")));
+        });
+      };
+
+      const renderShopInventory = () => {
+        const filtered = filteredProducts();
+        const visible = filtered.slice(0, visibleCount);
+        if (grid) {
+          grid.innerHTML =
+            visible.map(shopProductCard).join("") ||
+            '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-sm font-semibold text-slate-500">No matching items in this shop.</div>';
+        }
+        if (resultCount) resultCount.textContent = `${filtered.length} ${filtered.length === 1 ? "item" : "items"}`;
+        if (pageCount) pageCount.textContent = filtered.length ? `Showing ${visible.length} of ${filtered.length}` : "";
+        if (loadMoreBtn) loadMoreBtn.classList.toggle("hidden", visible.length >= filtered.length);
+        bindRenderedShopProducts();
+      };
+
+      searchInput?.addEventListener("input", () => {
+        visibleCount = pageSize;
+        renderShopInventory();
+      });
+      loadMoreBtn?.addEventListener("click", () => {
+        visibleCount += pageSize;
+        renderShopInventory();
+      });
+      body.querySelectorAll(".shop-filter-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          activeCategory = btn.getAttribute("data-shop-filter") || "";
+          visibleCount = pageSize;
+          body.querySelectorAll(".shop-filter-btn").forEach((chip) => {
+            const selected = chip === btn;
+            chip.classList.toggle("bg-[#0056d2]", selected);
+            chip.classList.toggle("text-white", selected);
+            chip.classList.toggle("border-[#0056d2]", selected);
+          });
+          renderShopInventory();
+        });
+      });
+      renderShopInventory();
     }
 
     async function openProductDetail(productId) {
@@ -5660,7 +6213,7 @@
       const img =
         p.images && p.images[0]
           ? `<img src="${String(p.images[0]).replace(/"/g, "&quot;")}" alt="${escapeHtml(p.title || "Local item")}" loading="lazy" />`
-          : `<div class="flex h-full w-full items-center justify-center rounded-xl bg-[#e8f1fc] text-lg font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.shop_name || "Bachat"))}</div>`;
+          : `<div class="flex h-full w-full items-center justify-center rounded-xl bg-[#e8f1fc] text-lg font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "Bachat"))}</div>`;
       return (
         `<article data-product-detail="${escapeHtml(p.product_id)}" role="button" tabindex="0" aria-label="Open details for ${escapeHtml(p.title || "local item")}" class="home-product-card cursor-pointer">` +
         `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-save-catalog absolute right-3 top-3 rounded-full text-slate-400 hover:text-[#0056d2]" aria-label="Save ${escapeHtml(p.title || "item")}">&#9825;</button>` +
@@ -5720,27 +6273,36 @@
         const shopMap = new Map();
 
         items.forEach((item) => {
-          const key = `${item.shop_name || "Shop"}|${item.city || ""}|${item.region || ""}`;
+          const key = `${item.shop_key || item.shop_name || "Shop"}|${item.city || ""}|${item.region || ""}`;
           if (!shopMap.has(key)) {
             shopMap.set(key, {
-              name: item.shop_name || "Shop",
+              key,
+              name: shopDisplayName(item),
+              shop_name_locked: Boolean(item.shop_name_locked),
               city: item.city || city,
               region: item.region || region,
               verified: Boolean(item.seller_verified),
               image: item.shop_photo || item.shop_image || item.store_photo || item.storefront_photo || (Array.isArray(item.images) ? item.images.find(Boolean) : ""),
               count: 0,
               categories: new Set(),
+              items: [],
             });
           }
           const summary = shopMap.get(key);
           summary.count += 1;
+          summary.items.push(item);
           if (!summary.image) {
             summary.image = item.shop_photo || item.shop_image || item.store_photo || item.storefront_photo || (Array.isArray(item.images) ? item.images.find(Boolean) : "");
           }
           if (item.category) summary.categories.add(item.category);
         });
 
-        const shops = [...shopMap.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+        const shops = [...shopMap.values()].map((shop, index) => ({
+          ...shop,
+          display_name: shop.shop_name_locked && !buyerCanViewShopNames() ? `Local shop ${index + 1}` : shop.name,
+        })).sort((a, b) => b.count - a.count || a.display_name.localeCompare(b.display_name));
+        shopDetailCache.clear();
+        shops.forEach((shop) => shopDetailCache.set(shop.key, shop));
         if (shopCountEl) shopCountEl.textContent = String(shops.length);
         if (productCountEl) productCountEl.textContent = String(items.length);
 
@@ -5776,14 +6338,19 @@
         shops.slice(0, 3).forEach((shop, index) => {
           const card = document.createElement("article");
           card.className = "shop-row";
+          card.setAttribute("role", "button");
+          card.setAttribute("tabindex", "0");
+          card.setAttribute("data-shop-key", shop.key);
+          card.setAttribute("aria-label", `Open ${shop.display_name}`);
           const categories = [...shop.categories].slice(0, 3);
           card.innerHTML =
             `<div class="flex gap-3">
-              <div class="shop-row-thumb shrink-0 overflow-hidden border border-[#e5edf8] bg-[#f8fbff]">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="" class="h-full w-full object-cover" />` : `<div class="flex h-full w-full items-center justify-center text-sm font-black text-[#0056d2]">${escapeHtml(shopMonogram(shop.name))}</div>`}</div>
+              <div class="shop-row-thumb shrink-0 overflow-hidden border border-[#e5edf8] bg-[#f8fbff]">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="" class="h-full w-full object-cover" />` : `<div class="flex h-full w-full items-center justify-center text-sm font-black text-[#0056d2]">${escapeHtml(shopMonogram(shop.display_name))}</div>`}</div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
-                  <h3 class="truncate text-base font-black text-slate-950">${escapeHtml(shop.name)}</h3>
+                  <h3 class="truncate text-base font-black text-slate-950">${escapeHtml(shop.display_name)}</h3>
                   <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">${shop.verified ? "Verified" : "Local"}</span>
+                  ${shop.shop_name_locked && !buyerCanViewShopNames() ? '<span class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase text-[#0056d2]">Premium unlock</span>' : ""}
                 </div>
                 <p class="mt-1 truncate text-xs font-semibold text-slate-500">${escapeHtml(shop.city)}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
                 <div class="shop-row-meta mt-2 text-xs font-bold text-slate-500">
@@ -5798,6 +6365,17 @@
             </div>
             `;
           shopGridEl.appendChild(card);
+        });
+        shopGridEl.querySelectorAll("[data-shop-key]").forEach((card) => {
+          card.addEventListener("click", (e) => {
+            if (e.target.closest("button")) return;
+            openShopPage(card.getAttribute("data-shop-key"));
+          });
+          card.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();
+            openShopPage(card.getAttribute("data-shop-key"));
+          });
         });
 
         sectionsEl.querySelectorAll(".home-add-cart").forEach((btn) => {
@@ -5873,7 +6451,7 @@
       const quoteItems = latestQuoteNotifications.map((q) => ({
         id: `quote-${q.quote_id || Math.random()}`,
         kind: "quote",
-        title: `New quote from ${q.shop_name || "Seller"}`,
+        title: `New quote from ${shopDisplayName(q, "seller")}`,
         body: `${q._reqName || "Your request"} · ${rupee(q.price)}`,
         meta: q.created_at ? timeAgo(q.created_at) : "Quote update",
         created_at: q.created_at || null,
@@ -6036,7 +6614,7 @@
           i === 0
             ? '<span class="text-[10px] font-extrabold uppercase bg-[#0056d2] text-white px-2 py-0.5 rounded shrink-0">Best price</span>'
             : "";
-        row.innerHTML = `<div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2">${best}<span class="font-bold text-slate-900 truncate">${escapeHtml(q.shop_name || "Seller")}</span></div><p class="text-xs text-slate-500 truncate">${escapeHtml(q._reqName || "")}</p></div><div class="text-right shrink-0"><p class="font-extrabold text-slate-900">${rupee(q.price)}</p><button type="button" class="mt-1 text-xs font-bold px-3 py-1 rounded-md border border-[#d6e4fb] text-[#0056d2] hover:bg-[#e8f1fc] choose-dash-q" data-qid="${escapeHtml(q.quote_id)}">Choose</button></div>`;
+        row.innerHTML = `<div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2">${best}<span class="font-bold text-slate-900 truncate">${escapeHtml(shopDisplayName(q, "seller"))}</span>${shopUnlockHint(q) ? '<span class="text-[10px] font-extrabold uppercase bg-blue-50 text-[#0056d2] px-2 py-0.5 rounded shrink-0">Premium unlock</span>' : ""}</div><p class="text-xs text-slate-500 truncate">${escapeHtml(q._reqName || "")}</p></div><div class="text-right shrink-0"><p class="font-extrabold text-slate-900">${rupee(q.price)}</p><button type="button" class="mt-1 text-xs font-bold px-3 py-1 rounded-md border border-[#d6e4fb] text-[#0056d2] hover:bg-[#e8f1fc] choose-dash-q" data-qid="${escapeHtml(q.quote_id)}">Choose</button></div>`;
         box.appendChild(row);
       });
       box.querySelectorAll(".choose-dash-q").forEach((btn) =>
@@ -6307,13 +6885,20 @@
           top.className = "flex flex-wrap items-start justify-between gap-3";
           const pay = escapeHtml(o.payment_status || "");
           const st = escapeHtml(o.order_status || "");
-          const payOk = String(o.payment_status || "").toLowerCase() === "paid";
+          const paymentStatus = String(o.payment_status || "").toLowerCase();
+          const payOk = paymentStatus === "paid";
+          const payFailed = paymentStatus === "failed";
+          const paymentAction = payOk
+            ? '<span class="payment-status-pill is-paid">Paid</span>'
+            : payFailed
+              ? '<span class="payment-status-pill is-failed">Failed</span>'
+              : `<button type="button" data-pay-order="${escapeHtml(o.order_id)}" class="pay-now-btn">Pay now</button>`;
           top.innerHTML = `<div>
             <p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
             <p class="text-xs text-slate-500">${rupee(o.final_price)} total · ${pay} · ${st}</p>
           </div>
           <div class="flex flex-wrap items-center justify-end gap-2">
-            ${payOk ? '<span class="payment-status-pill is-paid">Paid</span>' : `<button type="button" data-pay-order="${escapeHtml(o.order_id)}" class="pay-now-btn">Pay now</button>`}
+            ${paymentAction}
             <span class="text-xs font-semibold text-slate-400">${escapeHtml((o.created_at || "").slice(0, 10))}</span>
           </div>`;
           wrap.appendChild(top);
@@ -6328,7 +6913,10 @@
           const delRow = document.createElement("div");
           delRow.className = "border-t border-slate-200 pt-3 text-xs space-y-2";
 
-          if (!payOk) {
+          if (payFailed) {
+            delRow.innerHTML =
+              '<p class="text-red-700"><span class="font-semibold">Order failed:</span> Payment was not completed. Please place a new order when you want to buy again.</p>';
+          } else if (!payOk) {
             delRow.innerHTML =
               '<p class="text-slate-600"><span class="font-semibold text-slate-800">Delivery:</span> Pay for this order and doorstep delivery will start automatically.</p>';
           } else if (canRequest) {
@@ -6563,14 +7151,15 @@
           const wrap = document.createElement("div");
           wrap.className =
             "rounded-xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/50 p-4 flex flex-col gap-2";
-          const shop = escapeHtml(q.shop_name || "Shopkeeper");
+          const shop = escapeHtml(shopDisplayName(q, "seller"));
+          const locked = shopUnlockHint(q);
           const dt = escapeHtml(q.delivery_time || "—");
           const notes = escapeHtml(q.notes || "");
           const hasOrder = !!ordersByRequestId[requestId];
           wrap.innerHTML = `
             <div class="flex flex-wrap justify-between gap-2 items-start">
               <div>
-                <p class="font-bold text-slate-900">${shop}</p>
+                <p class="font-bold text-slate-900">${shop}${locked ? ` <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase text-[#0056d2]">${escapeHtml(locked)}</span>` : ""}</p>
                 <p class="text-xs text-slate-500">${dt}</p>
               </div>
               <p class="text-lg font-black text-blue-950">${rupee(q.price)}</p>
@@ -6769,6 +7358,10 @@
       }
     });
     document.getElementById("shopping-home-see-all")?.addEventListener("click", () => selectShopCategory(""));
+    document.getElementById("shop-page-back")?.addEventListener("click", () => {
+      openUserSection("shopping-home");
+      if (history && history.replaceState) history.replaceState(null, "", "#shopping-home");
+    });
 
     document.getElementById("dept-all")?.addEventListener("click", (e) => {
       e.preventDefault();
@@ -6944,6 +7537,10 @@
     document.getElementById("product-detail-close")?.addEventListener("click", closeProductDetail);
     document.getElementById("product-detail-modal")?.addEventListener("click", (e) => {
       if (e.target && e.target.id === "product-detail-modal") closeProductDetail();
+    });
+    document.getElementById("shop-detail-close")?.addEventListener("click", closeShopDetail);
+    document.getElementById("shop-detail-modal")?.addEventListener("click", (e) => {
+      if (e.target && e.target.id === "shop-detail-modal") closeShopDetail();
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") closeProductDetail();
@@ -7137,6 +7734,7 @@
 
     const userTabIds = [
       "shopping-home",
+      "shop-page-section",
       "dashboard-home",
       "requests-section",
       "orders-section",
@@ -7178,7 +7776,7 @@
         a.classList.toggle("active", on);
       });
     }
-    const publicUserSections = new Set(["shopping-home", "browse-section", "cart-section"]);
+    const publicUserSections = new Set(["shopping-home", "shop-page-section", "browse-section", "cart-section"]);
     function openUserSection(sectionId) {
       sectionId = sectionId || "shopping-home";
       if (!hasSession() && !publicUserSections.has(sectionId)) {

@@ -7,6 +7,7 @@ const Seller = require("../models/Seller");
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 const User = require("../models/User");
+const Payment = require("../models/Payment");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatOrder, formatDeliveryPrivate } = require("../lib/format");
 const { buyerDisplayPrice, buyerMaxListedPrice } = require("../lib/buyerPrice");
@@ -52,6 +53,48 @@ function platformFeeForPrice() {
     return Math.max(0, Number(raw));
   }
   return 0;
+}
+
+function unpaidOrderTimeoutMinutes() {
+  const raw = Number(process.env.ORDER_PAYMENT_TIMEOUT_MINUTES);
+  return Number.isFinite(raw) && raw > 0 ? raw : 15;
+}
+
+async function expireUnpaidOrdersForUser(userId) {
+  const timeoutMinutes = unpaidOrderTimeoutMinutes();
+  const cutoff = new Date(Date.now() - timeoutMinutes * 60 * 1000);
+  const expired = await Order.find({
+    user: userId,
+    paymentStatus: "pending",
+    createdAt: { $lt: cutoff },
+  })
+    .select("_id")
+    .lean();
+  if (!expired.length) return;
+
+  const ids = expired.map((o) => o._id);
+  await Order.updateMany(
+    { _id: { $in: ids }, paymentStatus: "pending" },
+    {
+      $set: {
+        paymentStatus: "failed",
+        orderStatus: "cancelled",
+        "delivery.status": "cancelled",
+      },
+    }
+  );
+  await Payment.updateMany(
+    { order: { $in: ids }, status: { $ne: "captured" } },
+    {
+      $set: {
+        status: "failed",
+        rawPayload: {
+          reason: "payment_timeout",
+          timeout_minutes: timeoutMinutes,
+        },
+      },
+    }
+  );
 }
 
 router.post(
@@ -303,6 +346,7 @@ router.get(
   requireRole("buyer"),
   async (req, res, next) => {
     try {
+      await expireUnpaidOrdersForUser(req.user.id);
       const rows = await Order.find({ user: req.user.id })
         .sort({ createdAt: -1 })
         .lean();

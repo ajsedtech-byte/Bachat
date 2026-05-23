@@ -5,6 +5,7 @@ const Seller = require("../models/Seller");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
+const { canViewShopNames, maskedShopName, publicShopKey } = require("../lib/buyerPlan");
 const { CATEGORY_SET, canonicalCategory, sellerCategoryList } = require("../lib/categories");
 const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
 
@@ -61,9 +62,10 @@ function productQuantityFields(doc) {
 }
 
 /** Buyer catalog: marked-up price only, no sellerPrice. */
-function formatCatalogProduct(doc, seller) {
+function formatCatalogProduct(doc, seller, options = {}) {
   const id = doc._id;
   const price = buyerDisplayPrice(doc.sellerPrice, id);
+  const showShopNames = options.showShopNames === true;
   return {
     product_id: String(id),
     title: doc.title,
@@ -72,7 +74,9 @@ function formatCatalogProduct(doc, seller) {
     images: doc.images || [],
     price,
     ...productQuantityFields(doc),
-    shop_name: seller?.shopName || "Shop",
+    shop_name: showShopNames ? seller?.shopName || "Shop" : maskedShopName("shop"),
+    shop_name_locked: !showShopNames,
+    shop_key: publicShopKey(seller),
     city: seller?.city || "",
     region: seller?.region || "",
     seller_verified: Boolean(seller?.isVerified),
@@ -95,7 +99,7 @@ function formatSellerProduct(doc) {
   };
 }
 
-async function catalogItemsForLocation({ city, region, category, q, limit = 120 }) {
+async function catalogItemsForLocation({ city, region, category, q, limit = 120, showShopNames = false }) {
   const cleanCity = String(city || "").trim();
   const cleanRegion = String(region || "").trim();
   const sellers = await Seller.find({
@@ -121,7 +125,7 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120 
     .limit(limit)
     .lean();
   const sellerMap = Object.fromEntries(sellers.map((s) => [String(s._id), s]));
-  return products.map((p) => formatCatalogProduct(p, sellerMap[String(p.seller)]));
+  return products.map((p) => formatCatalogProduct(p, sellerMap[String(p.seller)], { showShopNames }));
 }
 
 // --- Buyer catalog (same city/region as buyer account) ---
@@ -138,7 +142,7 @@ router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, r
 
     const category = req.query.category ? canonicalCategory(req.query.category) : "";
     const q = req.query.q ? String(req.query.q).trim() : "";
-    const items = await catalogItemsForLocation({ city, region, category, q });
+    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: canViewShopNames(user) });
     return res.json({ items });
   } catch (e) {
     return next(e);
@@ -154,7 +158,7 @@ router.get("/public-catalog", async (req, res, next) => {
     if (!city || !region) {
       return badRequest(res, "Choose a city and region to browse local items.");
     }
-    const items = await catalogItemsForLocation({ city, region, category, q });
+    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: false });
     return res.json({ items });
   } catch (e) {
     return next(e);
@@ -213,7 +217,7 @@ router.get("/catalog/:productId", requireAuth, requireRole("buyer", "admin"), as
       return res.status(404).json({ error: "Not found" });
     }
 
-    return res.json({ item: formatCatalogProduct(doc, seller) });
+    return res.json({ item: formatCatalogProduct(doc, seller, { showShopNames: false }) });
   } catch (e) {
     return next(e);
   }
@@ -234,7 +238,7 @@ router.get("/public-catalog/:productId", async (req, res, next) => {
       return res.status(404).json({ error: "Not found" });
     }
 
-    return res.json({ item: formatCatalogProduct(doc, seller) });
+    return res.json({ item: formatCatalogProduct(doc, seller, { showShopNames: canViewShopNames(user) }) });
   } catch (e) {
     return next(e);
   }

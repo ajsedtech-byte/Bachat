@@ -7,6 +7,7 @@ function idStr(x) {
 const { sellerCategoryList } = require("./categories");
 const { sellerTradeBlocked } = require("./sellerKycGate");
 const { maskPhone } = require("./delivery");
+const { buyerPlan, canViewShopNames, maskedShopName } = require("./buyerPlan");
 
 function formatUser(u) {
   if (!u) return null;
@@ -20,6 +21,8 @@ function formatUser(u) {
     city: o.city,
     region: o.region,
     role: o.role,
+    buyer_plan: buyerPlan(o),
+    can_view_shop_names: canViewShopNames(o),
     email_verified_at: o.emailVerifiedAt || null,
     phone_verified_at: o.phoneVerifiedAt || null,
     created_at: o.createdAt,
@@ -124,7 +127,7 @@ function formatRequest(r) {
   };
 }
 
-function formatQuote(q, sellerDoc = null) {
+function formatQuote(q, sellerDoc = null, options = {}) {
   const o = q.toObject ? q.toObject() : q;
   const base = {
     quote_id: idStr(o._id),
@@ -137,7 +140,9 @@ function formatQuote(q, sellerDoc = null) {
   };
   if (sellerDoc) {
     const sd = sellerDoc.toObject ? sellerDoc.toObject() : sellerDoc;
-    base.shop_name = sd.shopName;
+    const showShopNames = options.showShopNames !== false;
+    base.shop_name = showShopNames ? sd.shopName : maskedShopName("seller");
+    base.shop_name_locked = !showShopNames;
     base.seller_rating = sd.rating;
     base.seller_city = sd.city;
     base.seller_region = sd.region;
