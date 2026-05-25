@@ -3224,6 +3224,141 @@
         justify-self: start;
       }
     }
+
+    /* Readability pass: keep text clear on phones, laptops, and large monitors. */
+    .bachat-storefront {
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      font-size: 16px;
+      line-height: 1.5;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .bachat-storefront .font-display {
+      font-family: inherit !important;
+    }
+
+    .bachat-storefront .font-black,
+    .bachat-storefront .font-extrabold {
+      font-weight: 800 !important;
+    }
+
+    .bachat-storefront p,
+    .bachat-storefront li,
+    .bachat-storefront input,
+    .bachat-storefront textarea,
+    .bachat-storefront select,
+    .bachat-storefront button {
+      line-height: 1.5;
+    }
+
+    .bachat-storefront .text-\[9px\],
+    .bachat-storefront .text-\[10px\],
+    .bachat-storefront .text-\[11px\] {
+      font-size: 12px !important;
+      line-height: 1.45 !important;
+      letter-spacing: 0.01em !important;
+    }
+
+    .bachat-storefront .text-xs {
+      font-size: 13px !important;
+      line-height: 1.45 !important;
+    }
+
+    .bachat-storefront .text-sm {
+      font-size: 14px !important;
+      line-height: 1.55 !important;
+    }
+
+    .bachat-storefront .tracking-\[0\.12em\],
+    .bachat-storefront .tracking-\[0\.14em\],
+    .bachat-storefront .tracking-\[0\.16em\],
+    .bachat-storefront .tracking-\[0\.18em\] {
+      letter-spacing: 0.06em !important;
+    }
+
+    .bachat-storefront .tracking-\[-0\.04em\],
+    .bachat-storefront .tracking-\[-0\.045em\],
+    .bachat-storefront .tracking-\[-0\.03em\] {
+      letter-spacing: 0 !important;
+    }
+
+    .bachat-storefront .leading-\[1\.05\],
+    .bachat-storefront .leading-tight {
+      line-height: 1.16 !important;
+    }
+
+    .bachat-storefront .shopping-hero-title {
+      letter-spacing: 0 !important;
+      line-height: 1.12 !important;
+      max-width: 780px;
+    }
+
+    .bachat-storefront .shopping-hero-copy {
+      font-size: clamp(15px, 1.05vw, 18px) !important;
+      line-height: 1.65 !important;
+    }
+
+    .bachat-storefront .home-product-card p,
+    .bachat-storefront .shop-detail-card p,
+    .bachat-storefront .catalog-product-card p,
+    .bachat-storefront .shop-row p,
+    .bachat-storefront .saved-row p,
+    .bachat-storefront .order-row p {
+      overflow-wrap: anywhere;
+    }
+
+    .bachat-storefront .shop-detail-card button,
+    .bachat-storefront .home-product-card button,
+    .bachat-storefront .pay-now-btn,
+    .bachat-storefront .payment-status-pill {
+      min-height: 34px;
+      font-size: 12px !important;
+      letter-spacing: 0.01em !important;
+    }
+
+    .bachat-storefront a.text-xs,
+    .bachat-storefront button.text-xs {
+      font-size: 14px !important;
+      line-height: 1.45 !important;
+    }
+
+    .bachat-storefront .home-panel a.text-xs,
+    .bachat-storefront .home-panel button.text-xs {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      font-size: 14px !important;
+      font-weight: 800 !important;
+    }
+
+    .bachat-storefront input::placeholder,
+    .bachat-storefront textarea::placeholder {
+      color: #64748b;
+      opacity: 1;
+    }
+
+    @media (max-width: 640px) {
+      .bachat-storefront {
+        font-size: 15px;
+      }
+
+      .bachat-storefront .shopping-hero-title {
+        font-size: clamp(30px, 8vw, 38px) !important;
+        line-height: 1.14 !important;
+      }
+
+      .bachat-storefront .text-4xl,
+      .bachat-storefront .sm\:text-4xl {
+        line-height: 1.16 !important;
+      }
+
+      .bachat-storefront .shop-detail-grid {
+        grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      }
+    }
   </style>
 </head>
 <body class="bachat-ui bachat-storefront amazon-shell bg-[#f8f9fb] text-slate-900 min-h-screen">
