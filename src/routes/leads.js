@@ -148,6 +148,8 @@ router.patch("/:id", async (req, res, next) => {
     if (owner_user_id !== undefined) {
       if (owner_user_id === null || owner_user_id === "") {
         set.ownerUser = null;
+      } else if (String(owner_user_id) === "me") {
+        set.ownerUser = req.user.id;
       } else if (mongoose.isValidObjectId(owner_user_id)) {
         if (req.user.role === "sales" && String(owner_user_id) !== String(req.user.id)) {
           return res.status(403).json({ error: "Sales users can only assign to themselves" });

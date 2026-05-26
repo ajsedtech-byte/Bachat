@@ -82,6 +82,11 @@ const userSchema = new mongoose.Schema(
     savedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
     /** Buyer marketplace plan. Premium buyers can see seller/shop names. */
     buyerPlan: { type: String, enum: ["free", "premium"], default: "free" },
+    deliveryAvailability: {
+      isOnline: { type: Boolean, default: false },
+      lastSeenAt: { type: Date, default: null },
+      maxActiveJobs: { type: Number, default: 3, min: 1, max: 20 },
+    },
     /** Unique invite code for Refer & Earn */
     referralCode: { type: String, default: undefined, unique: true, sparse: true, trim: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

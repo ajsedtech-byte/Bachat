@@ -303,7 +303,7 @@ router.patch(
   requireSellerTradeUnblocked,
   async (req, res, next) => {
     try {
-      const { order_status } = req.body || {};
+      const { order_status, cancel_reason } = req.body || {};
       const allowed = ["processing", "shipped", "delivered", "cancelled"];
       if (!order_status || !allowed.includes(order_status)) {
         return badRequest(res, "order_status must be one of: " + allowed.join(", "));
@@ -329,6 +329,9 @@ router.patch(
 
       const prev = order.orderStatus;
       order.orderStatus = order_status;
+      if (order_status === "cancelled") {
+        order.cancelReason = String(cancel_reason || "").trim().slice(0, 500);
+      }
       await order.save();
 
       await notifyOrderStatusToBuyer(order, prev);

@@ -14,6 +14,42 @@
 
 .bachat-ui {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #0f172a;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.bachat-ui .text-\[9px\],
+.bachat-ui .text-\[10px\],
+.bachat-ui .text-\[11px\] {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+.bachat-ui .text-xs {
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.bachat-ui a.text-xs,
+.bachat-ui button.text-xs {
+  font-size: 14px !important;
+}
+
+.bachat-ui input,
+.bachat-ui select,
+.bachat-ui textarea,
+.bachat-ui button {
+  line-height: 1.45;
+}
+
+.bachat-ui input::placeholder,
+.bachat-ui textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
 }
 
 .bg-bachat-primary {

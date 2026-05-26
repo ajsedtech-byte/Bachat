@@ -20,7 +20,10 @@
             <h1 class="text-2xl font-extrabold text-slate-900">Field sales &amp; leads</h1>
             <p class="text-slate-500 text-sm mt-1">Pipeline KPIs, CRM leads (<code class="text-xs bg-slate-100 px-1 rounded">/api/leads</code>), and seller eKYC queue.</p>
           </div>
-          <button type="button" id="btn-refresh" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Refresh</button>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" id="btn-export-leads" class="rounded-xl border border-[#0056d2] bg-white px-4 py-2 text-sm font-bold text-[#0056d2] hover:bg-blue-50">Export CSV</button>
+            <button type="button" id="btn-refresh" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Refresh</button>
+          </div>
         </div>
         <p id="err" class="hidden mb-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
         <p id="ok" class="hidden mb-4 text-sm text-green-800 bg-green-50 border border-green-100 rounded-xl px-4 py-3"></p>
@@ -79,6 +82,8 @@
                 <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Region</span>
                   <input name="region" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2" /></label>
               </div>
+              <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Follow-up date</span>
+                <input name="follow_up_at" type="datetime-local" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2" /></label>
               <label class="block"><span class="text-xs font-bold text-slate-500 uppercase">Notes</span>
                 <textarea name="notes" rows="3" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"></textarea></label>
               <button type="submit" class="w-full rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2.5 text-sm hover:opacity-95">Save lead</button>
@@ -183,6 +188,7 @@
 
       var searchTimer;
       var refreshTimer;
+      var leadsCache = [];
 
       async function loadKycPendingCount() {
         var el = document.getElementById("kpi-kyc");
@@ -270,6 +276,7 @@
         }
         hideErr(errEl);
         var items = data.items || [];
+        leadsCache = items;
         tb.innerHTML = "";
         if (!items.length) {
           var tr0 = document.createElement("tr");
@@ -312,6 +319,11 @@
             esc(row.notes || "") +
             '">' +
             truncate(row.notes, 56) +
+            (row.meta && row.meta.follow_up_at ? '<p class="mt-1 font-bold text-amber-700">Follow up: ' + formatWhen(row.meta.follow_up_at) + "</p>" : "") +
+            '<div class="mt-2 flex flex-wrap gap-2">' +
+            '<button type="button" data-note="' + esc(row.lead_id) + '" class="lead-note rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-700">Add call note</button>' +
+            '<button type="button" data-claim="' + esc(row.lead_id) + '" class="lead-claim rounded-lg border border-[#0056d2] px-2 py-1 text-xs font-bold text-[#0056d2]">Assign to me</button>' +
+            "</div>" +
             "</td>" +
             '<td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">' +
             formatWhen(row.updated_at) +
@@ -338,6 +350,63 @@
             }
           });
         });
+        tb.querySelectorAll(".lead-note").forEach(function (btn) {
+          btn.addEventListener("click", async function () {
+            var id = btn.getAttribute("data-note");
+            var row = leadsCache.find(function (x) { return String(x.lead_id) === String(id); }) || {};
+            var note = prompt("Call note", "");
+            if (note == null || !String(note).trim()) return;
+            var stamp = new Date().toLocaleString();
+            var nextNotes = String(row.notes || "") + (row.notes ? "\n" : "") + "[" + stamp + "] " + String(note).trim();
+            try {
+              var r2 = await BachatAdminRuntime.adminFetch("/api/leads/" + encodeURIComponent(id), {
+                method: "PATCH",
+                headers: BachatAdminRuntime.authHeaders(),
+                body: JSON.stringify({ notes: nextNotes }),
+              });
+              var j2 = await r2.json().catch(function () { return {}; });
+              if (!r2.ok) throw new Error(j2.error || "Note failed");
+              await loadLeads(errEl);
+            } catch (e) {
+              showErr(errEl, e.message || "Note failed");
+            }
+          });
+        });
+        tb.querySelectorAll(".lead-claim").forEach(function (btn) {
+          btn.addEventListener("click", async function () {
+            var id = btn.getAttribute("data-claim");
+            try {
+              var r2 = await BachatAdminRuntime.adminFetch("/api/leads/" + encodeURIComponent(id), {
+                method: "PATCH",
+                headers: BachatAdminRuntime.authHeaders(),
+                body: JSON.stringify({ owner_user_id: "me" }),
+              });
+              var j2 = await r2.json().catch(function () { return {}; });
+              if (!r2.ok) throw new Error(j2.error || "Assign failed");
+              await loadPipeline(errEl, null);
+              await loadLeads(errEl);
+            } catch (e) {
+              showErr(errEl, e.message || "Assign failed");
+            }
+          });
+        });
+      }
+
+      function exportLeadsCsv() {
+        var cols = ["lead_id", "title", "type", "stage", "city", "region", "owner_email", "follow_up_at", "notes", "updated_at"];
+        var csv = [cols.join(",")].concat(leadsCache.map(function (r) {
+          var row = Object.assign({}, r, { follow_up_at: r.meta && r.meta.follow_up_at ? r.meta.follow_up_at : "" });
+          return cols.map(function (c) {
+            return '"' + String(row[c] == null ? "" : row[c]).replace(/"/g, '""') + '"';
+          }).join(",");
+        })).join("\n");
+        var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "bachat-leads.csv";
+        a.click();
+        URL.revokeObjectURL(url);
       }
 
       async function refreshAll() {
@@ -358,6 +427,7 @@
         document.getElementById("btn-refresh").addEventListener("click", function () {
           refreshAll();
         });
+        document.getElementById("btn-export-leads").addEventListener("click", exportLeadsCsv);
         ["flt-stage", "flt-type"].forEach(function (id) {
           document.getElementById(id).addEventListener("change", function () {
             loadLeads(err);
@@ -382,6 +452,9 @@
             city: String(fd.get("city") || "").trim(),
             region: String(fd.get("region") || "").trim(),
             notes: String(fd.get("notes") || "").trim(),
+            meta: {
+              follow_up_at: fd.get("follow_up_at") ? new Date(String(fd.get("follow_up_at"))).toISOString() : "",
+            },
           };
           try {
             var r2 = await BachatAdminRuntime.adminFetch("/api/leads", {

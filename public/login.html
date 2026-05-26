@@ -7,12 +7,18 @@
   <link rel="icon" href="/assets/bachat-icon-original.png" type="image/png" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">  <style>
+    img { max-width: 100%; height: auto; }
+    @media (max-width: 1023px) {
+      .login-value-panel { display: none !important; }
+      .login-shell { display: block !important; max-width: 100vw; overflow-x: hidden; }
+    }
+  </style>
 </head>
 <body class="bachat-ui min-h-screen bg-[#f8f9fa] text-slate-900">
-  <div class="min-h-screen grid lg:grid-cols-2 lg:max-w-5xl xl:max-w-6xl lg:mx-auto w-full">
+  <div class="login-shell min-h-screen grid lg:grid-cols-2 lg:max-w-5xl xl:max-w-6xl lg:mx-auto w-full">
     <!-- Left: value prop -->
-    <div class="relative hidden lg:flex flex-col min-h-screen p-8 xl:p-10 bg-white border-r border-[#e5e7eb]">
+    <div class="login-value-panel relative hidden lg:flex flex-col min-h-screen p-8 xl:p-10 bg-white border-r border-[#e5e7eb]">
       <div class="flex-1 min-h-0 flex flex-col">
         <div class="flex justify-between items-start gap-4">
           <a href="/" aria-label="Home"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[170px] object-contain object-left" /></a>
@@ -345,3 +351,4 @@
   </script>
 </body>
 </html>
+

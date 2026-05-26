@@ -14,18 +14,6 @@
       overflow-x: hidden;
     }
 
-    @media (min-width: 1200px) {
-      html {
-        font-size: 65%;
-      }
-    }
-
-    @media (min-width: 768px) and (max-width: 1199px) {
-      html {
-        font-size: 87.5%;
-      }
-    }
-
     @media (max-width: 767px) {
       #dashboard-home > div:nth-child(2),
       #dashboard-home > div:nth-child(4),
@@ -124,6 +112,7 @@
           <span class="text-lg" aria-hidden="true">🔔</span>
           <span id="notif-badge" class="absolute top-0.5 right-0.5 min-w-[1.125rem] h-[1.125rem] px-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center hidden">0</span>
         </button>
+        <div id="seller-notif-panel" class="hidden absolute right-4 top-16 z-50 w-[min(92vw,420px)] rounded-2xl border border-[#dbeafe] bg-white shadow-2xl overflow-hidden"></div>
         <div class="relative flex items-center gap-2 shrink-0 ml-auto">
           <div id="header-avatar" class="w-9 h-9 rounded-full border border-[#e5e7eb] shrink-0 bg-cover bg-center bg-slate-200" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&q=60')"></div>
           <div class="hidden sm:block min-w-0">
@@ -308,6 +297,19 @@
             <p class="text-slate-600 text-sm mt-1">Only your shop categories (from signup) appear below. Pick one, then add price, quantity, package details, and photos.</p>
           </div>
           <div id="shop-cat-pills" class="flex flex-wrap gap-2"></div>
+          <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="font-bold text-slate-900">Bulk product tools</p>
+              <p class="text-sm text-slate-500">Export your catalog, edit many items in a spreadsheet, then import CSV rows.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" id="export-products-csv" class="rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-4 py-2 text-sm">Export CSV</button>
+              <label class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm cursor-pointer">
+                Import CSV
+                <input id="import-products-csv" type="file" accept=".csv,text/csv" class="hidden" />
+              </label>
+            </div>
+          </div>
           <p id="no-cats-warn" class="hidden text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
             Your account has no shop categories. Complete signup as shopkeeper with categories, or update your profile via the API.
           </p>
@@ -447,6 +449,7 @@
     if (!token) location.href = "/login.html";
 
     let sellerCategories = [];
+    let allCategories = [];
     let selectedShopCat = "";
     let allProducts = [];
     let editingProductId = "";
@@ -569,7 +572,24 @@
       if (!b) return;
       b.innerHTML = '<p class="text-slate-500">Loading…</p>';
       try {
-        const d = await api("GET", "/api/seller/payouts-summary");
+        const [d, history] = await Promise.all([
+          api("GET", "/api/seller/payouts-summary"),
+          api("GET", "/api/seller/payouts-history").catch(() => ({ items: [] })),
+        ]);
+        const rows = Array.isArray(history.items) ? history.items : [];
+        const tableRows = rows.length
+          ? rows.map((r) => `
+            <tr class="border-t border-slate-200">
+              <td class="py-2 pr-3 pl-4 font-semibold text-slate-900">${escapeHtml(r.summary || "Order")}</td>
+              <td class="py-2 pr-3">${escapeHtml((r.created_at || "").slice(0, 10))}</td>
+              <td class="py-2 pr-3">${escapeHtml(r.payment_status || "")}</td>
+              <td class="py-2 pr-3">${escapeHtml(r.settlement_status || "")}</td>
+              <td class="py-2 pr-3 text-right font-bold">${rupee(r.gross)}</td>
+              <td class="py-2 pr-3 text-right">${rupee(r.commission)}</td>
+              <td class="py-2 pr-3 text-right font-bold">${rupee(r.net)}</td>
+              <td class="py-2 pr-3 text-slate-500">${escapeHtml(r.provider_payment_id || r.provider_order_id || "Pending")}</td>
+            </tr>`).join("")
+          : '<tr><td colspan="8" class="py-4 pl-4 text-slate-500">No payout history yet.</td></tr>';
         b.innerHTML = `
           <div class="grid sm:grid-cols-2 gap-3">
             <div class="rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-4">
@@ -585,10 +605,51 @@
               <p class="text-lg font-black text-slate-900 mt-2">${rupee(d.pending_settlement)}</p>
             </div>
           </div>
-          <p class="text-[11px] text-slate-500 mt-4">${escapeHtml(d.note || "")}</p>`;
+          <div class="mt-4 rounded-xl border border-[#e5e7eb] bg-white overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-200">
+              <div>
+                <p class="font-extrabold text-slate-900">Settlement history</p>
+                <p class="text-sm text-slate-500">Track payment status, settlement state, transaction IDs, and net payout.</p>
+              </div>
+              <button type="button" id="download-payouts-csv" class="rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-3 py-2 text-sm">Download statement</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-[900px] w-full text-sm">
+                <thead class="bg-[#f8f9fb] text-left text-slate-500">
+                  <tr>
+                    <th class="py-2 pr-3 pl-4">Order</th>
+                    <th class="py-2 pr-3">Date</th>
+                    <th class="py-2 pr-3">Payment</th>
+                    <th class="py-2 pr-3">Settlement</th>
+                    <th class="py-2 pr-3 text-right">Gross</th>
+                    <th class="py-2 pr-3 text-right">Commission</th>
+                    <th class="py-2 pr-3 text-right">Net</th>
+                    <th class="py-2 pr-3">Transaction ID</th>
+                  </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+              </table>
+            </div>
+          </div>
+          <p class="text-sm text-slate-500 mt-4">${escapeHtml(d.note || "")}</p>`;
+        document.getElementById("download-payouts-csv")?.addEventListener("click", () => downloadPayoutStatement(rows));
       } catch (e) {
         b.innerHTML = '<p class="text-red-600">' + escapeHtml(e.message || "Could not load") + "</p>";
       }
+    }
+
+    function downloadPayoutStatement(rows) {
+      const cols = ["order_id", "summary", "created_at", "payment_status", "order_status", "settlement_status", "gross", "commission", "net", "provider_order_id", "provider_payment_id"];
+      const csv = [cols.join(",")].concat((rows || []).map((r) =>
+        cols.map((c) => `"${String(r[c] == null ? "" : r[c]).replace(/"/g, '""')}"`).join(",")
+      )).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bachat-payout-statement.csv";
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     async function api(method, path, body) {
@@ -984,6 +1045,91 @@
       }
     }
 
+    function exportProductsCsv() {
+      const cols = ["product_id", "title", "description", "category", "price", "stock_quantity", "stock_unit", "package_type", "package_size", "image_1", "image_2", "image_3", "image_4"];
+      const csv = [cols.join(",")].concat(allProducts.map((p) => {
+        const row = {
+          ...p,
+          image_1: (p.images || [])[0] || "",
+          image_2: (p.images || [])[1] || "",
+          image_3: (p.images || [])[2] || "",
+          image_4: (p.images || [])[3] || "",
+        };
+        return cols.map((c) => `"${String(row[c] == null ? "" : row[c]).replace(/"/g, '""')}"`).join(",");
+      })).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bachat-products.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const ch = text[i];
+        const next = text[i + 1];
+        if (quoted && ch === '"' && next === '"') {
+          cell += '"';
+          i += 1;
+        } else if (ch === '"') {
+          quoted = !quoted;
+        } else if (!quoted && ch === ",") {
+          row.push(cell);
+          cell = "";
+        } else if (!quoted && (ch === "\n" || ch === "\r")) {
+          if (ch === "\r" && next === "\n") i += 1;
+          row.push(cell);
+          if (row.some((v) => String(v).trim())) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += ch;
+        }
+      }
+      row.push(cell);
+      if (row.some((v) => String(v).trim())) rows.push(row);
+      return rows;
+    }
+
+    async function importProductsCsv(file) {
+      if (!file) return;
+      const text = await file.text();
+      const rows = parseCsv(text);
+      const headers = (rows.shift() || []).map((h) => String(h).trim());
+      const items = rows.map((cells) => Object.fromEntries(headers.map((h, i) => [h, cells[i] || ""])));
+      let saved = 0;
+      for (const item of items) {
+        const title = String(item.title || "").trim();
+        if (!title) continue;
+        const images = [item.image_1, item.image_2, item.image_3, item.image_4].map((v) => String(v || "").trim()).filter(Boolean);
+        const payload = {
+          title,
+          description: String(item.description || "").trim(),
+          category: String(item.category || selectedShopCat || sellerCategories[0] || "").trim(),
+          price: Number(item.price || 0),
+          stock_quantity: item.stock_quantity === "" ? null : Number(item.stock_quantity),
+          stock_unit: String(item.stock_unit || "").trim(),
+          package_type: String(item.package_type || "").trim(),
+          package_size: String(item.package_size || "").trim(),
+          images,
+        };
+        if (!payload.category || !Number.isFinite(payload.price) || payload.price < 0) continue;
+        const id = String(item.product_id || "").trim();
+        if (id) await api("PATCH", "/api/products/" + encodeURIComponent(id), payload);
+        else await api("POST", "/api/products", payload);
+        saved += 1;
+      }
+      showToast(`Imported ${saved} item${saved === 1 ? "" : "s"}.`);
+      await loadProducts();
+      await refreshDashboardData();
+    }
+
     async function loadOpenRequests() {
       const box = document.getElementById("open-requests");
       box.innerHTML = "<p class=\"text-slate-500\">Loading…</p>";
@@ -1142,6 +1288,20 @@
           d.innerHTML = `<p class="font-bold">${escapeHtml(o.summary || "Order")}</p>
             <p class="text-sm text-[#0056d2] font-bold mt-1">${rupee(o.total_amount != null ? o.total_amount : o.final_price)} · ${escapeHtml(o.order_status || "")} · ${escapeHtml(o.payment_status || "")}</p>
             <p class="text-xs text-slate-400">${escapeHtml((o.created_at || "").slice(0, 16))}</p>
+            <div class="rounded-lg border border-slate-200 bg-[#f8f9fb] p-3 flex flex-wrap items-end gap-2">
+              <label class="block">
+                <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Order action</span>
+                <select class="sk-order-status rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  <option value="processing" ${String(o.order_status || "") === "processing" ? "selected" : ""}>Accept / processing</option>
+                  <option value="shipped" ${String(o.order_status || "") === "shipped" ? "selected" : ""}>Packed / shipped</option>
+                  <option value="delivered" ${String(o.order_status || "") === "delivered" ? "selected" : ""}>Delivered</option>
+                  <option value="cancelled" ${String(o.order_status || "") === "cancelled" ? "selected" : ""}>Cancel order</option>
+                </select>
+              </label>
+              <button type="button" class="sk-order-status-btn rounded-lg bg-[#0056d2] text-white font-bold px-3 py-2 text-sm">Update status</button>
+              <button type="button" class="sk-order-ready rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-3 py-2 text-sm">Ready for pickup</button>
+              <p class="text-sm text-slate-500 flex-1 min-w-[220px]">Move paid orders through packing, pickup, delivery, or cancellation.</p>
+            </div>
             <details class="text-xs"><summary class="cursor-pointer font-semibold text-slate-800">Dispute</summary>
             <div class="mt-2 space-y-2">
               <select class="w-full rounded border border-slate-200 px-2 py-1 sk-disp-reason">
@@ -1154,6 +1314,33 @@
               <textarea class="w-full rounded border border-slate-200 px-2 py-1 sk-disp-desc" rows="2" placeholder="Notes"></textarea>
               <button type="button" class="sk-disp-btn rounded bg-amber-700 text-white font-bold px-3 py-1">Open dispute</button>
             </div></details>`;
+          d.querySelector(".sk-order-status-btn")?.addEventListener("click", async () => {
+            const nextStatus = d.querySelector(".sk-order-status")?.value || "processing";
+            const cancelReason =
+              nextStatus === "cancelled" ? String(prompt("Cancellation reason", o.cancel_reason || "") || "").trim() : "";
+            if (nextStatus === "cancelled" && !cancelReason) return showToast("Cancellation reason is required.", true);
+            try {
+              await api("PATCH", "/api/orders/seller/" + encodeURIComponent(oid) + "/order-status", {
+                order_status: nextStatus,
+                cancel_reason: cancelReason,
+              });
+              showToast(nextStatus === "cancelled" ? "Order cancelled." : "Order status updated.");
+              await loadOrders();
+              await refreshDashboardData();
+            } catch (err) {
+              showToast(err.message || "Could not update order.", true);
+            }
+          });
+          d.querySelector(".sk-order-ready")?.addEventListener("click", async () => {
+            try {
+              await api("POST", "/api/orders/seller/" + encodeURIComponent(oid) + "/delivery-ready", {});
+              showToast("Marked ready for pickup.");
+              await loadOrders();
+              await refreshDashboardData();
+            } catch (err) {
+              showToast(err.message || "Could not mark pickup ready.", true);
+            }
+          });
           if (o.delivery && o.delivery.route_points && o.delivery.route_points.length) {
             const row = document.createElement("div");
             row.className = "pt-1";
@@ -1212,6 +1399,45 @@
       });
     }
 
+    function renderSellerNotifications() {
+      const panel = document.getElementById("seller-notif-panel");
+      if (!panel) return;
+      const openReq = openRequestsCache.slice(0, 5).map((r) => `
+        <button type="button" data-notif-tab="live" class="w-full text-left px-4 py-3 hover:bg-[#f8f9fb] border-t border-slate-100">
+          <p class="font-bold text-slate-900">New buyer request: ${escapeHtml(r.product_name || "Request")}</p>
+          <p class="text-sm text-slate-500">${escapeHtml(r.category || "")} ${r.budget ? " - Budget " + rupee(r.budget) : ""}</p>
+        </button>`).join("");
+      const orderRows = ordersCache.slice(0, 5).map((o) => `
+        <button type="button" data-notif-tab="orders" class="w-full text-left px-4 py-3 hover:bg-[#f8f9fb] border-t border-slate-100">
+          <p class="font-bold text-slate-900">${escapeHtml(o.summary || "Order")}</p>
+          <p class="text-sm text-slate-500">${escapeHtml(o.order_status || "")} - ${escapeHtml(o.payment_status || "")}</p>
+        </button>`).join("");
+      panel.innerHTML = `
+        <div class="px-4 py-3 bg-[#f8f9fb] border-b border-slate-100 flex items-center justify-between gap-3">
+          <div>
+            <p class="font-extrabold text-slate-900">Notifications</p>
+            <p class="text-sm text-slate-500">Requests and order actions needing attention.</p>
+          </div>
+          <button type="button" id="seller-notif-close" class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold">Close</button>
+        </div>
+        ${openReq || orderRows ? openReq + orderRows : '<p class="px-4 py-6 text-sm text-slate-500">No new actionable notifications.</p>'}
+      `;
+      panel.querySelectorAll("[data-notif-tab]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          panel.classList.add("hidden");
+          setTab(btn.getAttribute("data-notif-tab"));
+        });
+      });
+      panel.querySelector("#seller-notif-close")?.addEventListener("click", () => panel.classList.add("hidden"));
+    }
+
+    function toggleSellerNotifications() {
+      const panel = document.getElementById("seller-notif-panel");
+      if (!panel) return;
+      renderSellerNotifications();
+      panel.classList.toggle("hidden");
+    }
+
     async function refreshDashboardData() {
       try {
         const rows = await api("GET", "/api/requests/seller/open");
@@ -1258,12 +1484,29 @@
       }
       const s = cachedMe.seller;
       const loc = (cachedMe.user && cachedMe.user.location) || (s && s.location) || {};
+      const categoryChoices = (allCategories.length ? allCategories : sellerCategories).map((cat) => {
+        const checked = sellerCategories.some((c) => sameText(c, cat)) ? "checked" : "";
+        return `<label class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+          <input type="checkbox" name="seller-category" value="${escapeHtml(cat)}" ${checked} class="rounded border-slate-300" />
+          ${escapeHtml(cat)}
+        </label>`;
+      }).join("");
       box.innerHTML = `
         <p><span class="font-bold text-slate-500">Name:</span> ${escapeHtml(cachedMe.user.name)}</p>
         <p><span class="font-bold text-slate-500">Email:</span> ${escapeHtml(cachedMe.user.email)}</p>
         <p><span class="font-bold text-slate-500">Shop:</span> ${escapeHtml(s && s.shop_name)}</p>
         <p><span class="font-bold text-slate-500">Area:</span> ${escapeHtml(s && s.city)}, ${escapeHtml(s && s.region)}</p>
         <p><span class="font-bold text-slate-500">Categories:</span> ${escapeHtml((s && s.categories && s.categories.join(", ")) || "")}</p>
+        <form id="seller-categories-form" class="mt-4 rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="font-bold text-slate-900">Shop categories</p>
+              <p class="text-sm text-slate-500 mt-1">Choose where your shop should receive buyer requests and listing categories.</p>
+            </div>
+            <button type="submit" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm">Save categories</button>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2">${categoryChoices || '<p class="text-sm text-slate-500">No category list loaded yet.</p>'}</div>
+        </form>
         <form id="shop-location-form" class="mt-3 grid sm:grid-cols-2 gap-3 rounded-xl border border-[#e5e7eb] bg-[#f8f9fb] p-3">
           <div class="sm:col-span-2">
             <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Shop address</label>
@@ -1296,8 +1539,25 @@
             <button type="submit" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm">Save shop location</button>
           </div>
         </form>
-        <p class="text-xs text-slate-500 pt-2">To change categories, use API PATCH /api/auth/seller/categories or contact support.</p>
       `;
+      document.getElementById("seller-categories-form")?.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const picked = Array.from(document.querySelectorAll('input[name="seller-category"]:checked')).map((el) => el.value);
+        if (!picked.length) return showToast("Select at least one category.", true);
+        try {
+          const data = await api("PATCH", "/api/auth/seller/categories", { categories: picked });
+          cachedMe.seller = data.seller || cachedMe.seller;
+          sellerCategories = (cachedMe.seller && cachedMe.seller.categories) || picked;
+          selectedShopCat = sellerCategories[0] || "";
+          renderShopPills();
+          fillCategorySelect();
+          renderProductGrid();
+          showToast("Shop categories saved.");
+          renderMe();
+        } catch (e) {
+          showToast(e.message || "Could not save categories.", true);
+        }
+      });
       if (loc.lat != null && loc.lng != null) setShopGps(loc.lat, loc.lng, loc.accuracy_m);
       var form = document.getElementById("shop-location-form");
       form?.addEventListener("submit", async function (ev) {
@@ -1444,7 +1704,14 @@
 
     document.getElementById("notif-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      showToast("New requests and order updates will appear here.", false);
+      toggleSellerNotifications();
+    });
+    document.addEventListener("click", (e) => {
+      const panel = document.getElementById("seller-notif-panel");
+      const btn = document.getElementById("notif-btn");
+      if (!panel || panel.classList.contains("hidden")) return;
+      if (panel.contains(e.target) || (btn && btn.contains(e.target))) return;
+      panel.classList.add("hidden");
     });
     document.getElementById("refer-tip-sk")?.addEventListener("click", () =>
       showToast("Respond within minutes and add delivery time to your quotes.", false)
@@ -1470,6 +1737,15 @@
         sellerTrack.timer = setInterval(() => {
           paintSellerMap(sellerTrack.orderId).catch(() => {});
         }, 5000);
+      }
+    });
+    document.getElementById("export-products-csv")?.addEventListener("click", exportProductsCsv);
+    document.getElementById("import-products-csv")?.addEventListener("change", async (e) => {
+      try {
+        await importProductsCsv(e.target.files && e.target.files[0]);
+        e.target.value = "";
+      } catch (err) {
+        showToast(err.message || "Import failed.", true);
       }
     });
 
@@ -1509,6 +1785,12 @@
         sellerCategories = (me.seller && me.seller.categories) || [];
         if (!sellerCategories.length && me.seller && me.seller.category) {
           sellerCategories = [me.seller.category];
+        }
+        try {
+          const catData = await api("GET", "/api/categories");
+          allCategories = Array.isArray(catData && catData.categories) ? catData.categories : [];
+        } catch (_) {
+          allCategories = [];
         }
         renderShopPills();
         await loadProducts();

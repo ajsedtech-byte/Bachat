@@ -72,6 +72,45 @@
           </div>
         </section>
 
+        <section class="mt-6 rounded-2xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-[#e5e7eb] flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-bold text-slate-900">Delivery ops dashboard</h2>
+              <p class="text-sm text-slate-500 mt-1">Assign drivers, recover failed deliveries, and monitor live delivery state.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <select id="ops-status" class="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                <option value="">All active delivery orders</option>
+                <option value="pending_details">Pending details</option>
+                <option value="delivery_requested">In pool</option>
+                <option value="delivery_assigned">Assigned</option>
+                <option value="driver_en_route_pickup">Driver to pickup</option>
+                <option value="picked_up">Picked up</option>
+                <option value="en_route_dropoff">To dropoff</option>
+                <option value="failed">Failed</option>
+                <option value="expired_unclaimed">Expired</option>
+              </select>
+              <button type="button" id="ops-refresh" class="rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-3 py-2 text-sm">Refresh ops</button>
+              <button type="button" id="ops-export" class="rounded-lg bg-[#0056d2] text-white font-bold px-3 py-2 text-sm">Export CSV</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-[1100px] w-full text-sm text-left">
+              <thead class="bg-[#f8f9fb] text-slate-500">
+                <tr>
+                  <th class="px-4 py-3">Order</th>
+                  <th class="px-4 py-3">Buyer</th>
+                  <th class="px-4 py-3">Seller</th>
+                  <th class="px-4 py-3">Delivery</th>
+                  <th class="px-4 py-3">Driver</th>
+                  <th class="px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ops-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </section>
+
         <p class="text-xs text-slate-400 mt-6">Approving sets KYC to <strong>verified</strong> so the partner can claim jobs. Rejecting stores a reason shown to the partner on the KYC page.</p>
       </main>
     </div>
@@ -81,6 +120,8 @@
   <script>
     (function () {
       var trk = { map: null, layers: [], timer: null, orderId: "" };
+      var opsRows = [];
+      var opsDrivers = [];
       async function apiFetch(path, options) {
         var clean = String(path || "").indexOf("/") === 0 ? String(path) : "/" + path;
         var proto = location.protocol;
@@ -214,6 +255,121 @@
         } catch (e) {
           return iso;
         }
+      }
+
+      function rupee(n) {
+        return "₹" + (Number(n) || 0).toLocaleString("en-IN");
+      }
+
+      async function loadOps() {
+        var status = String(document.getElementById("ops-status").value || "");
+        var r = await apiFetch("/api/admin/delivery-ops" + (status ? "?status=" + encodeURIComponent(status) : ""), { headers: authHeaders() });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) throw new Error(d.error || "Delivery ops load failed");
+        opsRows = d.items || [];
+        opsDrivers = d.drivers || [];
+        renderOps();
+      }
+
+      function renderOps() {
+        var tb = document.getElementById("ops-body");
+        tb.innerHTML = opsRows.length ? "" : '<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">No delivery orders match this filter.</td></tr>';
+        var driverOptions = '<option value="">Choose driver</option>' + opsDrivers.map(function (d) {
+          var load = (d.active_jobs || 0) + "/" + (d.max_active_jobs || 1);
+          var online = d.is_online ? "online" : "offline";
+          return '<option value="' + esc(d.user_id) + '">' + esc(d.name || d.email) + ' - ' + esc(d.city || "") + ' - ' + online + ' - jobs ' + esc(load) + '</option>';
+        }).join("");
+        opsRows.forEach(function (o) {
+          var issueLines = [];
+          if (o.failed_reason) issueLines.push("Failed: " + o.failed_reason);
+          if (o.cancelled_reason) issueLines.push("Cancelled: " + o.cancelled_reason);
+          if (o.reassignment_count) issueLines.push("Reassigned " + o.reassignment_count + " time" + (o.reassignment_count === 1 ? "" : "s"));
+          var tr = document.createElement("tr");
+          tr.className = "hover:bg-[#f8f9fb]";
+          tr.innerHTML =
+            '<td class="px-4 py-3 align-top"><p class="font-bold">' + esc(o.summary || "Order") + '</p><p class="text-sm text-[#0056d2] font-bold">' + rupee(o.total_amount) + '</p><p class="text-xs text-slate-500 font-mono">' + esc(o.order_id) + '</p></td>' +
+            '<td class="px-4 py-3 align-top"><p class="font-semibold">' + esc(o.buyer_name || "Buyer") + '</p><p class="text-xs text-slate-500">' + esc(o.buyer_phone || "") + '</p></td>' +
+            '<td class="px-4 py-3 align-top"><p class="font-semibold">' + esc(o.seller_name || "Seller") + '</p><p class="text-xs text-slate-500">' + esc(o.seller_area || "") + '</p></td>' +
+            '<td class="px-4 py-3 align-top"><p class="font-bold">' + esc(o.delivery_status || "") + '</p><p class="text-xs text-slate-500">Ready: ' + fmtIso(o.ready_for_pickup_at) + '</p><p class="text-xs text-slate-500">Route points: ' + (o.route_points_count || 0) + '</p>' + (issueLines.length ? '<p class="text-xs text-red-700 mt-1">' + esc(issueLines.join(" | ")) + '</p>' : "") + '</td>' +
+            '<td class="px-4 py-3 align-top"><select class="driver rounded-lg border border-slate-200 px-2 py-2 text-sm min-w-[240px]">' + driverOptions + '</select><p class="text-xs text-slate-500 mt-1">Current: ' + esc(o.driver_user_id || "none") + '</p></td>' +
+            '<td class="px-4 py-3 align-top"><div class="flex flex-wrap gap-2"><button class="assign rounded-lg bg-[#0056d2] text-white font-bold px-3 py-2 text-sm">Assign</button><button class="track rounded-lg border border-slate-200 text-slate-700 font-bold px-3 py-2 text-sm">Track</button><button class="audit rounded-lg border border-slate-200 text-slate-700 font-bold px-3 py-2 text-sm">Audit</button><button class="fail rounded-lg border border-red-200 text-red-700 font-bold px-3 py-2 text-sm">Mark failed</button><button class="cancel rounded-lg border border-slate-200 text-slate-700 font-bold px-3 py-2 text-sm">Cancel</button></div></td>';
+          tr.querySelector(".assign").addEventListener("click", async function () {
+            var driver = tr.querySelector(".driver").value;
+            if (!driver) return showErr("Choose a verified driver first.");
+            var r = await apiFetch("/api/admin/delivery-ops/" + encodeURIComponent(o.order_id) + "/assign", {
+              method: "PATCH",
+              headers: authHeaders(),
+              body: JSON.stringify({ driver_user_id: driver }),
+            });
+            var d = await r.json().catch(function () { return {}; });
+            if (!r.ok) throw new Error(d.error || "Assign failed");
+            showOk("Driver assigned.");
+            await loadOps();
+          });
+          tr.querySelector(".track").addEventListener("click", function () {
+            document.getElementById("trk-order-id").value = o.order_id;
+            trk.orderId = o.order_id;
+            loadTrack(o.order_id).catch(function (e) { showErr(e.message || "Route load failed"); });
+          });
+          tr.querySelector(".audit").addEventListener("click", async function () {
+            await showDeliveryAudit(o.order_id);
+          });
+          tr.querySelector(".fail").addEventListener("click", async function () {
+            await setDeliveryStatus(o.order_id, "failed");
+          });
+          tr.querySelector(".cancel").addEventListener("click", async function () {
+            await setDeliveryStatus(o.order_id, "cancelled");
+          });
+          tb.appendChild(tr);
+        });
+      }
+
+      async function setDeliveryStatus(orderId, status) {
+        if (!confirm("Set delivery status to " + status + "?")) return;
+        var reason = "";
+        if (status === "failed" || status === "cancelled") {
+          reason = String(prompt("Reason for " + status + " delivery:", "") || "").trim();
+          if (!reason) return showErr("Reason is required for " + status + " deliveries.");
+        }
+        var r = await apiFetch("/api/admin/delivery-ops/" + encodeURIComponent(orderId) + "/status", {
+          method: "PATCH",
+          headers: authHeaders(),
+          body: JSON.stringify({ status: status, reason: reason }),
+        });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) throw new Error(d.error || "Status update failed");
+        showOk("Delivery status updated.");
+        await loadOps();
+      }
+
+      async function showDeliveryAudit(orderId) {
+        var r = await apiFetch("/api/admin/delivery-ops/" + encodeURIComponent(orderId) + "/audit", { headers: authHeaders() });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) throw new Error(d.error || "Audit load failed");
+        var items = d.items || [];
+        if (!items.length) return alert("No delivery audit events yet.");
+        alert(items.map(function (x) {
+          return [
+            fmtIso(x.created_at),
+            x.action,
+            x.from_status && x.to_status ? x.from_status + " -> " + x.to_status : "",
+            x.driver_user_id ? "driver " + x.driver_user_id : "",
+            x.reason ? "reason: " + x.reason : "",
+          ].filter(Boolean).join(" | ");
+        }).join("\n"));
+      }
+
+      function exportOpsCsv() {
+        var cols = ["order_id", "summary", "total_amount", "payment_status", "order_status", "delivery_status", "buyer_name", "seller_name", "driver_user_id", "ready_for_pickup_at", "claim_expires_at", "route_points_count", "failed_reason", "cancelled_reason", "reassignment_count"];
+        var csv = [cols.join(",")].concat(opsRows.map(function (r) {
+          return cols.map(function (c) { return '"' + String(r[c] == null ? "" : r[c]).replace(/"/g, '""') + '"'; }).join(",");
+        })).join("\n");
+        var url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "bachat-delivery-ops.csv";
+        a.click();
+        URL.revokeObjectURL(url);
       }
 
       async function loadQueue() {
@@ -371,6 +527,7 @@
         }
         try {
           await loadQueue();
+          await loadOps();
         } catch (e) {
           document.getElementById("loading").classList.add("hidden");
           showErr(e.message || "Network error");
@@ -380,6 +537,13 @@
       document.getElementById("btn-refresh").addEventListener("click", function () {
         boot();
       });
+      document.getElementById("ops-refresh").addEventListener("click", function () {
+        loadOps().catch(function (e) { showErr(e.message || "Delivery ops load failed"); });
+      });
+      document.getElementById("ops-status").addEventListener("change", function () {
+        loadOps().catch(function (e) { showErr(e.message || "Delivery ops load failed"); });
+      });
+      document.getElementById("ops-export").addEventListener("click", exportOpsCsv);
       document.getElementById("trk-load").addEventListener("click", function () {
         var oid = String(document.getElementById("trk-order-id").value || "").trim();
         if (!oid) return showErr("Enter order id to load route.");

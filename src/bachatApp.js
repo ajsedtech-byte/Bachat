@@ -19,6 +19,7 @@ const digilockerRoutes = require("./routes/digilocker");
 const disputesRoutes = require("./routes/disputes");
 const leadsRoutes = require("./routes/leads");
 const oidcTeamRoutes = require("./routes/oidcTeam");
+const notificationRoutes = require("./routes/notifications");
 
 const app = express();
 const publicDir = path.join(__dirname, "..", "public");
@@ -82,6 +83,7 @@ app.get("/api/categories", (_req, res) => {
 
 app.use("/api/geo", geoRoutes);
 app.use("/api/digilocker", digilockerRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/oidc", oidcTeamRoutes);

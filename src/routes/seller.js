@@ -1,5 +1,6 @@
 const express = require("express");
 const Order = require("../models/Order");
+const Payment = require("../models/Payment");
 const Seller = require("../models/Seller");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
@@ -55,6 +56,51 @@ router.get("/payouts-summary", requireAuth, requireRole("seller"), async (req, r
 });
 
 /** Current shopkeeper eKYC state (documents are not echoed — use counts only). */
+router.get("/payouts-history", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const seller = await Seller.findOne({ user: req.user.id }).lean();
+    if (!seller) return res.json({ items: [] });
+
+    const orders = await Order.find({ seller: seller._id }).sort({ createdAt: -1 }).limit(250).lean();
+    const orderIds = orders.map((o) => o._id);
+    const payments = orderIds.length ? await Payment.find({ order: { $in: orderIds } }).lean() : [];
+    const paymentByOrder = new Map(payments.map((p) => [String(p.order), p]));
+    const commissionRate = Math.max(0, Number(process.env.SELLER_COMMISSION_RATE || 0));
+
+    const items = orders.map((o) => {
+      const payment = paymentByOrder.get(String(o._id)) || {};
+      const gross = round2(o.finalPrice || o.totalAmount || 0);
+      const commission = round2(gross * commissionRate);
+      const net = round2(Math.max(0, gross - commission));
+      const paymentStatus = String(o.paymentStatus || "pending");
+      const orderStatus = String(o.orderStatus || "");
+      let settlementStatus = "not_ready";
+      if (paymentStatus === "paid" && orderStatus === "delivered") settlementStatus = "ready_for_settlement";
+      else if (paymentStatus === "paid") settlementStatus = "delivery_pending";
+      else if (paymentStatus === "failed") settlementStatus = "payment_failed";
+      else if (orderStatus === "cancelled") settlementStatus = "cancelled";
+
+      return {
+        order_id: String(o._id),
+        created_at: o.createdAt,
+        summary: o.summary || "Order",
+        order_status: orderStatus,
+        payment_status: paymentStatus,
+        settlement_status: settlementStatus,
+        gross,
+        commission,
+        net,
+        provider_order_id: payment.providerOrderId || "",
+        provider_payment_id: payment.providerPaymentId || "",
+      };
+    });
+
+    return res.json({ items });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.get("/kyc", requireAuth, requireRole("seller"), async (req, res, next) => {
   try {
     const seller = await Seller.findOne({ user: req.user.id }).lean();

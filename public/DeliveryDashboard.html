@@ -17,7 +17,13 @@
         <p id="hello" class="text-lg font-black text-slate-900">…</p>
         <p id="area" class="text-xs text-slate-600"></p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <select id="availability-state" class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold">
+          <option value="true">Online</option>
+          <option value="false">Offline</option>
+        </select>
+        <input id="availability-max" type="number" min="1" max="20" value="3" class="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-sm font-bold" title="Max active jobs" />
+        <button type="button" id="availability-save" class="text-sm font-semibold text-[#0056d2] px-3 py-1.5 rounded-lg border border-[#0056d2]/30">Save status</button>
         <button type="button" id="refresh" class="text-sm font-semibold text-[#0056d2] px-3 py-1.5 rounded-lg border border-[#0056d2]/30">Refresh</button>
         <button type="button" id="logout" class="text-sm text-slate-600 px-3 py-1.5">Log out</button>
       </div>
@@ -228,6 +234,20 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Claim failed");
+      return data;
+    }
+
+    async function saveAvailability() {
+      const isOnline = document.getElementById("availability-state").value === "true";
+      const maxActiveJobs = Number(document.getElementById("availability-max").value || 3);
+      const res = await apiFetch("/api/delivery/availability", {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ is_online: isOnline, max_active_jobs: maxActiveJobs }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not update availability");
+      showFlash(isOnline ? "You are online for delivery jobs." : "You are offline for delivery jobs.", "ok");
       return data;
     }
 
@@ -552,6 +572,9 @@
     });
 
     document.getElementById("refresh").addEventListener("click", () => boot());
+    document.getElementById("availability-save").addEventListener("click", () => {
+      saveAvailability().catch((e) => showFlash(e.message || "Availability update failed", "err"));
+    });
 
     document.getElementById("strict").addEventListener("change", () => {
       if (kycVerified) loadAll().catch((e) => showFlash(e.message, "err"));

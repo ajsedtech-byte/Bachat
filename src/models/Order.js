@@ -58,6 +58,7 @@ const orderSchema = new mongoose.Schema(
       enum: ["processing", "shipped", "delivered", "cancelled"],
       default: "processing",
     },
+    cancelReason: { type: String, default: "", trim: true, maxlength: 500 },
     delivery: {
       status: {
         type: String,
@@ -91,6 +92,10 @@ const orderSchema = new mongoose.Schema(
       readyForPickupAt: { type: Date, default: null },
       pickedUpAt: { type: Date, default: null },
       deliveredAt: { type: Date, default: null },
+      failedAt: { type: Date, default: null },
+      failedReason: { type: String, default: "", trim: true, maxlength: 800 },
+      cancelledReason: { type: String, default: "", trim: true, maxlength: 800 },
+      reassignmentCount: { type: Number, default: 0, min: 0 },
       /** Copied from buyer profile at request time — used to match drivers by area. */
       dropoffCity: { type: String, default: "" },
       dropoffRegion: { type: String, default: "" },

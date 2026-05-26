@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alerts — Bachat Ops</title>
   <link rel="icon" href="/assets/bachat-icon-original.png" type="image/png" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
@@ -14,36 +15,152 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header data-bachat-topbar class="min-h-16 px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 border-b border-[#e5e7eb] bg-white sticky top-0 z-30"></header>
       <main class="flex-1 p-4 lg:p-6 overflow-auto">
-        <h1 class="text-2xl font-extrabold">Ops alerts</h1>
-        <p class="text-slate-500 text-sm mt-1"><code class="text-xs bg-slate-100 px-1 rounded">GET /api/admin/notifications-summary</code> — expand with rules engine later.</p>
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold">Notification center</h1>
+            <p class="text-sm text-slate-500 mt-1">Create rules, campaigns, target audiences, and track delivery metrics.</p>
+          </div>
+          <button id="refresh" class="rounded-xl bg-[#0056d2] px-4 py-2 text-sm font-bold text-white">Refresh</button>
+        </div>
         <p id="err" class="hidden mt-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3"></p>
-        <div id="box" class="hidden mt-6 grid sm:grid-cols-2 gap-4 max-w-2xl"></div>
-        <p class="mt-6 text-sm"><a href="/admin-delivery.html" class="text-[#0056d2] font-bold hover:underline">Open delivery KYC queue →</a></p>
+        <div id="summary" class="grid sm:grid-cols-4 gap-4 mt-6"></div>
+
+        <div class="grid xl:grid-cols-2 gap-6 mt-6">
+          <section class="rounded-2xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-[#e5e7eb]">
+              <h2 class="font-bold">Automation rules</h2>
+              <p class="text-sm text-slate-500 mt-1">Rules define which event triggers which message.</p>
+            </div>
+            <form id="rule-form" class="p-5 grid sm:grid-cols-2 gap-3 text-sm">
+              <input name="name" required class="rounded-lg border border-slate-200 px-3 py-2" placeholder="Rule name" />
+              <select name="trigger" class="rounded-lg border border-slate-200 px-3 py-2"></select>
+              <select name="audience" class="rounded-lg border border-slate-200 px-3 py-2"></select>
+              <input name="channels" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="Channels: in_app,email" value="in_app" />
+              <input name="city" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="City optional" />
+              <input name="region" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="Region optional" />
+              <input name="template_title" class="sm:col-span-2 rounded-lg border border-slate-200 px-3 py-2" placeholder="Message title" />
+              <textarea name="template_body" rows="3" class="sm:col-span-2 rounded-lg border border-slate-200 px-3 py-2" placeholder="Message body"></textarea>
+              <button class="sm:col-span-2 rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2">Save rule</button>
+            </form>
+            <div id="rules" class="divide-y divide-slate-100"></div>
+          </section>
+
+          <section class="rounded-2xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-[#e5e7eb]">
+              <h2 class="font-bold">Campaigns</h2>
+              <p class="text-sm text-slate-500 mt-1">Plan announcements, coupons, and city-specific outreach.</p>
+            </div>
+            <form id="campaign-form" class="p-5 grid sm:grid-cols-2 gap-3 text-sm">
+              <input name="name" required class="rounded-lg border border-slate-200 px-3 py-2" placeholder="Campaign name" />
+              <select name="audience" class="rounded-lg border border-slate-200 px-3 py-2"></select>
+              <input name="channels" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="Channels: in_app,email" value="in_app" />
+              <input name="coupon_code" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="Coupon optional" />
+              <input name="city" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="City optional" />
+              <input name="region" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="Region optional" />
+              <input name="title" required class="sm:col-span-2 rounded-lg border border-slate-200 px-3 py-2" placeholder="Campaign title" />
+              <textarea name="body" required rows="3" class="sm:col-span-2 rounded-lg border border-slate-200 px-3 py-2" placeholder="Campaign message"></textarea>
+              <select name="status" class="rounded-lg border border-slate-200 px-3 py-2"><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="sent">Send now</option></select>
+              <input name="scheduled_at" type="datetime-local" class="rounded-lg border border-slate-200 px-3 py-2" />
+              <button class="sm:col-span-2 rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2">Create campaign</button>
+            </form>
+            <div id="campaigns" class="divide-y divide-slate-100"></div>
+          </section>
+        </div>
       </main>
     </div>
   </div>
   <script src="/js/bachat-admin-shell.js"></script>
   <script src="/js/bachat-admin-runtime.js"></script>
   <script>
-    (async function () {
-      if (!(await BachatAdminRuntime.guardAdminPage())) return;
-      var err = document.getElementById("err");
-      var res = await BachatAdminRuntime.adminFetch("/api/admin/notifications-summary", { headers: BachatAdminRuntime.authHeaders() });
-      var d = await res.json().catch(function () {
-        return {};
-      });
-      if (!res.ok) {
-        err.textContent = d.error || "Failed";
-        err.classList.remove("hidden");
-        return;
+    (function () {
+      var meta = { audiences: ["buyers"], channels: ["in_app"], triggers: ["manual_campaign"] };
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
       }
-      document.getElementById("box").innerHTML =
-        '<div class="rounded-xl bg-amber-50 border border-amber-200 p-5"><p class="text-xs font-bold text-amber-900 uppercase">Delivery KYC pending</p><p class="text-3xl font-extrabold mt-2 text-amber-950">' +
-        d.delivery_kyc_pending_review +
-        '</p></div><div class="rounded-xl bg-[#e8f1fc] border border-[#0056d2]/20 p-5"><p class="text-xs font-bold text-[#0056d2] uppercase">Open buyer requests</p><p class="text-3xl font-extrabold mt-2 text-slate-900">' +
-        d.open_buyer_requests +
-        "</p></div>";
-      document.getElementById("box").classList.remove("hidden");
+      function channels(v) {
+        return String(v || "in_app").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+      }
+      function opts(list) {
+        return (list || []).map(function (x) { return '<option value="' + esc(x) + '">' + esc(x.replace(/_/g, " ")) + "</option>"; }).join("");
+      }
+      function card(label, value, color) {
+        return '<div class="rounded-xl border border-[#e5e7eb] bg-white p-5 shadow-sm"><p class="text-xs font-bold uppercase text-slate-500">' + label + '</p><p class="text-3xl font-extrabold mt-2 ' + color + '">' + value + '</p></div>';
+      }
+      async function api(path, options) {
+        var res = await BachatAdminRuntime.adminFetch(path, Object.assign({ headers: BachatAdminRuntime.authHeaders() }, options || {}));
+        var d = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(d.error || "Request failed");
+        return d;
+      }
+      function fillSelects() {
+        document.querySelector('#rule-form select[name="trigger"]').innerHTML = opts(meta.triggers);
+        document.querySelector('#rule-form select[name="audience"]').innerHTML = opts(meta.audiences);
+        document.querySelector('#campaign-form select[name="audience"]').innerHTML = opts(meta.audiences);
+      }
+      function renderRules(items) {
+        var box = document.getElementById("rules");
+        box.innerHTML = items.length ? "" : '<p class="p-5 text-sm text-slate-500">No rules yet.</p>';
+        items.forEach(function (r) {
+          var el = document.createElement("div");
+          el.className = "p-4 flex flex-wrap items-start justify-between gap-3";
+          el.innerHTML = '<div><p class="font-bold">' + esc(r.name) + ' <span class="text-xs text-slate-500">(' + esc(r.trigger) + ')</span></p><p class="text-sm text-slate-500">' + esc(r.audience) + ' · ' + esc((r.channels || []).join(", ")) + ' · cooldown ' + (r.cooldown_minutes || 0) + 'm</p><p class="text-sm mt-1">' + esc(r.template_title || "") + '</p></div><button class="toggle rounded-lg border px-3 py-2 text-sm font-bold ' + (r.enabled ? 'border-red-200 text-red-700' : 'border-emerald-200 text-emerald-700') + '">' + (r.enabled ? 'Disable' : 'Enable') + '</button>';
+          el.querySelector(".toggle").addEventListener("click", async function () {
+            await api("/api/admin/notification-rules/" + encodeURIComponent(r.rule_id), { method: "PATCH", body: JSON.stringify({ enabled: !r.enabled }) });
+            await load();
+          });
+          box.appendChild(el);
+        });
+      }
+      function renderCampaigns(items) {
+        var box = document.getElementById("campaigns");
+        box.innerHTML = items.length ? "" : '<p class="p-5 text-sm text-slate-500">No campaigns yet.</p>';
+        items.forEach(function (c) {
+          var el = document.createElement("div");
+          el.className = "p-4";
+          el.innerHTML = '<div class="flex flex-wrap items-start justify-between gap-3"><div><p class="font-bold">' + esc(c.name) + '</p><p class="text-sm text-slate-500">' + esc(c.audience) + ' · ' + esc((c.channels || []).join(", ")) + ' · ' + esc(c.status) + '</p></div><button class="send rounded-lg bg-[#0056d2] text-white px-3 py-2 text-sm font-bold">Dispatch now</button></div><p class="mt-2 font-semibold">' + esc(c.title) + '</p><p class="text-sm text-slate-600 mt-1">' + esc(c.body) + '</p><div class="mt-3 grid sm:grid-cols-4 grid-cols-2 gap-2 text-sm"><div class="rounded-lg bg-[#f8f9fb] p-2"><b>' + (c.estimated_recipients || 0) + '</b><br><span class="text-slate-500">Target</span></div><div class="rounded-lg bg-[#f8f9fb] p-2"><b>' + (c.sent_count || 0) + '</b><br><span class="text-slate-500">Sent</span></div><div class="rounded-lg bg-[#f8f9fb] p-2"><b>' + (c.opened_count || 0) + '</b><br><span class="text-slate-500">Opens</span></div><div class="rounded-lg bg-[#f8f9fb] p-2"><b>' + (c.clicked_count || 0) + '</b><br><span class="text-slate-500">Clicks</span></div></div>';
+          el.querySelector(".send").addEventListener("click", async function () {
+            await api("/api/admin/notification-campaigns/" + encodeURIComponent(c.campaign_id) + "/dispatch", { method: "POST" });
+            await load();
+          });
+          box.appendChild(el);
+        });
+      }
+      async function load() {
+        var err = document.getElementById("err");
+        err.classList.add("hidden");
+        try {
+          var summary = await api("/api/admin/notifications-summary");
+          document.getElementById("summary").innerHTML = card("Delivery KYC", summary.delivery_kyc_pending_review || 0, "text-amber-700") + card("Open requests", summary.open_buyer_requests || 0, "text-[#0056d2]") + card("Enabled rules", summary.enabled_rules || 0, "text-emerald-700") + card("Scheduled", summary.scheduled_campaigns || 0, "text-indigo-700");
+          var rules = await api("/api/admin/notification-rules");
+          meta = { audiences: rules.audiences, channels: rules.channels, triggers: rules.triggers };
+          fillSelects();
+          renderRules(rules.items || []);
+          var campaigns = await api("/api/admin/notification-campaigns");
+          renderCampaigns(campaigns.items || []);
+        } catch (e) {
+          err.textContent = e.message || "Failed";
+          err.classList.remove("hidden");
+        }
+      }
+      (async function () {
+        if (!(await BachatAdminRuntime.guardAdminPage())) return;
+        document.getElementById("refresh").addEventListener("click", load);
+        document.getElementById("rule-form").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var fd = new FormData(e.target);
+          await api("/api/admin/notification-rules", { method: "POST", body: JSON.stringify({ name: fd.get("name"), trigger: fd.get("trigger"), audience: fd.get("audience"), channels: channels(fd.get("channels")), city: fd.get("city"), region: fd.get("region"), template_title: fd.get("template_title"), template_body: fd.get("template_body") }) });
+          e.target.reset();
+          await load();
+        });
+        document.getElementById("campaign-form").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var fd = new FormData(e.target);
+          await api("/api/admin/notification-campaigns", { method: "POST", body: JSON.stringify({ name: fd.get("name"), audience: fd.get("audience"), channels: channels(fd.get("channels")), city: fd.get("city"), region: fd.get("region"), coupon_code: fd.get("coupon_code"), title: fd.get("title"), body: fd.get("body"), status: fd.get("status"), scheduled_at: fd.get("scheduled_at") ? new Date(String(fd.get("scheduled_at"))).toISOString() : null }) });
+          e.target.reset();
+          await load();
+        });
+        await load();
+      })();
     })();
   </script>
 </body>

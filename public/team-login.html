@@ -8,9 +8,16 @@
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
+  <style id="team-login-fallback">
+    img, picture { max-width: 100%; height: auto; }
+    @media (max-width: 1023px) {
+      aside { display: none !important; }
+      .team-login-shell { display: block !important; max-width: 100vw; overflow-x: hidden; }
+      body { overflow-x: hidden; }
+    }
+  </style></head>
 <body class="bachat-ui m-0 h-[100dvh] overflow-hidden bg-[#f4f6f9] text-slate-900">
-  <div class="flex h-[100dvh] max-h-[100dvh] min-h-0 w-full flex-col overflow-hidden lg:grid lg:grid-cols-2 lg:min-h-0">
+  <div class="team-login-shell flex h-[100dvh] max-h-[100dvh] min-h-0 w-full flex-col overflow-hidden lg:grid lg:grid-cols-2 lg:min-h-0">
     <!-- Mobile hero -->
     <div class="relative shrink-0 overflow-hidden bg-gradient-to-b from-[#2563eb] via-[#1d4ed8] to-[#0f2857] px-4 pb-3 pt-4 text-white lg:hidden">
       <div class="pointer-events-none absolute -left-20 -top-16 h-72 w-72 rounded-full border border-white/[0.08]"></div>
@@ -325,3 +332,5 @@
   </script>
 </body>
 </html>
+
+

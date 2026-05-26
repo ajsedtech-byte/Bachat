@@ -130,6 +130,31 @@ router.get("/onboarding-status", requireAuth, requireRole("delivery"), async (re
   }
 });
 
+router.patch("/availability", requireAuth, requireRole("delivery"), async (req, res, next) => {
+  try {
+    const isOnline = req.body?.is_online != null ? Boolean(req.body.is_online) : Boolean(req.body?.isOnline);
+    const maxActiveJobs = Math.max(1, Math.min(20, Number(req.body?.max_active_jobs || req.body?.maxActiveJobs || 3) || 3));
+    const user = await User.findOneAndUpdate(
+      { _id: req.user.id, role: "delivery" },
+      {
+        $set: {
+          "deliveryAvailability.isOnline": isOnline,
+          "deliveryAvailability.lastSeenAt": new Date(),
+          "deliveryAvailability.maxActiveJobs": maxActiveJobs,
+        },
+      },
+      { new: true }
+    ).lean();
+    return res.json({
+      is_online: Boolean(user?.deliveryAvailability?.isOnline),
+      max_active_jobs: user?.deliveryAvailability?.maxActiveJobs || maxActiveJobs,
+      last_seen_at: user?.deliveryAvailability?.lastSeenAt || null,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.use(requireAuth, requireRole("delivery"), requireDeliveryKycVerified);
 
 /** Orders currently assigned to this driver (in-progress delivery). */

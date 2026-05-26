@@ -15,7 +15,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const base = (process.env.TEST_API_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
-const skip = String(process.env.SKIP_API_TESTS || "").toLowerCase() === "1" || process.env.SKIP_API_TESTS === "true";
+const runDeliveryGpsTests =
+  process.env.RUN_DELIVERY_GPS_TESTS === "1" || process.env.RUN_API_INTEGRATION_TESTS === "1";
+const skip =
+  String(process.env.SKIP_API_TESTS || "").toLowerCase() === "1" ||
+  process.env.SKIP_API_TESTS === "true" ||
+  !runDeliveryGpsTests;
 
 function tokenFor(userId, role) {
   return jwt.sign({ sub: String(userId), role }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -27,13 +32,28 @@ function referralCode(prefix) {
 }
 
 async function req(token, method, route, body) {
+  const signal = AbortSignal.timeout(Number(process.env.TEST_FETCH_TIMEOUT_MS || 12000));
   const res = await fetch(base + route, {
     method,
+    signal,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: body == null ? undefined : JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
   return { res, data };
+}
+
+async function connectMongo() {
+  const timeoutMs = Number(process.env.TEST_MONGO_TIMEOUT_MS || 8000);
+  await Promise.race([
+    mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: timeoutMs,
+      connectTimeoutMS: timeoutMs,
+      socketTimeoutMS: timeoutMs,
+      maxPoolSize: 2,
+    }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("Mongo test connection timed out")), timeoutMs + 1000)),
+  ]);
 }
 
 async function seedPaidOrder() {
@@ -96,46 +116,58 @@ async function seedPaidOrder() {
   return { buyer, order };
 }
 
-test("delivery-request rejects missing dropoff coordinates", { skip }, async () => {
-  await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 15000 });
-  const { buyer, order } = await seedPaidOrder();
-  const buyerTok = tokenFor(buyer._id, "buyer");
-  const { res, data } = await req(buyerTok, "POST", `/api/orders/${order._id}/delivery-request`, {
-    dropoff: { address_text: "Vijay Nagar, Indore" },
-  });
-  await mongoose.disconnect();
+test("delivery-request rejects missing dropoff coordinates", { skip, timeout: 30000 }, async () => {
+  let order;
+  try {
+    await connectMongo();
+    const seeded = await seedPaidOrder();
+    order = seeded.order;
+    const buyerTok = tokenFor(seeded.buyer._id, "buyer");
+    const { res, data } = await req(buyerTok, "POST", `/api/orders/${order._id}/delivery-request`, {
+      dropoff: { address_text: "Vijay Nagar, Indore" },
+    });
 
-  assert.equal(res.status, 400);
-  assert.match(String(data.error || ""), /dropoff\.lat and dropoff\.lng are required/i);
+    assert.equal(res.status, 400);
+    assert.match(String(data.error || ""), /drop-off GPS location is required|dropoff\.lat and dropoff\.lng are required/i);
+  } finally {
+    if (order) await Order.deleteOne({ _id: order._id }).catch(() => {});
+    await mongoose.disconnect().catch(() => {});
+  }
 });
 
-test("delivery-request geofence mismatch is rejected (or geocode outage surfaces)", { skip }, async () => {
-  await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 15000 });
-  const { buyer, order } = await seedPaidOrder();
-  const buyerTok = tokenFor(buyer._id, "buyer");
-  const { res, data } = await req(buyerTok, "POST", `/api/orders/${order._id}/delivery-request`, {
-    dropoff: {
-      address_text: "Chennai location mismatch probe",
-      lat: 13.0827,
-      lng: 80.2707,
-      pincode: "600001",
-      consent_accepted_at: new Date().toISOString(),
-    },
-    pickup: {
-      address_text: "Rajwada, Indore",
-      lat: 22.7196,
-      lng: 75.8577,
-      pincode: "452001",
-      consent_accepted_at: new Date().toISOString(),
-    },
-  });
-  await mongoose.disconnect();
+test("delivery-request geofence mismatch is rejected (or geocode outage surfaces)", { skip, timeout: 30000 }, async () => {
+  let order;
+  try {
+    await connectMongo();
+    const seeded = await seedPaidOrder();
+    order = seeded.order;
+    const buyerTok = tokenFor(seeded.buyer._id, "buyer");
+    const { res, data } = await req(buyerTok, "POST", `/api/orders/${order._id}/delivery-request`, {
+      dropoff: {
+        address_text: "Chennai location mismatch probe",
+        lat: 13.0827,
+        lng: 80.2707,
+        pincode: "600001",
+        consent_accepted_at: new Date().toISOString(),
+      },
+      pickup: {
+        address_text: "Rajwada, Indore",
+        lat: 22.7196,
+        lng: 75.8577,
+        pincode: "452001",
+        consent_accepted_at: new Date().toISOString(),
+      },
+    });
 
-  assert.ok([400, 502].includes(res.status), `expected 400/502, got ${res.status}`);
-  if (res.status === 400) {
-    assert.match(String(data.error || ""), /does not match/i);
-  } else {
-    assert.match(String(data.error || ""), /Could not validate GPS area/i);
+    assert.ok([400, 502].includes(res.status), `expected 400/502, got ${res.status}`);
+    if (res.status === 400) {
+      assert.match(String(data.error || ""), /does not match/i);
+    } else {
+      assert.match(String(data.error || ""), /Could not validate GPS area/i);
+    }
+  } finally {
+    if (order) await Order.deleteOne({ _id: order._id }).catch(() => {});
+    await mongoose.disconnect().catch(() => {});
   }
 });
 

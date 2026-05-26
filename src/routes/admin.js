@@ -5,13 +5,20 @@ const Seller = require("../models/Seller");
 const Request = require("../models/Request");
 const Quote = require("../models/Quote");
 const Order = require("../models/Order");
+const Payment = require("../models/Payment");
 const Dispute = require("../models/Dispute");
 const AnalyticsEvent = require("../models/AnalyticsEvent");
 const Lead = require("../models/Lead");
+const CityArea = require("../models/CityArea");
+const NotificationRule = require("../models/NotificationRule");
+const NotificationCampaign = require("../models/NotificationCampaign");
+const NotificationDelivery = require("../models/NotificationDelivery");
+const DeliveryAudit = require("../models/DeliveryAudit");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatRequest, formatOrder, formatDispute, formatSeller } = require("../lib/format");
 const { SELLER_KYC_DOC_KINDS, MAX_DOC_CHARS, MAX_DOCS } = require("../lib/sellerKycDocs");
 const { sendMail } = require("../services/email");
+const { dispatchCampaign, dispatchDueCampaigns } = require("../services/notificationDispatcher");
 
 const router = express.Router();
 const SELLER_DOC_KIND_SET = new Set(SELLER_KYC_DOC_KINDS);
@@ -507,6 +514,58 @@ function escapeRegExp(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function cleanShort(value, max = 160) {
+  return String(value || "").trim().slice(0, max);
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : value == null ? [] : [value];
+}
+
+async function estimateAudience({ audience, city, region }) {
+  const roles =
+    audience === "all"
+      ? ["buyer", "seller", "delivery", "sales", "admin"]
+      : audience === "buyers"
+      ? ["buyer"]
+      : audience === "sellers"
+      ? ["seller"]
+      : audience === "admins"
+      ? ["admin"]
+      : [audience];
+  const filter = { role: { $in: roles } };
+  if (city) filter.city = new RegExp(`^${escapeRegExp(city)}$`, "i");
+  if (region) filter.region = new RegExp(`^${escapeRegExp(region)}$`, "i");
+  return User.countDocuments(filter);
+}
+
+function fmtCityArea(row, metrics = {}) {
+  return {
+    area_id: row && row._id ? String(row._id) : "",
+    city: row.city,
+    region: row.region,
+    active: row.active !== false,
+    priority: row.priority || "normal",
+    service_radius_km: row.serviceRadiusKm || 0,
+    lat: row.lat ?? null,
+    lng: row.lng ?? null,
+    notes: row.notes || "",
+    metrics,
+    updated_at: row.updatedAt || null,
+  };
+}
+
+function avgCoords(items) {
+  const pts = items
+    .map((x) => x && x.location)
+    .filter((loc) => Number.isFinite(Number(loc?.lat)) && Number.isFinite(Number(loc?.lng)));
+  if (!pts.length) return { lat: null, lng: null };
+  return {
+    lat: Math.round((pts.reduce((s, p) => s + Number(p.lat), 0) / pts.length) * 1000000) / 1000000,
+    lng: Math.round((pts.reduce((s, p) => s + Number(p.lng), 0) / pts.length) * 1000000) / 1000000,
+  };
+}
+
 /** KPIs + recent requests for the ops dashboard */
 router.get("/overview", async (_req, res, next) => {
   try {
@@ -801,20 +860,52 @@ router.get("/requests", async (req, res, next) => {
 
 router.get("/finance-summary", async (_req, res, next) => {
   try {
-    const [paidAgg, byPayment, byOrder] = await Promise.all([
+    const commissionRate = Math.max(0, Number(process.env.SELLER_COMMISSION_RATE || 0));
+    const [paidAgg, failedAgg, refundAgg, byPayment, byOrder, recentPayments] = await Promise.all([
       Order.aggregate([
         { $match: { paymentStatus: "paid" } },
         { $group: { _id: null, sum: { $sum: "$totalAmount" }, n: { $sum: 1 } } },
       ]),
+      Order.aggregate([
+        { $match: { paymentStatus: "failed" } },
+        { $group: { _id: null, sum: { $sum: "$totalAmount" }, n: { $sum: 1 } } },
+      ]),
+      Order.aggregate([
+        { $match: { paymentStatus: "refunded" } },
+        { $group: { _id: null, sum: { $sum: "$totalAmount" }, n: { $sum: 1 } } },
+      ]),
       Order.aggregate([{ $group: { _id: "$paymentStatus", n: { $sum: 1 } } }]),
       Order.aggregate([{ $group: { _id: "$orderStatus", n: { $sum: 1 } } }]),
+      Payment.find({}).sort({ updatedAt: -1 }).limit(50).populate("order", "totalAmount finalPrice paymentStatus orderStatus").lean(),
     ]);
     const paid = paidAgg[0] || { sum: 0, n: 0 };
+    const failed = failedAgg[0] || { sum: 0, n: 0 };
+    const refunds = refundAgg[0] || { sum: 0, n: 0 };
+    const commission = Math.round(Number(paid.sum || 0) * commissionRate * 100) / 100;
     return res.json({
       paid_revenue_inr: paid.sum || 0,
       paid_orders: paid.n || 0,
+      failed_payment_value_inr: failed.sum || 0,
+      failed_payment_orders: failed.n || 0,
+      refunds_value_inr: refunds.sum || 0,
+      refunds_count: refunds.n || 0,
+      seller_commission_rate: commissionRate,
+      seller_commission_inr: commission,
+      seller_payable_inr: Math.max(0, Math.round((Number(paid.sum || 0) - commission) * 100) / 100),
       payment_breakdown: Object.fromEntries(byPayment.map((x) => [x._id, x.n])),
       order_status_breakdown: Object.fromEntries(byOrder.map((x) => [x._id, x.n])),
+      recent_payments: recentPayments.map((p) => ({
+        payment_id: String(p._id),
+        order_id: p.order ? String(p.order._id) : "",
+        amount: p.amount || (p.order && (p.order.finalPrice || p.order.totalAmount)) || 0,
+        status: p.status,
+        provider: p.provider,
+        provider_order_id: p.providerOrderId || "",
+        provider_payment_id: p.providerPaymentId || "",
+        order_payment_status: p.order ? p.order.paymentStatus : "",
+        order_status: p.order ? p.order.orderStatus : "",
+        updated_at: p.updatedAt,
+      })),
     });
   } catch (err) {
     return next(err);
@@ -839,13 +930,457 @@ router.get("/marketing-summary", async (_req, res, next) => {
 
 router.get("/notifications-summary", async (_req, res, next) => {
   try {
-    const [kycPending, openReq] = await Promise.all([
+    const [kycPending, openReq, rulesEnabled, campaignsScheduled] = await Promise.all([
       User.countDocuments({ role: "delivery", "deliveryKyc.status": "submitted" }),
       Request.countDocuments({ status: "open" }),
+      NotificationRule.countDocuments({ enabled: true }),
+      NotificationCampaign.countDocuments({ status: "scheduled" }),
     ]);
     return res.json({
       delivery_kyc_pending_review: kycPending,
       open_buyer_requests: openReq,
+      enabled_rules: rulesEnabled,
+      scheduled_campaigns: campaignsScheduled,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/notification-rules", async (_req, res, next) => {
+  try {
+    const rows = await NotificationRule.find({}).sort({ updatedAt: -1 }).limit(200).lean();
+    return res.json({
+      triggers: NotificationRule.TRIGGERS,
+      audiences: NotificationRule.AUDIENCES,
+      channels: NotificationRule.CHANNELS,
+      items: rows.map((r) => ({
+        rule_id: String(r._id),
+        name: r.name,
+        trigger: r.trigger,
+        audience: r.audience,
+        channels: r.channels || [],
+        city: r.city || "",
+        region: r.region || "",
+        template_title: r.templateTitle || "",
+        template_body: r.templateBody || "",
+        enabled: r.enabled !== false,
+        cooldown_minutes: r.cooldownMinutes || 0,
+        last_run_at: r.lastRunAt || null,
+        run_count: r.runCount || 0,
+        updated_at: r.updatedAt,
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/notification-rules", async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const channels = asArray(body.channels).map((x) => cleanShort(x, 40)).filter((x) => NotificationRule.CHANNELS.includes(x));
+    const doc = await NotificationRule.create({
+      name: cleanShort(body.name, 160) || "Notification rule",
+      trigger: NotificationRule.TRIGGERS.includes(body.trigger) ? body.trigger : "manual_campaign",
+      audience: NotificationRule.AUDIENCES.includes(body.audience) ? body.audience : "buyers",
+      channels: channels.length ? channels : ["in_app"],
+      city: cleanShort(body.city, 80),
+      region: cleanShort(body.region, 80),
+      templateTitle: cleanShort(body.template_title || body.templateTitle, 180),
+      templateBody: cleanShort(body.template_body || body.templateBody, 1200),
+      enabled: body.enabled !== false,
+      cooldownMinutes: Math.max(0, Math.min(43200, Number(body.cooldown_minutes || body.cooldownMinutes || 60) || 0)),
+      createdBy: req.user.id,
+    });
+    return res.status(201).json({ rule_id: String(doc._id) });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/notification-rules/:ruleId", async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.ruleId)) return res.status(400).json({ error: "Invalid rule id" });
+    const body = req.body || {};
+    const set = {};
+    if (body.name != null) set.name = cleanShort(body.name, 160);
+    if (body.trigger != null && NotificationRule.TRIGGERS.includes(body.trigger)) set.trigger = body.trigger;
+    if (body.audience != null && NotificationRule.AUDIENCES.includes(body.audience)) set.audience = body.audience;
+    if (body.channels != null) {
+      const channels = asArray(body.channels).map((x) => cleanShort(x, 40)).filter((x) => NotificationRule.CHANNELS.includes(x));
+      set.channels = channels.length ? channels : ["in_app"];
+    }
+    if (body.city != null) set.city = cleanShort(body.city, 80);
+    if (body.region != null) set.region = cleanShort(body.region, 80);
+    if (body.template_title != null || body.templateTitle != null) set.templateTitle = cleanShort(body.template_title || body.templateTitle, 180);
+    if (body.template_body != null || body.templateBody != null) set.templateBody = cleanShort(body.template_body || body.templateBody, 1200);
+    if (body.enabled != null) set.enabled = Boolean(body.enabled);
+    if (body.cooldown_minutes != null || body.cooldownMinutes != null) {
+      set.cooldownMinutes = Math.max(0, Math.min(43200, Number(body.cooldown_minutes || body.cooldownMinutes) || 0));
+    }
+    const doc = await NotificationRule.findByIdAndUpdate(req.params.ruleId, { $set: set }, { new: true }).lean();
+    if (!doc) return res.status(404).json({ error: "Rule not found" });
+    return res.json({ rule_id: String(doc._id), enabled: doc.enabled !== false });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/notification-campaigns", async (_req, res, next) => {
+  try {
+    const rows = await NotificationCampaign.find({}).sort({ updatedAt: -1 }).limit(200).lean();
+    const ids = rows.map((c) => c._id);
+    const openedAgg = ids.length
+      ? await NotificationDelivery.aggregate([
+          { $match: { campaign: { $in: ids }, openedAt: { $ne: null } } },
+          { $group: { _id: "$campaign", n: { $sum: 1 } } },
+        ])
+      : [];
+    const openedMap = new Map(openedAgg.map((x) => [String(x._id), x.n]));
+    return res.json({
+      audiences: NotificationCampaign.AUDIENCES,
+      channels: NotificationCampaign.CHANNELS,
+      statuses: NotificationCampaign.STATUSES,
+      items: rows.map((c) => ({
+        campaign_id: String(c._id),
+        name: c.name,
+        audience: c.audience,
+        channels: c.channels || [],
+        city: c.city || "",
+        region: c.region || "",
+        title: c.title,
+        body: c.body,
+        coupon_code: c.couponCode || "",
+        status: c.status,
+        scheduled_at: c.scheduledAt || null,
+        sent_at: c.sentAt || null,
+        estimated_recipients: c.estimatedRecipients || 0,
+        sent_count: c.sentCount || 0,
+        opened_count: openedMap.get(String(c._id)) || 0,
+        clicked_count: c.clickedCount || 0,
+        updated_at: c.updatedAt,
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/notification-campaigns", async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const channels = asArray(body.channels).map((x) => cleanShort(x, 40)).filter((x) => NotificationCampaign.CHANNELS.includes(x));
+    const audience = NotificationCampaign.AUDIENCES.includes(body.audience) ? body.audience : "buyers";
+    const city = cleanShort(body.city, 80);
+    const region = cleanShort(body.region, 80);
+    const status = NotificationCampaign.STATUSES.includes(body.status) ? body.status : "draft";
+    const estimated = await estimateAudience({ audience, city, region });
+    const doc = await NotificationCampaign.create({
+      name: cleanShort(body.name, 160) || "Campaign",
+      audience,
+      channels: channels.length ? channels : ["in_app"],
+      city,
+      region,
+      title: cleanShort(body.title, 180) || "Bachat update",
+      body: cleanShort(body.body, 1600) || "New update from Bachat.",
+      couponCode: cleanShort(body.coupon_code || body.couponCode, 40),
+      status,
+      scheduledAt: body.scheduled_at ? new Date(body.scheduled_at) : null,
+      sentAt: status === "sent" ? new Date() : null,
+      estimatedRecipients: estimated,
+      sentCount: status === "sent" ? estimated : 0,
+      createdBy: req.user.id,
+    });
+    return res.status(201).json({ campaign_id: String(doc._id), estimated_recipients: estimated });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/notification-campaigns/:campaignId", async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.campaignId)) return res.status(400).json({ error: "Invalid campaign id" });
+    const body = req.body || {};
+    const set = {};
+    if (body.status != null && NotificationCampaign.STATUSES.includes(body.status)) {
+      set.status = body.status;
+      if (body.status === "sent") set.sentAt = new Date();
+    }
+    if (body.scheduled_at != null) set.scheduledAt = body.scheduled_at ? new Date(body.scheduled_at) : null;
+    const doc = await NotificationCampaign.findById(req.params.campaignId);
+    if (!doc) return res.status(404).json({ error: "Campaign not found" });
+    Object.assign(doc, set);
+    doc.estimatedRecipients = await estimateAudience({ audience: doc.audience, city: doc.city, region: doc.region });
+    if (doc.status === "sent" && !doc.sentCount) doc.sentCount = doc.estimatedRecipients;
+    await doc.save();
+    return res.json({ campaign_id: String(doc._id), status: doc.status, estimated_recipients: doc.estimatedRecipients });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/notification-campaigns/:campaignId/dispatch", async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.campaignId)) return res.status(400).json({ error: "Invalid campaign id" });
+    const campaign = await NotificationCampaign.findById(req.params.campaignId);
+    if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+    const result = await dispatchCampaign(campaign);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/notification-campaigns/dispatch-due", async (_req, res, next) => {
+  try {
+    return res.json(await dispatchDueCampaigns());
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/notification-deliveries", async (req, res, next) => {
+  try {
+    const filter = {};
+    if (req.query.campaign_id && mongoose.isValidObjectId(req.query.campaign_id)) filter.campaign = req.query.campaign_id;
+    const rows = await NotificationDelivery.find(filter).sort({ updatedAt: -1 }).limit(200).populate("user", "name email role").lean();
+    return res.json({
+      items: rows.map((d) => ({
+        delivery_id: String(d._id),
+        campaign_id: d.campaign ? String(d.campaign) : "",
+        rule_id: d.rule ? String(d.rule) : "",
+        user_name: d.user?.name || "",
+        user_email: d.user?.email || "",
+        user_role: d.user?.role || "",
+        channel: d.channel,
+        status: d.status,
+        error: d.error || "",
+        sent_at: d.sentAt || null,
+        opened_at: d.openedAt || null,
+        clicked_at: d.clickedAt || null,
+        updated_at: d.updatedAt,
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/city-ops", async (_req, res, next) => {
+  try {
+    const [buyers, sellers, drivers, requests, orders, configured, usersWithLoc, sellersWithLoc] = await Promise.all([
+      User.aggregate([{ $match: { role: "buyer" } }, { $group: { _id: { city: "$city", region: "$region" }, n: { $sum: 1 } } }]),
+      Seller.aggregate([{ $group: { _id: { city: "$city", region: "$region" }, n: { $sum: 1 }, verified: { $sum: { $cond: ["$isVerified", 1, 0] } } } }]),
+      User.aggregate([{ $match: { role: "delivery" } }, { $group: { _id: { city: "$city", region: "$region" }, n: { $sum: 1 }, verified: { $sum: { $cond: [{ $eq: ["$deliveryKyc.status", "verified"] }, 1, 0] } } } }]),
+      Request.aggregate([{ $group: { _id: { city: "$city", region: "$region" }, n: { $sum: 1 }, open: { $sum: { $cond: [{ $eq: ["$status", "open"] }, 1, 0] } } } }]),
+      Order.aggregate([{ $group: { _id: { city: "$delivery.dropoffCity", region: "$delivery.dropoffRegion" }, n: { $sum: 1 }, paid: { $sum: { $cond: [{ $eq: ["$paymentStatus", "paid"] }, 1, 0] } } } }]),
+      CityArea.find({}).lean(),
+      User.find({ "location.lat": { $ne: null }, "location.lng": { $ne: null } }).select("city region location").lean(),
+      Seller.find({ "location.lat": { $ne: null }, "location.lng": { $ne: null } }).select("city region location").lean(),
+    ]);
+    const map = new Map();
+    function key(city, region) {
+      return `${String(city || "").trim().toLowerCase()}|${String(region || "").trim().toLowerCase()}`;
+    }
+    function ensure(city, region) {
+      const k = key(city, region);
+      if (!map.has(k)) {
+        map.set(k, { city: city || "Unknown", region: region || "Unknown", buyers: 0, sellers: 0, sellers_verified: 0, drivers: 0, drivers_verified: 0, requests: 0, open_requests: 0, orders: 0, paid_orders: 0 });
+      }
+      return map.get(k);
+    }
+    buyers.forEach((x) => { ensure(x._id.city, x._id.region).buyers = x.n; });
+    sellers.forEach((x) => { const r = ensure(x._id.city, x._id.region); r.sellers = x.n; r.sellers_verified = x.verified || 0; });
+    drivers.forEach((x) => { const r = ensure(x._id.city, x._id.region); r.drivers = x.n; r.drivers_verified = x.verified || 0; });
+    requests.forEach((x) => { const r = ensure(x._id.city, x._id.region); r.requests = x.n; r.open_requests = x.open || 0; });
+    orders.forEach((x) => { const r = ensure(x._id.city, x._id.region); r.orders = x.n; r.paid_orders = x.paid || 0; });
+    const coordMap = new Map();
+    [...usersWithLoc, ...sellersWithLoc].forEach((x) => {
+      const k = key(x.city, x.region);
+      if (!coordMap.has(k)) coordMap.set(k, []);
+      coordMap.get(k).push(x);
+    });
+    const configMap = new Map(configured.map((x) => [key(x.city, x.region), x]));
+    const areas = [...map.values()].map((m) => {
+      const coords = avgCoords(coordMap.get(key(m.city, m.region)) || []);
+      const cfg = configMap.get(key(m.city, m.region)) || { city: m.city, region: m.region, active: true, priority: "normal", serviceRadiusKm: 5, notes: "", lat: coords.lat, lng: coords.lng };
+      if (cfg.lat == null && coords.lat != null) cfg.lat = coords.lat;
+      if (cfg.lng == null && coords.lng != null) cfg.lng = coords.lng;
+      const score = m.open_requests * 3 + m.orders * 2 + m.buyers + m.sellers_verified * 4 + m.drivers_verified * 3;
+      return fmtCityArea(cfg, { ...m, heat_score: score });
+    }).sort((a, b) => (b.metrics.heat_score || 0) - (a.metrics.heat_score || 0));
+    return res.json({ items: areas });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/city-ops/area", async (req, res, next) => {
+  try {
+    const city = cleanShort(req.body?.city, 80);
+    const region = cleanShort(req.body?.region, 80);
+    if (!city || !region) return res.status(400).json({ error: "city and region are required" });
+    const set = {
+      active: req.body.active !== false,
+      priority: ["low", "normal", "high"].includes(req.body.priority) ? req.body.priority : "normal",
+      serviceRadiusKm: Math.max(0, Math.min(100, Number(req.body.service_radius_km || req.body.serviceRadiusKm || 5) || 5)),
+      lat: Number.isFinite(Number(req.body.lat)) ? Number(req.body.lat) : null,
+      lng: Number.isFinite(Number(req.body.lng)) ? Number(req.body.lng) : null,
+      notes: cleanShort(req.body.notes, 1000),
+      updatedBy: req.user.id,
+    };
+    const doc = await CityArea.findOneAndUpdate({ city, region }, { $set: { city, region, ...set } }, { upsert: true, new: true });
+    return res.json(fmtCityArea(doc.toObject()));
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/delivery-ops", async (req, res, next) => {
+  try {
+    const status = cleanShort(req.query.status, 80);
+    const filter = {};
+    if (status) filter["delivery.status"] = status;
+    else filter["delivery.status"] = { $nin: ["none"] };
+    const [orders, drivers] = await Promise.all([
+      Order.find(filter).sort({ updatedAt: -1 }).limit(200).populate("user", "name email phone").populate("seller", "shopName city region").lean(),
+      User.find({ role: "delivery", "deliveryKyc.status": "verified" }).select("name email phone city region deliveryKyc deliveryAvailability").sort({ city: 1, name: 1 }).lean(),
+    ]);
+    const activeByDriver = await Order.aggregate([
+      { $match: { "delivery.driver": { $ne: null }, "delivery.status": { $in: ["delivery_assigned", "driver_en_route_pickup", "picked_up", "en_route_dropoff"] } } },
+      { $group: { _id: "$delivery.driver", n: { $sum: 1 } } },
+    ]);
+    const activeMap = new Map(activeByDriver.map((x) => [String(x._id), x.n]));
+    return res.json({
+      drivers: drivers.map((d) => ({
+        user_id: String(d._id),
+        name: d.name,
+        email: d.email,
+        phone: d.phone || "",
+        city: d.city,
+        region: d.region,
+        is_online: Boolean(d.deliveryAvailability?.isOnline),
+        max_active_jobs: d.deliveryAvailability?.maxActiveJobs || 3,
+        active_jobs: activeMap.get(String(d._id)) || 0,
+      })),
+      items: orders.map((o) => {
+        const base = formatOrder(o);
+        return {
+          ...base,
+          buyer_name: o.user?.name || "",
+          buyer_phone: o.user?.phone || "",
+          seller_name: o.seller?.shopName || "",
+          seller_area: [o.seller?.city, o.seller?.region].filter(Boolean).join(", "),
+          delivery_status: o.delivery?.status || "none",
+          driver_user_id: o.delivery?.driver ? String(o.delivery.driver) : "",
+          ready_for_pickup_at: o.delivery?.readyForPickupAt || null,
+          claim_expires_at: o.delivery?.claimExpiresAt || null,
+          driver_location_at: o.delivery?.driverLocationAt || null,
+          route_points_count: Array.isArray(o.delivery?.routePoints) ? o.delivery.routePoints.length : 0,
+          failed_reason: o.delivery?.failedReason || "",
+          cancelled_reason: o.delivery?.cancelledReason || "",
+          reassignment_count: o.delivery?.reassignmentCount || 0,
+        };
+      }),
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/delivery-ops/:orderId/assign", async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.orderId) || !mongoose.isValidObjectId(req.body?.driver_user_id)) {
+      return res.status(400).json({ error: "Valid order id and driver_user_id are required" });
+    }
+    const driver = await User.findOne({ _id: req.body.driver_user_id, role: "delivery", "deliveryKyc.status": "verified" }).lean();
+    if (!driver) return res.status(404).json({ error: "Verified delivery partner not found" });
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    order.delivery = order.delivery || {};
+    const prevDriver = order.delivery.driver ? String(order.delivery.driver) : "";
+    const prevStatus = order.delivery.status || "";
+    if (prevDriver && prevDriver !== String(driver._id)) {
+      order.delivery.reassignmentCount = Number(order.delivery.reassignmentCount || 0) + 1;
+    }
+    order.delivery.driver = driver._id;
+    order.delivery.status = "delivery_assigned";
+    order.delivery.assignedAt = new Date();
+    await order.save();
+    await DeliveryAudit.create({
+      order: order._id,
+      actor: req.user.id,
+      action: prevDriver ? "reassign_driver" : "assign_driver",
+      fromStatus: prevStatus,
+      toStatus: order.delivery.status,
+      driver: driver._id,
+      meta: { previous_driver: prevDriver },
+    });
+    return res.json({ order: formatOrder(order) });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/delivery-ops/:orderId/status", async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.orderId)) return res.status(400).json({ error: "Invalid order id" });
+    const allowed = ["delivery_requested", "delivery_assigned", "driver_en_route_pickup", "picked_up", "en_route_dropoff", "delivered", "cancelled", "failed", "expired_unclaimed"];
+    const status = cleanShort(req.body?.status, 80);
+    if (!allowed.includes(status)) return res.status(400).json({ error: "Unsupported delivery status" });
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    order.delivery = order.delivery || {};
+    const prevStatus = order.delivery.status || "";
+    const reason = cleanShort(req.body?.reason, 800);
+    order.delivery.status = status;
+    if (status === "cancelled" || status === "failed" || status === "expired_unclaimed") order.delivery.driver = null;
+    if (status === "failed") {
+      order.delivery.failedAt = new Date();
+      order.delivery.failedReason = reason || "Marked failed by ops";
+    }
+    if (status === "cancelled") {
+      order.delivery.cancelledReason = reason || "Cancelled by ops";
+    }
+    if (status === "delivered") {
+      order.delivery.deliveredAt = new Date();
+      order.orderStatus = "delivered";
+    }
+    await order.save();
+    await DeliveryAudit.create({
+      order: order._id,
+      actor: req.user.id,
+      action: "set_delivery_status",
+      fromStatus: prevStatus,
+      toStatus: status,
+      reason,
+    });
+    return res.json({ order: formatOrder(order) });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/delivery-ops/:orderId/audit", async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.orderId)) return res.status(400).json({ error: "Invalid order id" });
+    const rows = await DeliveryAudit.find({ order: req.params.orderId }).sort({ createdAt: -1 }).limit(100).populate("actor", "name email role").populate("driver", "name email").lean();
+    return res.json({
+      items: rows.map((a) => ({
+        audit_id: String(a._id),
+        action: a.action,
+        from_status: a.fromStatus || "",
+        to_status: a.toStatus || "",
+        reason: a.reason || "",
+        actor_name: a.actor?.name || "",
+        actor_email: a.actor?.email || "",
+        driver_user_id: a.driver ? String(a.driver._id || a.driver) : "",
+        driver_name: a.driver?.name || "",
+        driver_email: a.driver?.email || "",
+        meta: a.meta || {},
+        created_at: a.createdAt,
+      })),
     });
   } catch (err) {
     return next(err);
@@ -996,12 +1531,12 @@ router.get("/platform-modules", (_req, res) => {
     modules: [
       { id: "core_marketplace", label: "Buyer · seller · quotes · orders", status: "live" },
       { id: "catalog_cart", label: "Catalog, cart, saved", status: "live" },
-      { id: "payments", label: "Razorpay checkout + webhook", status: "partial", detail: "API present; polish buyer/seller payment UX." },
-      { id: "delivery", label: "Delivery pool, KYC, DigiLocker", status: "partial", detail: "See /api/delivery, admin-delivery, delivery-kyc.html" },
+      { id: "payments", label: "Razorpay checkout + webhook", status: "live", detail: "Checkout, webhook, failed payment handling, and admin reconciliation are present." },
+      { id: "delivery", label: "Delivery pool, KYC, DigiLocker", status: "live", detail: "Delivery KYC, live route tracking, assignment, failure handling, and ops controls are present." },
       { id: "disputes", label: "Disputes / chargebacks", status: "live", detail: "GET /api/disputes, /api/admin/disputes; dispute-signals for payment flags." },
-      { id: "city_ops", label: "City coverage & heatmaps", status: "planned" },
+      { id: "city_ops", label: "City coverage & heatmaps", status: "live", detail: "GET/PATCH /api/admin/city-ops with active area controls." },
       { id: "field_sales", label: "Field sales CRM", status: "live", detail: "GET/POST/PATCH /api/leads (admin + sales)." },
-      { id: "notifications", label: "Notification centre & rules", status: "partial", detail: "Admin summary endpoint only." },
+      { id: "notifications", label: "Notification centre & rules", status: "live", detail: "Rules and campaigns endpoints with targeting and performance metrics." },
       { id: "analytics", label: "Warehouse analytics", status: "live", detail: "AnalyticsEvent + /api/admin/analytics-*." },
       { id: "team_2fa", label: "Team portal + 2FA + OIDC", status: "live", detail: "TOTP for admin/sales; /api/auth/oidc/team/* when OIDC_* env set." },
     ],
