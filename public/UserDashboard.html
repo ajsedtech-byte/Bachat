@@ -2815,23 +2815,25 @@
 
     .bachat-storefront .bachat-exact-head {
       display: grid;
-      grid-template-columns: 178px 146px minmax(520px, 1fr) 42px max-content;
-      gap: 22px;
+      box-sizing: border-box;
+      grid-template-columns: minmax(112px, 150px) minmax(118px, 148px) minmax(220px, 1fr) 42px minmax(0, max-content);
+      gap: clamp(8px, 1.2vw, 18px);
       width: 100%;
       max-width: none;
       min-height: 86px;
       align-items: center;
       margin: 0;
-      padding: 14px 28px 12px;
+      padding: 14px clamp(12px, 2vw, 28px) 12px;
     }
 
     .bachat-storefront .bachat-head-brand {
       display: inline-flex;
       align-items: center;
       gap: 10px;
+      min-width: 0;
       color: #0f172a;
       text-decoration: none;
-      font-size: 25px;
+      font-size: clamp(18px, 1.35vw, 25px);
       font-weight: 950;
       letter-spacing: 0;
     }
@@ -2852,6 +2854,8 @@
 
     .bachat-storefront .bachat-head-city {
       display: inline-flex;
+      width: 100%;
+      min-width: 0;
       min-height: 50px;
       align-items: center;
       justify-content: center;
@@ -2860,7 +2864,7 @@
       border-radius: 18px;
       background: #fff;
       color: #0f172a;
-      padding: 0 24px;
+      padding: 0 clamp(12px, 1.3vw, 24px);
       font-size: 15px;
       font-weight: 950;
       letter-spacing: 0.01em;
@@ -2874,7 +2878,8 @@
 
     .bachat-storefront .bachat-head-search {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 124px;
+      grid-template-columns: minmax(0, 1fr) minmax(88px, 124px);
+      min-width: 0;
       min-height: 52px;
       overflow: hidden;
       border: 1px solid #d6e4fb;
@@ -2884,6 +2889,7 @@
     }
 
     .bachat-storefront .bachat-head-search #search-q {
+      min-width: 0;
       border: 0 !important;
       background: #fbfdff !important;
       color: #334155 !important;
@@ -2971,9 +2977,15 @@
     .bachat-storefront .bachat-head-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      min-width: 0;
+      gap: clamp(4px, 0.6vw, 10px);
       justify-self: end;
       color: #334155;
+    }
+
+    .bachat-storefront #amazon-head-actions {
+      min-width: 0;
+      margin-left: 0 !important;
     }
 
     .bachat-storefront .bachat-head-action {
@@ -2985,7 +2997,7 @@
       border-radius: 16px;
       color: #334155 !important;
       background: transparent !important;
-      padding: 0 11px;
+      padding: 0 clamp(7px, 0.7vw, 11px);
       font-size: 15px;
       font-weight: 950;
       text-decoration: none;
@@ -3023,13 +3035,13 @@
     .bachat-storefront .bachat-head-account {
       display: flex;
       min-height: 50px;
-      min-width: 176px;
+      min-width: clamp(142px, 10vw, 176px);
       align-items: center;
       gap: 9px;
       border: 1px solid #e1eaf7;
       border-radius: 18px;
       background: #fff;
-      padding: 7px 12px;
+      padding: 7px clamp(8px, 0.8vw, 12px);
       line-height: 1.05;
       box-shadow: 0 12px 28px -24px rgba(15, 23, 42, 0.4);
       transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
@@ -3095,10 +3107,17 @@
       min-height: 52px;
       align-items: center;
       justify-content: flex-start;
-      gap: clamp(18px, 2vw, 34px);
+      gap: clamp(12px, 1.4vw, 28px);
       margin: 0;
-      padding: 0 28px !important;
-      overflow: visible;
+      padding: 0 clamp(12px, 2vw, 28px) !important;
+      overflow-x: auto !important;
+      overflow-y: visible;
+      scrollbar-width: none;
+      scroll-padding-inline: clamp(12px, 2vw, 28px);
+    }
+
+    .bachat-storefront #departments-nav > div::-webkit-scrollbar {
+      display: none;
     }
 
     .bachat-storefront #departments-nav > div > a.amazon-nav-link[href="#shopping-home"],
@@ -3183,9 +3202,72 @@
       border-right: 0 !important;
     }
 
+    @media (max-width: 1360px) {
+      .bachat-storefront .bachat-exact-head {
+        grid-template-columns: minmax(104px, 130px) minmax(108px, 136px) minmax(210px, 1fr) 42px minmax(0, max-content);
+      }
+
+      .bachat-storefront .bachat-head-brand {
+        gap: 8px;
+      }
+
+      .bachat-storefront .bachat-head-action span:not(.bachat-head-action-icon),
+      .bachat-storefront .bachat-head-action strong {
+        font-size: 14px;
+      }
+
+      .bachat-storefront .bachat-head-account {
+        min-width: 146px;
+      }
+
+      .bachat-storefront .bachat-head-account::before {
+        height: 30px;
+        width: 30px;
+      }
+
+      .bachat-storefront .bachat-head-account #profile-menu-open {
+        max-width: 104px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .bachat-storefront .bachat-exact-head {
+        grid-template-columns: minmax(92px, 114px) minmax(96px, 126px) minmax(190px, 1fr) 42px auto;
+      }
+
+      .bachat-storefront .bachat-head-mark,
+      .bachat-storefront .bachat-head-mark img {
+        height: 34px;
+        width: 34px;
+      }
+
+      .bachat-storefront .bachat-head-action {
+        min-height: 42px;
+      }
+
+      .bachat-storefront .bachat-head-action > span:not(.bachat-head-action-icon) {
+        display: none;
+      }
+
+      .bachat-storefront .bachat-head-account {
+        min-width: 120px;
+      }
+
+      .bachat-storefront .bachat-head-account #hello-label {
+        font-size: 10px;
+      }
+
+      .bachat-storefront .bachat-head-account #profile-menu-open {
+        max-width: 78px;
+        font-size: 12px;
+      }
+    }
+
     @media (max-width: 1100px) {
       .bachat-storefront .bachat-exact-head {
-        grid-template-columns: 140px 120px minmax(260px, 1fr) 34px auto;
+        grid-template-columns: minmax(92px, 112px) minmax(94px, 122px) minmax(180px, 1fr) 40px auto;
         gap: 10px;
         max-width: none;
         padding-inline: 14px;
@@ -3206,22 +3288,108 @@
 
     @media (max-width: 820px) {
       .bachat-storefront .bachat-exact-head {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 8px;
+        min-height: 0;
+        padding-block: 10px;
       }
 
-      .bachat-storefront .bachat-head-city,
-      .bachat-storefront .bachat-head-notif,
-      .bachat-storefront .bachat-head-actions {
-        grid-row: auto;
+      .bachat-storefront .bachat-head-brand {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .bachat-storefront .bachat-head-city {
+        grid-column: 2 / 4;
+        grid-row: 1;
+        width: auto;
+        min-height: 42px;
+      }
+
+      .bachat-storefront .bachat-head-notif {
+        grid-column: 1;
+        grid-row: 3;
+        justify-self: start;
       }
 
       .bachat-storefront .bachat-head-search {
         grid-column: 1 / -1;
+        grid-row: 2;
+        min-height: 48px;
       }
 
       .bachat-storefront .bachat-head-actions {
-        grid-column: 1 / -1;
-        justify-self: start;
+        grid-column: 2 / 4;
+        grid-row: 3;
+        justify-self: end;
+      }
+
+      .bachat-storefront .bachat-head-action > span:not(.bachat-head-action-icon) {
+        display: inline;
+      }
+
+      .bachat-storefront #departments-nav > div {
+        min-height: 46px;
+      }
+
+      .bachat-storefront .amazon-nav-link,
+      .bachat-storefront #dept-all,
+      .bachat-storefront #departments-nav details > summary {
+        min-height: 46px;
+        font-size: 13px !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .bachat-storefront .bachat-exact-head {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding-inline: 8px;
+      }
+
+      .bachat-storefront .bachat-head-city {
+        grid-column: 2;
+        max-width: 128px;
+      }
+
+      .bachat-storefront .bachat-head-search {
+        grid-template-columns: minmax(0, 1fr) 76px;
+      }
+
+      .bachat-storefront .bachat-head-search #search-q {
+        padding-inline: 12px !important;
+        font-size: 13px !important;
+      }
+
+      .bachat-storefront .bachat-head-search #search-btn {
+        min-width: 0;
+        padding-inline: 10px !important;
+        font-size: 12px !important;
+      }
+
+      .bachat-storefront .bachat-head-action {
+        width: 42px;
+        min-height: 42px;
+        justify-content: center;
+        padding: 0;
+      }
+
+      .bachat-storefront .bachat-head-action > span:not(.bachat-head-action-icon),
+      .bachat-storefront .bachat-head-action strong,
+      .bachat-storefront .bachat-head-account .head-account-copy {
+        display: none;
+      }
+
+      .bachat-storefront .bachat-head-account {
+        width: 42px;
+        min-width: 42px;
+        min-height: 42px;
+        justify-content: center;
+        padding: 0;
+      }
+
+      .bachat-storefront .bachat-head-account::before {
+        height: 30px;
+        width: 30px;
       }
     }
 
