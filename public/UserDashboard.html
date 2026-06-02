@@ -3033,57 +3033,82 @@
     }
 
     .bachat-storefront .bachat-head-account {
+      position: relative;
       display: flex;
       min-height: 50px;
-      min-width: clamp(142px, 10vw, 176px);
+      min-width: clamp(158px, 11vw, 196px);
       align-items: center;
-      gap: 9px;
-      border: 1px solid #e1eaf7;
-      border-radius: 18px;
-      background: #fff;
-      padding: 7px clamp(8px, 0.8vw, 12px);
+      gap: 10px;
+      overflow: hidden;
+      border: 1px solid #cfe0f7;
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(243, 248, 255, 0.98)),
+        radial-gradient(circle at 18% 12%, rgba(0, 86, 210, 0.12), transparent 42%);
+      padding: 7px clamp(9px, 0.85vw, 13px);
       line-height: 1.05;
-      box-shadow: 0 12px 28px -24px rgba(15, 23, 42, 0.4);
-      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+      box-shadow: 0 16px 36px -28px rgba(15, 23, 42, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
     }
 
     .bachat-storefront .bachat-head-account:hover {
       transform: translateY(-1px);
-      border-color: #bfd6fa;
-      background: #f8fbff;
+      border-color: #9cc2fb;
+      background:
+        linear-gradient(135deg, #fff, #eef6ff),
+        radial-gradient(circle at 18% 12%, rgba(0, 86, 210, 0.16), transparent 42%);
+      box-shadow: 0 20px 42px -28px rgba(0, 86, 210, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.95);
     }
 
     .bachat-storefront .bachat-head-account::before {
       content: "";
       display: inline-flex;
-      height: 34px;
-      width: 34px;
+      height: 38px;
+      width: 38px;
       flex: 0 0 auto;
       border-radius: 50%;
       background:
-        radial-gradient(circle at 50% 36%, #fff 0 18%, transparent 19%),
-        radial-gradient(circle at 50% 78%, #fff 0 28%, transparent 29%),
+        radial-gradient(circle at 50% 34%, #fff 0 16%, transparent 17%),
+        radial-gradient(circle at 50% 78%, #fff 0 29%, transparent 30%),
+        radial-gradient(circle at 26% 22%, rgba(255, 255, 255, 0.55), transparent 24%),
         linear-gradient(135deg, #0b6df6, #0044a8);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      box-shadow: 0 10px 20px -12px rgba(0, 86, 210, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.56);
     }
 
     .bachat-storefront .head-account-copy {
+      display: grid;
+      gap: 1px;
       min-width: 0;
     }
 
     .bachat-storefront .bachat-head-account #hello-label {
-      color: #334155 !important;
+      color: #0056d2 !important;
       font-size: 12px;
-      font-weight: 850;
+      font-weight: 950;
       letter-spacing: 0.02em;
       text-transform: uppercase;
       margin: 0;
     }
 
+    .bachat-storefront .bachat-head-account #hello-user {
+      max-width: 118px;
+      overflow: hidden;
+      color: #0f172a !important;
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1.15;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .bachat-storefront .bachat-head-account #profile-menu-open {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 136px;
       border: 0;
       background: transparent;
-      color: #334155 !important;
+      color: #0f172a !important;
       padding: 0;
       text-align: left;
       font-size: 14px;
@@ -3094,6 +3119,32 @@
       white-space: nowrap;
     }
 
+    .bachat-storefront .bachat-head-account #profile-menu-open .account-menu-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bachat-storefront .bachat-head-account #profile-menu-open .account-menu-caret {
+      display: inline-flex;
+      height: 18px;
+      width: 18px;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #e8f1fc;
+      color: #0056d2;
+      font-size: 10px;
+      line-height: 1;
+      transition: transform 160ms ease, background-color 160ms ease;
+    }
+
+    .bachat-storefront .bachat-head-account:hover #profile-menu-open .account-menu-caret {
+      transform: translateY(1px);
+      background: #dbeafe;
+    }
+
     .bachat-storefront .amazon-nav-strip {
       background: #fff;
       border-top: 0;
@@ -3102,12 +3153,14 @@
     }
 
     .bachat-storefront #departments-nav > div {
+      display: flex;
+      flex-wrap: nowrap;
       width: 100%;
       max-width: none;
       min-height: 52px;
       align-items: center;
-      justify-content: flex-start;
-      gap: clamp(12px, 1.4vw, 28px);
+      justify-content: space-between;
+      gap: clamp(6px, 0.8vw, 16px);
       margin: 0;
       padding: 0 clamp(12px, 2vw, 28px) !important;
       overflow-x: auto !important;
@@ -3131,17 +3184,68 @@
       position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: clamp(5px, 0.45vw, 8px);
       min-height: 52px;
+      min-width: 0;
       border: 0 !important;
       color: #334155 !important;
       padding: 0 !important;
       background: transparent !important;
-      font-size: 14px !important;
+      font-size: clamp(12px, 0.74vw, 14px) !important;
       font-weight: 950 !important;
       letter-spacing: 0;
       text-transform: none;
       text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .bachat-storefront #departments-nav details,
+    .bachat-storefront #dept-all-wrap {
+      flex: 0 1 auto !important;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .bachat-storefront #dept-all-wrap,
+    .bachat-storefront #departments-nav details {
+      position: relative;
+      display: inline-flex;
+      align-items: stretch;
+      width: fit-content;
+    }
+
+    .bachat-storefront #dept-all-wrap {
+      flex: 0 0 auto !important;
+    }
+
+    .bachat-storefront #dept-all-panel.hidden {
+      display: none !important;
+    }
+
+    .bachat-storefront #dept-all-panel {
+      position: absolute;
+      left: 0;
+      top: 100%;
+    }
+
+    .bachat-storefront #departments-nav details > div {
+      position: absolute;
+      top: 100%;
+    }
+
+    .bachat-storefront #dept-all,
+    .bachat-storefront #departments-nav details > summary {
+      width: max-content;
+      max-width: 100%;
+      justify-content: center;
+    }
+
+    .bachat-storefront #dept-all > span,
+    .bachat-storefront #departments-nav details > summary > span:not([aria-hidden="true"]) {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .bachat-storefront .amazon-nav-link.active,
@@ -3180,8 +3284,8 @@
 
     .bachat-storefront .dept-nav-icon {
       display: inline-block;
-      height: 17px;
-      width: 17px;
+      height: clamp(15px, 0.9vw, 17px);
+      width: clamp(15px, 0.9vw, 17px);
       flex: 0 0 auto;
       color: currentColor;
       stroke-width: 2.35;
@@ -3217,7 +3321,7 @@
       }
 
       .bachat-storefront .bachat-head-account {
-        min-width: 146px;
+        min-width: 156px;
       }
 
       .bachat-storefront .bachat-head-account::before {
@@ -3226,9 +3330,28 @@
       }
 
       .bachat-storefront .bachat-head-account #profile-menu-open {
-        max-width: 104px;
+        max-width: 112px;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+
+      .bachat-storefront #departments-nav > div {
+        gap: 8px;
+        padding-inline: 18px !important;
+      }
+
+      .bachat-storefront #departments-nav details,
+      .bachat-storefront #dept-all-wrap {
+        max-width: 152px;
+      }
+
+      .bachat-storefront #dept-all,
+      .bachat-storefront #departments-nav details > summary {
+        width: 100% !important;
+      }
+
+      .bachat-storefront #departments-nav details:nth-of-type(7) {
+        max-width: 164px;
       }
     }
 
@@ -3252,7 +3375,7 @@
       }
 
       .bachat-storefront .bachat-head-account {
-        min-width: 120px;
+        min-width: 126px;
       }
 
       .bachat-storefront .bachat-head-account #hello-label {
@@ -3260,8 +3383,33 @@
       }
 
       .bachat-storefront .bachat-head-account #profile-menu-open {
-        max-width: 78px;
+        max-width: 88px;
         font-size: 12px;
+      }
+
+      .bachat-storefront #departments-nav > div {
+        justify-content: flex-start;
+        gap: 14px;
+      }
+
+      .bachat-storefront #departments-nav details,
+      .bachat-storefront #dept-all-wrap {
+        flex: 0 0 auto !important;
+        max-width: none;
+      }
+
+      .bachat-storefront #departments-nav details {
+        width: max-content !important;
+      }
+
+      .bachat-storefront #dept-all-wrap {
+        width: auto !important;
+      }
+
+      .bachat-storefront #dept-all,
+      .bachat-storefront #departments-nav details > summary {
+        width: max-content !important;
+        justify-content: flex-start;
       }
     }
 
@@ -3280,7 +3428,7 @@
       .bachat-storefront #departments-nav > div {
         max-width: none;
         justify-content: flex-start;
-        gap: 18px;
+        gap: 12px;
         padding-inline: 14px !important;
         overflow-x: auto;
       }
@@ -3330,6 +3478,8 @@
 
       .bachat-storefront #departments-nav > div {
         min-height: 46px;
+        gap: 10px;
+        padding-inline: 10px !important;
       }
 
       .bachat-storefront .amazon-nav-link,
@@ -3337,6 +3487,9 @@
       .bachat-storefront #departments-nav details > summary {
         min-height: 46px;
         font-size: 13px !important;
+        border-radius: 999px;
+        background: #f8fbff !important;
+        padding: 0 12px !important;
       }
     }
 
@@ -3624,7 +3777,7 @@
             <div class="head-account-copy">
               <p id="hello-label">HELLO, SIGN IN</p>
               <p id="hello-user" class="hidden"></p>
-              <button type="button" id="profile-menu-open">Account &amp; Lists <span aria-hidden="true">▾</span></button>
+              <button type="button" id="profile-menu-open"><span class="account-menu-text">Account &amp; Lists</span><span class="account-menu-caret" aria-hidden="true">▾</span></button>
             </div>
           </div>
           <div id="profile-menu" class="hidden absolute right-0 top-full mt-1 w-52 rounded-xl border border-[#e5e7eb] bg-white shadow-lg py-1 z-50 text-sm">
