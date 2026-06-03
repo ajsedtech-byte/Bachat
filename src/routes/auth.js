@@ -2,6 +2,8 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const User = require("../models/User");
 const Seller = require("../models/Seller");
 const EmailOtp = require("../models/EmailOtp");
@@ -54,6 +56,7 @@ function sellerRegistrationMail({ name }) {
       "\n\nOptional documents:\n" +
       optionalDocs.map((doc) => `- ${doc}`).join("\n") +
       "\n\nPlease upload whichever documents you have available. Our team will review your details and update your verification status after checking the submitted documents.\n\n" +
+      "We have attached the Bachat Shopkeeper Agreement with this email. Please fill and sign the agreement, then share the completed agreement with us by replying to this email or sending it on WhatsApp at +91 9755556235.\n\n" +
       "For any queries, issues, or help with document sharing, contact Bachat support on WhatsApp at +91 9755556235 or email bachat@seekhen.com. You can also share your documents and other required details over WhatsApp.\n\n" +
       "Thank you for registering with Bachat.\n\n" +
       "Regards,\nTeam Bachat",
@@ -66,9 +69,20 @@ function sellerRegistrationMail({ name }) {
       "<p><strong>Optional documents:</strong></p>" +
       `<ol start="7">${optionalDocs.map((doc) => `<li>${escapeHtml(doc)}</li>`).join("")}</ol>` +
       "<p>Please upload whichever documents you have available. Our team will review your details and update your verification status after checking the submitted documents.</p>" +
+      '<p><strong>Shopkeeper Agreement attached:</strong> Please fill and sign the attached <strong>Bachat Shopkeeper Agreement</strong>, then share the completed agreement with us by replying to this email or sending it on WhatsApp at <a href="https://wa.me/919755556235">+91 9755556235</a>.</p>' +
       '<p><strong>Need help?</strong> For any queries, issues, or help with document sharing, contact Bachat support on WhatsApp at <a href="https://wa.me/919755556235">+91 9755556235</a> or email <a href="mailto:bachat@seekhen.com">bachat@seekhen.com</a>. You can also share your documents and other required details over WhatsApp.</p>' +
       "<p>Thank you for registering with Bachat.</p>" +
       "<p>Regards,<br>Team Bachat</p>",
+  };
+}
+
+function shopkeeperAgreementAttachment() {
+  const filePath = path.join(__dirname, "..", "..", "public", "Bachat-Shopkeeper-Agreement.pdf");
+  if (!fs.existsSync(filePath)) return null;
+  return {
+    filename: "Bachat-Shopkeeper-Agreement.pdf",
+    path: filePath,
+    contentType: "application/pdf",
   };
 }
 
@@ -306,6 +320,7 @@ router.post("/register", async (req, res, next) => {
             subject: sellerMail.subject,
             text: sellerMail.text,
             html: sellerMail.html,
+            attachments: [shopkeeperAgreementAttachment()].filter(Boolean),
           });
         } catch (sellerMailErr) {
           console.error("[seller-registration-kyc-mail]", sellerMailErr.message || sellerMailErr);

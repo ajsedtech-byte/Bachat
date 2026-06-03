@@ -141,13 +141,18 @@ function withBachatMailShell({ subject, text, html, headerImageSrc }) {
 </html>`;
 }
 
-async function sendMail({ to, subject, text, html }) {
+async function sendMail({ to, subject, text, html, attachments }) {
   if (!to || !subject) {
     throw new Error("sendMail requires `to` and `subject`");
   }
 
   const tx = getTransporter();
   const headerAttachment = mailHeaderAttachment();
+  const allAttachments = [
+    ...(headerAttachment ? [headerAttachment] : []),
+    ...(Array.isArray(attachments) ? attachments : []),
+  ];
+
   const payload = {
     from: fromAddress(),
     to,
@@ -159,7 +164,7 @@ async function sendMail({ to, subject, text, html }) {
       html,
       headerImageSrc: headerAttachment ? `cid:${MAIL_HEADER_CID}` : mailHeaderImageUrl(),
     }),
-    attachments: headerAttachment ? [headerAttachment] : undefined,
+    attachments: allAttachments.length ? allAttachments : undefined,
   };
 
   if (!tx) {
