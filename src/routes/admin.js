@@ -44,6 +44,59 @@ function invalidInput(message) {
   return err;
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sellerKycApprovedMail({ name, loginUrl }) {
+  const safeName = escapeHtml(name || "there");
+  const safeLoginUrl = escapeHtml(loginUrl);
+  const itemFields = [
+    "Item Title",
+    "Details",
+    "Price",
+    "Available Quantity",
+    "Quantity Unit",
+    "Package Type",
+    "Package size/variant",
+    "Photos: up to 4 images",
+  ];
+  return {
+    subject: "You are verified now - Bachat Shopkeeper",
+    text:
+      `Hi ${name || ""},\n\n` +
+      "Congratulations! Your Bachat shop verification has been approved.\n\n" +
+      "Your shopkeeper account is now verified, and you can start using the Bachat seller platform to add items, manage your shop details, and prepare your products for local buyers.\n\n" +
+      `Login to your seller dashboard: ${loginUrl}\n\n` +
+      "Next step: add your items on Bachat\n" +
+      "Please sign in to your shopkeeper dashboard and add the products/items you want to sell on Bachat. Clear item details and good photos help buyers understand your products and place orders with confidence.\n\n" +
+      "If you are not able to add items from the dashboard, you can send the item details over email in this format:\n\n" +
+      itemFields.map((field) => `${field}:`).join("\n") +
+      "\n\nFor photos, please attach up to 4 clear product images per item.\n\n" +
+      "Our team may review listings for quality, completeness, and marketplace safety before they appear to customers.\n\n" +
+      "Thank you for joining Bachat. We are excited to help your shop reach more local customers.\n\n" +
+      "Regards,\nTeam Bachat",
+    html:
+      `<p>Hi ${safeName},</p>` +
+      "<p><strong>Congratulations! Your Bachat shop verification has been approved.</strong></p>" +
+      "<p>Your shopkeeper account is now verified, and you can start using the Bachat seller platform to add items, manage your shop details, and prepare your products for local buyers.</p>" +
+      `<p><a href="${safeLoginUrl}">Log in to your seller dashboard</a></p>` +
+      "<p><strong>Next step: add your items on Bachat</strong></p>" +
+      "<p>Please sign in to your shopkeeper dashboard and add the products/items you want to sell on Bachat. Clear item details and good photos help buyers understand your products and place orders with confidence.</p>" +
+      "<p>If you are not able to add items from the dashboard, you can send the item details over email in this format:</p>" +
+      `<ul>${itemFields.map((field) => `<li><strong>${escapeHtml(field)}:</strong></li>`).join("")}</ul>` +
+      "<p>For photos, please attach up to <strong>4 clear product images per item</strong>.</p>" +
+      "<p>Our team may review listings for quality, completeness, and marketplace safety before they appear to customers.</p>" +
+      "<p>Thank you for joining Bachat. We are excited to help your shop reach more local customers.</p>" +
+      "<p>Regards,<br>Team Bachat</p>",
+  };
+}
+
 function cleanText(value, max) {
   return String(value == null ? "" : value).trim().slice(0, max);
 }
@@ -420,11 +473,12 @@ router.patch("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales")
       if (email) {
         try {
           const loginUrl = `${String(process.env.PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "")}/login.html?role=seller`;
+          const mail = sellerKycApprovedMail({ name: (u && u.name) || "", loginUrl });
           await sendMail({
             to: email,
-            subject: "You are verified now — Bachat Shopkeeper",
-            text: `Hi ${(u && u.name) || ""},\n\nYour shop verification is approved. You are verified now, and you can log in to Bachat as a shopkeeper.\n\nLogin: ${loginUrl}\n\n— Bachat`,
-            html: `<p>Hi ${(u && u.name) || "there"},</p><p>Your <strong>shop verification</strong> is approved.</p><p><strong>You are verified now, and you can log in as a shopkeeper.</strong></p><p><a href="${loginUrl}">Log in to Bachat</a></p><p>— Bachat</p>`,
+            subject: mail.subject,
+            text: mail.text,
+            html: mail.html,
           });
         } catch (e) {
           console.error("[seller-kyc-verify-mail]", e.message || e);

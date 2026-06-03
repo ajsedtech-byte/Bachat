@@ -23,6 +23,53 @@ function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sellerRegistrationMail({ name }) {
+  const safeName = escapeHtml(name || "there");
+  const requiredDocs = [
+    "Aadhaar",
+    "PAN Card",
+    "Government-issued ID",
+    "Proof of Address",
+    "Business Registration Document",
+    "Banking Details",
+  ];
+  const optionalDocs = ["Shop Photo", "GST Certificate", "Udyam Document", "Other Document"];
+  return {
+    subject: "Bachat shop registration successful - eKYC pending",
+    text:
+      `Hi ${name || ""},\n\n` +
+      "Your shop registration on Bachat has been completed successfully.\n\n" +
+      "Your eKYC is currently pending. To activate your shop for field-sales approval, please upload the required documents from your shopkeeper dashboard.\n\n" +
+      "Required documents:\n" +
+      requiredDocs.map((doc) => `- ${doc}`).join("\n") +
+      "\n\nOptional documents:\n" +
+      optionalDocs.map((doc) => `- ${doc}`).join("\n") +
+      "\n\nPlease upload whichever documents you have available. Our team will review your details and update your verification status after checking the submitted documents.\n\n" +
+      "Thank you for registering with Bachat.\n\n" +
+      "Regards,\nTeam Bachat",
+    html:
+      `<p>Hi ${safeName},</p>` +
+      "<p>Your shop registration on <strong>Bachat</strong> has been completed successfully.</p>" +
+      "<p>Your eKYC is currently pending. To activate your shop for field-sales approval, please upload the required documents from your shopkeeper dashboard.</p>" +
+      "<p><strong>Required documents:</strong></p>" +
+      `<ol>${requiredDocs.map((doc) => `<li>${escapeHtml(doc)}</li>`).join("")}</ol>` +
+      "<p><strong>Optional documents:</strong></p>" +
+      `<ol start="7">${optionalDocs.map((doc) => `<li>${escapeHtml(doc)}</li>`).join("")}</ol>` +
+      "<p>Please upload whichever documents you have available. Our team will review your details and update your verification status after checking the submitted documents.</p>" +
+      "<p>Thank you for registering with Bachat.</p>" +
+      "<p>Regards,<br>Team Bachat</p>",
+  };
+}
+
 function duplicateKeyPayload(err) {
   const keyPattern = err && err.keyPattern ? err.keyPattern : {};
   const keyValue = err && err.keyValue ? err.keyValue : {};
@@ -231,7 +278,7 @@ router.post("/register", async (req, res, next) => {
       try {
         await sendMail({
           to: createdUser.email,
-          subject: "Verify your email – Bachat",
+          subject: "Verify your email - Bachat",
           text: `Your verification code is: ${code}\nIt expires in 15 minutes.`,
           html: `<p>Your verification code is:</p><p style="font-size:24px;font-weight:bold">${code}</p><p>It expires in 15 minutes.</p>`,
         });
@@ -247,6 +294,20 @@ router.post("/register", async (req, res, next) => {
             code
           )
         );
+      }
+
+      if (role === "seller") {
+        try {
+          const sellerMail = sellerRegistrationMail({ name: createdUser.name });
+          await sendMail({
+            to: createdUser.email,
+            subject: sellerMail.subject,
+            text: sellerMail.text,
+            html: sellerMail.html,
+          });
+        } catch (sellerMailErr) {
+          console.error("[seller-registration-kyc-mail]", sellerMailErr.message || sellerMailErr);
+        }
       }
 
       return res.status(201).json(
