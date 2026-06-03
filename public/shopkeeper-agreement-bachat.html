@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bachat Shopkeeper Agreement</title>
+  <style>
+    :root {
+      --ink: #102033;
+      --muted: #5c6c80;
+      --line: #dbe7f5;
+      --blue: #075bd8;
+      --blue-dark: #053a96;
+      --gold: #f6b51d;
+      --soft: #f4f8ff;
+      --paper: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #eaf1fb;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      background: var(--paper);
+      box-shadow: 0 18px 60px rgba(15, 36, 67, 0.15);
+    }
+
+    .hero {
+      position: relative;
+      min-height: 285px;
+      overflow: hidden;
+      color: #fff;
+      background: #061b3d;
+    }
+
+    .hero-poster {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.78;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(2, 16, 38, 0.96) 0%, rgba(3, 26, 63, 0.78) 44%, rgba(2, 16, 38, 0.2) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.55));
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      padding: 34px 42px 32px;
+      max-width: 560px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 34px;
+    }
+
+    .brand-logo {
+      width: 124px;
+      height: 80px;
+      object-fit: contain;
+      object-position: left center;
+      border-radius: 0;
+      filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.38));
+    }
+
+    .brand-name {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .brand-powered {
+      margin-top: 2px;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 36px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 15px;
+      max-width: 510px;
+    }
+
+    .document-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 22px 42px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fbfdff, #f4f8ff);
+    }
+
+    .meta-box {
+      min-height: 62px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .meta-label {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .meta-value {
+      display: block;
+      margin-top: 3px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .meta-blank {
+      display: block;
+      height: 18px;
+      margin-top: 8px;
+      border-bottom: 1px solid #8aa1bd;
+    }
+
+    main {
+      padding: 28px 42px 42px;
+    }
+
+    .notice {
+      padding: 16px 18px;
+      border: 1px solid #cfe0f7;
+      border-left: 5px solid var(--blue);
+      border-radius: 10px;
+      background: #f8fbff;
+      color: #31445c;
+      font-size: 12px;
+    }
+
+    h2 {
+      margin: 26px 0 10px;
+      color: var(--blue-dark);
+      font-size: 17px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 8px 0;
+      font-size: 12.2px;
+    }
+
+    ol,
+    ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+      font-size: 12.2px;
+    }
+
+    strong {
+      color: #071d3a;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdff;
+      overflow: hidden;
+    }
+
+    .panel-title {
+      padding: 10px 13px;
+      color: #fff;
+      background: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .panel-body {
+      padding: 10px 13px 12px;
+    }
+
+    .panel-body ul {
+      margin-left: 16px;
+    }
+
+    .schedule {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+
+    .schedule th,
+    .schedule td {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .schedule th {
+      color: #fff;
+      background: var(--blue-dark);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .signature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 22px;
+    }
+
+    .signature-box {
+      min-height: 150px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdff;
+    }
+
+    .signature-line {
+      height: 44px;
+      margin: 18px 0 10px;
+      border-bottom: 1px solid #8aa1bd;
+    }
+
+    .fine-print {
+      margin-top: 22px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px 42px;
+      border-top: 1px solid var(--line);
+      color: #5b6d82;
+      background: #f8fbff;
+      font-size: 10.8px;
+    }
+
+    .powered {
+      color: #102033;
+      font-weight: 800;
+    }
+
+    .page-break {
+      break-before: page;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+        box-shadow: none;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <article class="page">
+    <header class="hero">
+      <img class="hero-poster" src="assets/bachat-mail-header.png" alt="Bachat marketplace poster">
+      <div class="hero-content">
+        <div class="brand-row">
+          <img class="brand-logo" src="assets/bachat-logo-light.png" alt="Bachat logo">
+          <div>
+            <div class="brand-name">Shopkeeper Agreement</div>
+            <div class="brand-powered">Powered by AJs Chalo Seekhen</div>
+          </div>
+        </div>
+        <h1>Shopkeeper Registration and Marketplace Agreement</h1>
+        <p class="subtitle">A professional agreement template for shopkeepers registering, completing eKYC, uploading products, and selling through the Bachat seller platform.</p>
+      </div>
+    </header>
+
+    <section class="document-meta">
+      <div class="meta-box">
+        <span class="meta-label">Agreement Date</span>
+        <span class="meta-blank"></span>
+      </div>
+      <div class="meta-box">
+        <span class="meta-label">Platform</span>
+        <span class="meta-value">Bachat Seller Platform</span>
+      </div>
+      <div class="meta-box">
+        <span class="meta-label">Shopkeeper / Seller</span>
+        <span class="meta-blank"></span>
+      </div>
+      <div class="meta-box">
+        <span class="meta-label">Registered Address</span>
+        <span class="meta-blank"></span>
+      </div>
+    </section>
+
+    <main>
+      <div class="notice">
+        This document is a business template for Bachat. It should be reviewed and finalized by a qualified legal professional before production use, signing, or enforcement.
+      </div>
+
+      <h2>1. Parties</h2>
+      <p>This Shopkeeper Registration and Marketplace Agreement ("Agreement") is entered into between <strong>Bachat</strong>, a product/platform powered by <strong>AJs Chalo Seekhen</strong> ("Bachat", "Platform", "we", "us", or "our"), and the registered shopkeeper, store owner, business owner, or authorized representative named above ("Shopkeeper", "Seller", "you", or "your").</p>
+      <p>By registering on Bachat, submitting eKYC documents, uploading products, accepting orders, or using the seller dashboard, the Shopkeeper agrees to the terms of this Agreement.</p>
+
+      <h2>2. Registration and Account Responsibility</h2>
+      <ol>
+        <li>The Shopkeeper confirms that all information submitted during registration is true, complete, current, and not misleading.</li>
+        <li>The Shopkeeper shall provide a valid mobile number, email address, business address, and any other information requested by Bachat.</li>
+        <li>The Shopkeeper is responsible for keeping login credentials confidential and for all activity performed through the seller account.</li>
+        <li>Bachat may verify the Shopkeeper's identity, business details, store location, documents, bank details, and product listings before or after approval.</li>
+      </ol>
+
+      <h2>3. eKYC and Document Upload</h2>
+      <p>The Shopkeeper agrees to upload clear, valid, and genuine documents requested by Bachat for verification, approval, compliance, fraud prevention, payment processing, field-sales approval, and marketplace trust.</p>
+      <ol>
+        <li>Bachat may approve, reject, re-check, or request re-upload of any document.</li>
+        <li>Document approval does not create employment, partnership, agency, franchise, or exclusive distribution rights.</li>
+        <li>The Shopkeeper is responsible for ensuring that all uploaded documents belong to the Shopkeeper or the registered business and are legally authorized for use.</li>
+      </ol>
+
+      <table class="schedule">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Document</th>
+            <th>Status</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Aadhaar</td><td>Required</td><td>Required for field-sales approval</td></tr>
+          <tr><td>2</td><td>PAN Card</td><td>Required</td><td>Required for field-sales approval</td></tr>
+          <tr><td>3</td><td>Government-issued ID</td><td>Required</td><td>Required for field-sales approval</td></tr>
+          <tr><td>4</td><td>Proof of Address</td><td>Required</td><td>Required for field-sales approval</td></tr>
+          <tr><td>5</td><td>Business Registration Document</td><td>Required</td><td>Required for field-sales approval</td></tr>
+          <tr><td>6</td><td>Banking Details</td><td>Required</td><td>Required for field-sales approval</td></tr>
+          <tr><td>7</td><td>Shop Photo</td><td>Optional</td><td>Optional shop identity support</td></tr>
+          <tr><td>8</td><td>GST Certificate</td><td>Optional</td><td>Optional tax/business verification support</td></tr>
+          <tr><td>9</td><td>Udyam Document</td><td>Optional</td><td>Optional business verification support</td></tr>
+          <tr><td>10</td><td>Other Document</td><td>Optional</td><td>Optional additional verification support</td></tr>
+        </tbody>
+      </table>
+
+      <h2>4. Product Upload and Listing Responsibility</h2>
+      <p>The Shopkeeper agrees to upload or provide complete, accurate, and lawful product information on the Bachat seller platform. The Shopkeeper may add items directly through the seller dashboard or send the product details to Bachat through an approved official email or communication channel.</p>
+      <div class="two-column">
+        <div class="panel">
+          <div class="panel-title">Product Details Required</div>
+          <div class="panel-body">
+            <ul>
+              <li>Item Title</li>
+              <li>Details and description</li>
+              <li>Price</li>
+              <li>Available Quantity</li>
+              <li>Quantity Unit</li>
+              <li>Package Type</li>
+              <li>Package size or variant</li>
+              <li>Photos up to 4 images</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Listing Commitments</div>
+          <div class="panel-body">
+            <ul>
+              <li>Prices must be accurate and updated.</li>
+              <li>Stock must reflect real availability.</li>
+              <li>Images must represent the actual item.</li>
+              <li>Restricted or illegal items must not be listed.</li>
+              <li>Product quality must match the buyer-facing listing.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <h2>5. No Direct or Unofficial Buyer Dealing</h2>
+      <ol>
+        <li>The Shopkeeper shall not bypass Bachat by directly contacting buyers introduced through Bachat for the same or related order outside the platform.</li>
+        <li>The Shopkeeper shall not ask customers to cancel a Bachat order and place the same order directly through phone, WhatsApp, personal payment, cash arrangement, social media, or any unofficial channel.</li>
+        <li>The Shopkeeper shall not share private contact details, alternate payment instructions, or outside-platform ordering instructions for the purpose of avoiding Bachat's process, commission, service fee, delivery system, support flow, or order tracking.</li>
+        <li>Any direct dealing with a buyer that started through Bachat may be treated as a serious breach of this Agreement.</li>
+      </ol>
+
+      <h2>6. Orders, Availability, Pricing, and Fulfillment</h2>
+      <ol>
+        <li>The Shopkeeper shall accept, prepare, pack, and fulfill accepted orders with care, hygiene, accuracy, and within the promised time.</li>
+        <li>The Shopkeeper shall keep prices, discounts, product availability, package size, and delivery readiness updated.</li>
+        <li>If an item is unavailable, damaged, expired, restricted, incorrectly priced, or not suitable for sale, the Shopkeeper must promptly update the listing or inform Bachat.</li>
+        <li>The Shopkeeper is responsible for product quality, legal compliance, truthful descriptions, invoices where applicable, and customer-impacting listing accuracy.</li>
+      </ol>
+
+      <h2>7. Payments, Settlement, Fees, and Records</h2>
+      <ol>
+        <li>Bachat may process orders, collect customer payments, coordinate delivery, and settle eligible amounts to the Shopkeeper based on platform policy.</li>
+        <li>Commission, convenience fee, delivery fee, service fee, deductions, refunds, penalties, chargebacks, or settlement timelines may be communicated through dashboard, policy, invoice, email, or official notice.</li>
+        <li>The Shopkeeper shall maintain correct bank details and is responsible for taxes, invoices, permits, business registrations, and applicable statutory compliance.</li>
+      </ol>
+
+      <h2>8. Customer Data and Platform Confidentiality</h2>
+      <ol>
+        <li>The Shopkeeper shall use customer name, phone number, address, order details, and delivery information only for fulfilling Bachat orders.</li>
+        <li>The Shopkeeper shall not store, misuse, sell, disclose, publish, or transfer customer data for personal marketing or outside-platform communication.</li>
+        <li>The Shopkeeper shall protect any Bachat pricing, commission, dashboard access, operational process, sales data, or customer data shared through the platform.</li>
+      </ol>
+
+      <h2 class="page-break">9. Compliance and Prohibited Conduct</h2>
+      <p>The Shopkeeper shall comply with all applicable laws, marketplace policies, product safety requirements, tax rules, consumer protection expectations, food or medicine rules where applicable, and local business permissions.</p>
+      <ol>
+        <li>The Shopkeeper shall not upload fake documents, duplicate accounts, false listings, misleading images, expired products, counterfeit goods, unsafe items, stolen goods, restricted products, or illegal items.</li>
+        <li>The Shopkeeper shall not manipulate ratings, misuse offers, interfere with delivery partners, abuse customers, misrepresent product quality, or use Bachat for fraudulent activity.</li>
+        <li>Bachat may remove listings, pause orders, withhold approval, restrict visibility, suspend the account, or terminate access for suspected or confirmed breach.</li>
+      </ol>
+
+      <h2>10. Platform Rights</h2>
+      <ol>
+        <li>Bachat may verify, approve, reject, edit, hide, remove, reorder, or moderate shop and product listings for quality, safety, policy, operational, or legal reasons.</li>
+        <li>Bachat may contact the Shopkeeper for document verification, product data correction, order confirmation, customer support, field-sales approval, and platform operations.</li>
+        <li>Bachat may update marketplace policies, seller requirements, fee structures, order rules, or verification processes with reasonable notice through website, dashboard, email, or official communication.</li>
+      </ol>
+
+      <h2>11. Breach, Suspension, and Termination</h2>
+      <ol>
+        <li>Bachat may suspend, restrict, or terminate the seller account if the Shopkeeper breaches this Agreement, submits false documents, bypasses the platform, misuses customer data, violates law, or harms customer trust.</li>
+        <li>Bachat may hold settlement for review where fraud, refund, chargeback, customer complaint, direct dealing, or policy breach is suspected.</li>
+        <li>Termination does not remove obligations related to pending orders, refunds, customer complaints, payment settlement, confidentiality, data protection, document authenticity, or breach consequences.</li>
+      </ol>
+
+      <h2>12. Limitation and Indemnity</h2>
+      <p>The Shopkeeper agrees to indemnify and hold Bachat, AJs Chalo Seekhen, team members, field-sales representatives, delivery partners, and authorized service providers harmless from claims, losses, penalties, complaints, damages, or costs arising from false information, document issues, illegal products, poor product quality, outside-platform dealing, tax non-compliance, customer data misuse, or breach of this Agreement.</p>
+
+      <h2>13. Electronic Acceptance</h2>
+      <p>The Shopkeeper agrees that acceptance through checkbox, OTP, email confirmation, digital signature, dashboard action, document upload, product upload, or continued use of the Bachat seller platform may be treated as electronic acceptance of this Agreement, subject to applicable law.</p>
+
+      <h2>14. Governing Law and Jurisdiction</h2>
+      <p>This Agreement shall be governed by the laws of India. Subject to final legal review and business registration details, disputes may be submitted to the competent courts or dispute resolution forum having jurisdiction over Bachat's principal place of business or the location specified by Bachat in its final policy.</p>
+
+      <h2>15. Shopkeeper Declaration</h2>
+      <p>I/We confirm that I/we have read and understood this Agreement. I/We agree to register on Bachat honestly, upload valid documents, list accurate products, fulfill orders properly, protect customer data, and not deal with Bachat-introduced customers unofficially or outside the Bachat platform.</p>
+
+      <section class="signature-grid">
+        <div class="signature-box">
+          <strong>For Shopkeeper / Seller</strong>
+          <div class="signature-line"></div>
+          <p>Name: ______________________________</p>
+          <p>Business Name: ______________________</p>
+          <p>Mobile: _____________________________</p>
+          <p>Date: _______________________________</p>
+        </div>
+        <div class="signature-box">
+          <strong>For Bachat / Authorized Representative</strong>
+          <div class="signature-line"></div>
+          <p>Name: Amit Pal</p>
+          <p>Designation: Tech Lead</p>
+          <p>Date: _______________________________</p>
+          <p>Seal / Stamp: _______________________</p>
+        </div>
+      </section>
+
+      <p class="fine-print">Prepared for Bachat, a product powered by AJs Chalo Seekhen. This agreement template is designed for operational and onboarding use and must be legally reviewed before use as a binding production contract.</p>
+    </main>
+
+    <footer class="footer">
+      <span>Bachat Shopkeeper Registration and Marketplace Agreement</span>
+      <span class="powered">Powered by AJs Chalo Seekhen</span>
+    </footer>
+  </article>
+</body>
+</html>

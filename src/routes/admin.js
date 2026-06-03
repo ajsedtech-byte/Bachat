@@ -78,6 +78,8 @@ function sellerKycApprovedMail({ name, loginUrl }) {
       "If you are not able to add items from the dashboard, you can send the item details over email in this format:\n\n" +
       itemFields.map((field) => `${field}:`).join("\n") +
       "\n\nFor photos, please attach up to 4 clear product images per item.\n\n" +
+      "You can also share item details, product photos, documents, or any required details over WhatsApp at +91 9755556235.\n\n" +
+      "For any queries or issues, contact Bachat support on WhatsApp at +91 9755556235 or email bachat@seekhen.com.\n\n" +
       "Our team may review listings for quality, completeness, and marketplace safety before they appear to customers.\n\n" +
       "Thank you for joining Bachat. We are excited to help your shop reach more local customers.\n\n" +
       "Regards,\nTeam Bachat",
@@ -91,6 +93,8 @@ function sellerKycApprovedMail({ name, loginUrl }) {
       "<p>If you are not able to add items from the dashboard, you can send the item details over email in this format:</p>" +
       `<ul>${itemFields.map((field) => `<li><strong>${escapeHtml(field)}:</strong></li>`).join("")}</ul>` +
       "<p>For photos, please attach up to <strong>4 clear product images per item</strong>.</p>" +
+      '<p>You can also share item details, product photos, documents, or any required details over WhatsApp at <a href="https://wa.me/919755556235">+91 9755556235</a>.</p>' +
+      '<p><strong>Need help?</strong> For any queries or issues, contact Bachat support on WhatsApp at <a href="https://wa.me/919755556235">+91 9755556235</a> or email <a href="mailto:bachat@seekhen.com">bachat@seekhen.com</a>.</p>' +
       "<p>Our team may review listings for quality, completeness, and marketplace safety before they appear to customers.</p>" +
       "<p>Thank you for joining Bachat. We are excited to help your shop reach more local customers.</p>" +
       "<p>Regards,<br>Team Bachat</p>",

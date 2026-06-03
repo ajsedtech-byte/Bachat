@@ -83,3 +83,18 @@
 .bachat-storefront #shopping-home {
   color: #0f172a;
 }
+
+.bachat-powered-by {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--bachat-border);
+  padding: 1rem 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.bachat-powered-by strong {
+  color: #0f172a;
+  font-weight: 800;
+}

@@ -54,6 +54,7 @@ function sellerRegistrationMail({ name }) {
       "\n\nOptional documents:\n" +
       optionalDocs.map((doc) => `- ${doc}`).join("\n") +
       "\n\nPlease upload whichever documents you have available. Our team will review your details and update your verification status after checking the submitted documents.\n\n" +
+      "For any queries, issues, or help with document sharing, contact Bachat support on WhatsApp at +91 9755556235 or email bachat@seekhen.com. You can also share your documents and other required details over WhatsApp.\n\n" +
       "Thank you for registering with Bachat.\n\n" +
       "Regards,\nTeam Bachat",
     html:
@@ -65,6 +66,7 @@ function sellerRegistrationMail({ name }) {
       "<p><strong>Optional documents:</strong></p>" +
       `<ol start="7">${optionalDocs.map((doc) => `<li>${escapeHtml(doc)}</li>`).join("")}</ol>` +
       "<p>Please upload whichever documents you have available. Our team will review your details and update your verification status after checking the submitted documents.</p>" +
+      '<p><strong>Need help?</strong> For any queries, issues, or help with document sharing, contact Bachat support on WhatsApp at <a href="https://wa.me/919755556235">+91 9755556235</a> or email <a href="mailto:bachat@seekhen.com">bachat@seekhen.com</a>. You can also share your documents and other required details over WhatsApp.</p>' +
       "<p>Thank you for registering with Bachat.</p>" +
       "<p>Regards,<br>Team Bachat</p>",
   };

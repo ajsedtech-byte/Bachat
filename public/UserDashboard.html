@@ -867,6 +867,36 @@
       width: 22px;
     }
 
+    .bachat-footer-powered {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 7px;
+      margin: 0;
+      border: 1px solid rgba(213, 217, 217, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.045);
+      color: #d5d9d9;
+      padding: 7px 11px;
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .bachat-footer-powered-wrap {
+      display: flex;
+      justify-content: center;
+      max-width: 1040px;
+      margin: 28px auto 0;
+      border-top: 1px solid rgba(213, 217, 217, 0.16);
+      padding-top: 18px;
+    }
+
+    .bachat-footer-powered strong {
+      color: #fff;
+      font-weight: 950;
+    }
+
     .bachat-footer-pill {
       display: inline-flex;
       min-height: 34px;
@@ -2462,6 +2492,23 @@
     .bachat-storefront .bachat-footer h3,
     .bachat-storefront .bachat-footer-logo {
       color: #0f172a;
+    }
+
+    .bachat-storefront .bachat-footer-powered {
+      border-color: #d9e5f6;
+      background: #ffffff;
+      color: #526174;
+      box-shadow: 0 14px 30px -26px rgba(15, 23, 42, 0.42);
+    }
+
+    .bachat-storefront .bachat-footer-powered-wrap {
+      max-width: none;
+      margin-top: 24px;
+      border-color: #d9e5f6;
+    }
+
+    .bachat-storefront .bachat-footer-powered strong {
+      color: #0056d2;
     }
 
     .bachat-storefront .bachat-footer-list a,
@@ -4213,6 +4260,9 @@
                     <li><a href="/signup.html?role=seller">Resources</a></li>
                   </ul>
                 </section>
+              </div>
+              <div class="bachat-footer-powered-wrap">
+                <p class="bachat-footer-powered">Powered by <strong>AJs Chalo Seekhen</strong></p>
               </div>
             </div>
           </footer>

@@ -166,4 +166,12 @@
   if (lo) lo.addEventListener("click", bachatAdminLogout);
   var lo2 = document.getElementById("bachat-admin-logout-sidebar");
   if (lo2) lo2.addEventListener("click", bachatAdminLogout);
+
+  var main = document.querySelector("main");
+  if (main && !main.querySelector(".bachat-powered-by")) {
+    var powered = document.createElement("footer");
+    powered.className = "bachat-powered-by";
+    powered.innerHTML = "Powered by <strong>AJs Chalo Seekhen</strong>";
+    main.appendChild(powered);
+  }
 })();
