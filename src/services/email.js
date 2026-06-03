@@ -1,6 +1,9 @@
+const fs = require("fs");
+const path = require("path");
 const nodemailer = require("nodemailer");
 
 let transporter;
+const MAIL_HEADER_CID = "bachat-mail-header@bachat";
 
 function buildMailDeliveryError(message, cause) {
   const err = new Error(message);
@@ -72,6 +75,21 @@ function mailHeaderImageUrl() {
   return String(process.env.MAIL_HEADER_IMAGE_URL || `${appBaseUrl()}/assets/bachat-mail-header.png`).trim();
 }
 
+function mailHeaderImagePath() {
+  return path.join(__dirname, "..", "..", "public", "assets", "bachat-mail-header.png");
+}
+
+function mailHeaderAttachment() {
+  const filePath = mailHeaderImagePath();
+  if (!fs.existsSync(filePath)) return null;
+  return {
+    filename: "bachat-mail-header.png",
+    path: filePath,
+    cid: MAIL_HEADER_CID,
+    contentType: "image/png",
+  };
+}
+
 function textToHtml(text) {
   return String(text || "")
     .split(/\n{2,}/)
@@ -79,13 +97,13 @@ function textToHtml(text) {
     .join("");
 }
 
-function withBachatMailShell({ subject, text, html }) {
+function withBachatMailShell({ subject, text, html, headerImageSrc }) {
   const bodyHtml = html || textToHtml(text);
   if (!bodyHtml) return undefined;
   if (String(bodyHtml).includes('data-bachat-mail-shell="1"')) return bodyHtml;
 
   const safeSubject = escapeHtml(subject || "Bachat");
-  const safeHeaderUrl = escapeHtml(mailHeaderImageUrl());
+  const safeHeaderUrl = escapeHtml(headerImageSrc || mailHeaderImageUrl());
 
   return `<!doctype html>
 <html>
@@ -128,12 +146,19 @@ async function sendMail({ to, subject, text, html }) {
   }
 
   const tx = getTransporter();
+  const headerAttachment = mailHeaderAttachment();
   const payload = {
     from: fromAddress(),
     to,
     subject,
     text: text || "",
-    html: withBachatMailShell({ subject, text, html }),
+    html: withBachatMailShell({
+      subject,
+      text,
+      html,
+      headerImageSrc: headerAttachment ? `cid:${MAIL_HEADER_CID}` : mailHeaderImageUrl(),
+    }),
+    attachments: headerAttachment ? [headerAttachment] : undefined,
   };
 
   if (!tx) {
