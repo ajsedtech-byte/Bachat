@@ -472,7 +472,7 @@ router.patch("/seller-kyc/:sellerId", requireAuth, requireRole("admin", "sales")
       const email = u && u.email;
       if (email) {
         try {
-          const loginUrl = `${String(process.env.PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "")}/login.html?role=seller`;
+          const loginUrl = "https://bachat.seekhen.com/login.html";
           const mail = sellerKycApprovedMail({ name: (u && u.name) || "", loginUrl });
           await sendMail({
             to: email,
