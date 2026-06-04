@@ -6,6 +6,7 @@ const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatSeller } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
+const { WEEK_DAYS, normalizeBusinessHours } = require("../lib/shopHours");
 const { normalizeIndiaRegionCity } = require("../lib/indiaLocations");
 const { validateGstinChecksum } = require("../lib/gstinValidate");
 const { gstRegistryLookupHttp } = require("../lib/gstRegistryLookup");
@@ -15,6 +16,28 @@ const { sendMail } = require("../services/email");
 const router = express.Router();
 
 const DOC_KINDS = new Set(SELLER_KYC_DOC_KINDS);
+const SHOP_TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+function normalizeWeeklyHoursInput(rows, fallbackOpen, fallbackClose) {
+  if (!Array.isArray(rows)) return null;
+  const out = [];
+  const seen = new Set();
+  for (const row of rows) {
+    const day = String(row?.day || "").trim().toLowerCase();
+    if (!WEEK_DAYS.includes(day) || seen.has(day)) continue;
+    seen.add(day);
+    const isOpen = row?.is_open !== false && row?.isOpen !== false && String(row?.is_open).toLowerCase() !== "false";
+    const openTime = String(row?.open_time || row?.openTime || fallbackOpen).trim();
+    const closeTime = String(row?.close_time || row?.closeTime || fallbackClose).trim();
+    if (!SHOP_TIME_RE.test(openTime) || !SHOP_TIME_RE.test(closeTime) || openTime === closeTime) {
+      const err = new Error(`Choose valid open and close times for ${day}.`);
+      err.status = 400;
+      throw err;
+    }
+    out.push({ day, isOpen, openTime, closeTime });
+  }
+  return out.length ? out : null;
+}
 
 function round2(x) {
   return Math.round(Number(x) * 100) / 100;
@@ -228,6 +251,8 @@ router.post("/kyc/business-details", requireAuth, requireRole("seller"), async (
       service_areas,
       offers_delivery,
       gst_number,
+      open_time,
+      close_time,
     } = req.body || {};
     const seller = await Seller.findOne({ user: req.user.id });
     if (!seller) {
@@ -273,6 +298,11 @@ router.post("/kyc/business-details", requireAuth, requireRole("seller"), async (
     }
     const offers =
       offers_delivery === false || String(offers_delivery).toLowerCase() === "false" ? false : true;
+    const openTime = String(open_time || "09:00").trim();
+    const closeTime = String(close_time || "21:00").trim();
+    if (!SHOP_TIME_RE.test(openTime) || !SHOP_TIME_RE.test(closeTime) || openTime === closeTime) {
+      return badRequest(res, "Choose valid shop open and close times.");
+    }
 
     seller.shopName = sn;
     seller.categories = nextCats;
@@ -285,6 +315,7 @@ router.post("/kyc/business-details", requireAuth, requireRole("seller"), async (
     seller.sellerKyc.locality = loc.slice(0, 200);
     seller.sellerKyc.serviceAreas = areas.length ? areas : [];
     seller.sellerKyc.offersDelivery = offers;
+    seller.businessHours = normalizeBusinessHours({ open_time: openTime, close_time: closeTime });
     seller.sellerKyc.businessDetailsCompletedAt = new Date();
     if (gst_number != null && gst_number !== "") {
       seller.sellerKyc.gstNumber = String(gst_number).replace(/\s/g, "").toUpperCase().slice(0, 20);
@@ -300,6 +331,31 @@ router.post("/kyc/business-details", requireAuth, requireRole("seller"), async (
 
     const fresh = await Seller.findOne({ user: req.user.id }).lean();
     return res.json({ seller: formatSeller(fresh), message: "Business details saved" });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/business-hours", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const { open_time, close_time, weekly_hours } = req.body || {};
+    const openTime = String(open_time || "").trim();
+    const closeTime = String(close_time || "").trim();
+    if (!SHOP_TIME_RE.test(openTime) || !SHOP_TIME_RE.test(closeTime) || openTime === closeTime) {
+      return badRequest(res, "Choose valid shop open and close times.");
+    }
+    const seller = await Seller.findOne({ user: req.user.id });
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+    }
+    const weeklySchedule = normalizeWeeklyHoursInput(weekly_hours, openTime, closeTime);
+    seller.businessHours = normalizeBusinessHours({
+      open_time: openTime,
+      close_time: closeTime,
+      weekly_hours: weeklySchedule,
+    });
+    await seller.save();
+    return res.json({ seller: formatSeller(seller), message: "Shop opening hours saved" });
   } catch (err) {
     return next(err);
   }

@@ -6,6 +6,7 @@ function idStr(x) {
 
 const { sellerCategoryList } = require("./categories");
 const { sellerTradeBlocked } = require("./sellerKycGate");
+const { publicBusinessHours } = require("./shopHours");
 const { maskPhone } = require("./delivery");
 const { buyerPlan, canViewShopNames, maskedShopName } = require("./buyerPlan");
 
@@ -87,6 +88,7 @@ function formatSeller(s) {
     region: o.region,
     rating: o.rating,
     is_verified: o.isVerified,
+    business_hours: publicBusinessHours(o),
     kyc_status: kyc.status || null,
     kyc_path: kyc.path || null,
     kyc_business_completed: Boolean(kyc.businessDetailsCompletedAt),

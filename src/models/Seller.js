@@ -117,6 +117,33 @@ const preciseLocationSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const businessHoursSchema = new mongoose.Schema(
+  {
+    openTime: { type: String, default: "09:00", trim: true, maxlength: 5 },
+    closeTime: { type: String, default: "21:00", trim: true, maxlength: 5 },
+    timezone: { type: String, default: "Asia/Kolkata", trim: true, maxlength: 40 },
+    weeklySchedule: {
+      type: [
+        new mongoose.Schema(
+          {
+            day: {
+              type: String,
+              enum: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+              required: true,
+            },
+            isOpen: { type: Boolean, default: true },
+            openTime: { type: String, default: "09:00", trim: true, maxlength: 5 },
+            closeTime: { type: String, default: "21:00", trim: true, maxlength: 5 },
+          },
+          { _id: false }
+        ),
+      ],
+      default: undefined,
+    },
+  },
+  { _id: false }
+);
+
 const sellerSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
@@ -136,6 +163,7 @@ const sellerSchema = new mongoose.Schema(
     city: { type: String, required: true, trim: true },
     region: { type: String, required: true, trim: true },
     location: { type: preciseLocationSchema, default: undefined },
+    businessHours: { type: businessHoursSchema, default: () => ({}) },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     isVerified: { type: Boolean, default: false },
     /** Shopkeeper eKYC (new signups). Legacy rows omit this — trade is not blocked by KYC gate. */

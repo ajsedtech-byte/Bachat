@@ -8,6 +8,7 @@ const { buyerDisplayPrice } = require("../lib/buyerPrice");
 const { canViewShopNames, maskedShopName, publicShopKey } = require("../lib/buyerPlan");
 const { CATEGORY_SET, canonicalCategory, sellerCategoryList } = require("../lib/categories");
 const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
+const { publicBusinessHours } = require("../lib/shopHours");
 
 const router = express.Router();
 
@@ -80,6 +81,7 @@ function formatCatalogProduct(doc, seller, options = {}) {
     city: seller?.city || "",
     region: seller?.region || "",
     seller_verified: Boolean(seller?.isVerified),
+    shop_hours: publicBusinessHours(seller || {}),
   };
 }
 
@@ -106,7 +108,7 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
     city: exactCiRegex(cleanCity),
     region: exactCiRegex(cleanRegion),
   })
-    .select("_id shopName city region isVerified")
+    .select("_id shopName city region isVerified businessHours")
     .lean();
   const sellerIds = sellers.map((s) => s._id);
   if (!sellerIds.length) return [];
@@ -238,7 +240,7 @@ router.get("/public-catalog/:productId", async (req, res, next) => {
       return res.status(404).json({ error: "Not found" });
     }
 
-    return res.json({ item: formatCatalogProduct(doc, seller, { showShopNames: canViewShopNames(user) }) });
+    return res.json({ item: formatCatalogProduct(doc, seller, { showShopNames: false }) });
   } catch (e) {
     return next(e);
   }

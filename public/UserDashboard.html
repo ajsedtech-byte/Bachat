@@ -2200,6 +2200,12 @@
       font-weight: 950;
     }
 
+    .bachat-storefront .home-product-card .home-add-cart:disabled {
+      cursor: not-allowed;
+      background: #cbd5e1;
+      color: #475569;
+    }
+
     .bachat-storefront #browse-section {
       border: 1px solid #e5edf8;
       border-radius: 22px;
@@ -5208,6 +5214,44 @@
       return row && row.shop_name_locked && !buyerCanViewShopNames() ? "Premium unlocks shop name" : "";
     }
 
+    function shopHours(row) {
+      return (row && row.shop_hours) || {};
+    }
+
+    function shopIsOpen(row) {
+      const hours = shopHours(row);
+      return hours.is_open !== false;
+    }
+
+    function shopClosedMessage(row) {
+      const hours = shopHours(row);
+      return hours.message || "Shop is closed right now.";
+    }
+
+    function shopHoursText(row) {
+      const hours = shopHours(row);
+      return hours.label || "";
+    }
+
+    function shopStatusBadgeHtml(row) {
+      const hours = shopHours(row);
+      const label = hours.message || (shopIsOpen(row) ? "Open now" : "Shop closed");
+      const cls = shopIsOpen(row)
+        ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+        : "bg-amber-50 text-amber-800 border-amber-100";
+      return `<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${cls}">${escapeHtml(label)}</span>`;
+    }
+
+    function closedActionAttrs(row) {
+      return shopIsOpen(row) ? "" : ` disabled title="${escapeHtml(shopClosedMessage(row))}"`;
+    }
+
+    function canOrderProduct(row) {
+      if (shopIsOpen(row)) return true;
+      showToast(shopClosedMessage(row), true);
+      return false;
+    }
+
     function updateCartBadges(count) {
       const safeCount = Math.max(0, Number(count) || 0);
       document.querySelectorAll("#cart-badge, [data-cart-badge]").forEach((el) => {
@@ -5286,6 +5330,10 @@
     }
 
     async function addGuestCartItem(productId) {
+      const item = await fetchCatalogProduct(productId).catch(function () {
+        return null;
+      });
+      if (item && !canOrderProduct(item)) return false;
       const rows = readGuestCartRows();
       const existing = rows.find((line) => line.product_id === productId);
       if (existing) existing.quantity = Math.min(99, (Number(existing.quantity) || 1) + 1);
@@ -5304,6 +5352,10 @@
 
     async function setGuestCartItemQuantity(productId, quantity) {
       const nextQuantity = Math.min(99, Math.max(1, Number(quantity) || 1));
+      const item = await fetchCatalogProduct(productId).catch(function () {
+        return null;
+      });
+      if (item && !canOrderProduct(item)) return;
       const rows = readGuestCartRows();
       const row = rows.find((line) => line.product_id === productId);
       if (!row) return;
@@ -6110,10 +6162,11 @@
               <span class="text-[10px] font-black uppercase tracking-[0.12em] text-[#0056d2]">${escapeHtml(p.category || "Near you")}</span>
               <p class="mt-1 line-clamp-2 min-h-[38px] text-sm font-black leading-tight text-slate-950">${escapeHtml(p.title)}</p>
               <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(shopDisplayName(p))}${shopUnlockHint(p) ? ` · ${escapeHtml(shopUnlockHint(p))}` : ""}</p>
+              <p class="mt-1">${shopStatusBadgeHtml(p)}</p>
               ${productPackText(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(p))}</p>` : ""}
               <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
               <div class="mt-2 grid grid-cols-2 gap-2">
-                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8]">Basket</button>
+                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(p)}>${shopIsOpen(p) ? "Basket" : "Closed"}</button>
                 <button type="button" data-pid="${escapeHtml(p.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
               </div>
             </div>`;
@@ -6244,6 +6297,8 @@
       const verifiedBadge = p.seller_verified
         ? '<span class="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Verified seller</span>'
         : '<span class="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-slate-600">Local seller</span>';
+      const closedAttrs = closedActionAttrs(p);
+      const primaryActionText = shopIsOpen(p) ? "Add to Basket" : "Shop Closed";
       return `<div class="grid gap-6 xl:grid-cols-[minmax(260px,0.9fr)_minmax(360px,1.25fr)_minmax(300px,0.85fr)]">
         <section>
           <div class="flex min-h-[320px] items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white sm:min-h-[430px]">
@@ -6269,6 +6324,7 @@
             <p><span class="font-black text-slate-950">Pack size:</span> ${packText}</p>
             <p><span class="font-black text-slate-950">Available:</span> ${availableText}</p>
             <p><span class="font-black text-slate-950">Ships from:</span> ${locationText}</p>
+            <p><span class="font-black text-slate-950">Shop timing:</span> ${shopStatusBadgeHtml(p)}${shopHoursText(p) ? ` <span>${escapeHtml(shopHoursText(p))}</span>` : ""}</p>
             <p><span class="font-black text-slate-950">Delivery:</span> Local delivery or pickup after seller confirmation.</p>
           </div>
           <div class="mt-6 border-t border-slate-200 pt-5">
@@ -6290,10 +6346,11 @@
             <p><span class="font-black text-slate-950">Stock:</span> ${availableText}</p>
             <p><span class="font-black text-slate-950">Payment:</span> Secure checkout on Bachat</p>
             <p><span class="font-black text-slate-950">Seller:</span> ${shop}${unlockHint ? ` <span class="font-semibold text-[#0056d2]">(${unlockHint})</span>` : ""}</p>
+            <p><span class="font-black text-slate-950">Timing:</span> ${shopStatusBadgeHtml(p)}</p>
           </div>
           <div class="mt-6 grid gap-3">
-            <button type="button" data-product-add="${productId}" class="rounded-full bg-[#0056d2] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-white shadow-sm hover:bg-[#0044a8]">Add to Basket</button>
-            <button type="button" data-product-buy="${productId}" class="rounded-full bg-[#ffbd69] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-slate-950 shadow-sm hover:bg-[#f3a847]">Buy Now</button>
+            <button type="button" data-product-add="${productId}" class="rounded-full bg-[#0056d2] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-white shadow-sm hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedAttrs}>${primaryActionText}</button>
+            <button type="button" data-product-buy="${productId}" class="rounded-full bg-[#ffbd69] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-slate-950 shadow-sm hover:bg-[#f3a847] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"${closedAttrs}>Buy Now</button>
             <button type="button" data-product-save="${productId}" class="rounded-full border border-[#cfe1ff] bg-[#f8fbff] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#0056d2] hover:bg-[#e8f1fc]">Save for Later</button>
           </div>
         </aside>
@@ -6318,10 +6375,11 @@
         <div class="flex flex-1 flex-col p-3">
           <span class="text-[10px] font-black uppercase tracking-[0.12em] text-[#0056d2]">${escapeHtml(item.category || "Near you")}</span>
           <p class="mt-1 line-clamp-2 min-h-[34px] text-sm font-black leading-tight text-slate-950">${escapeHtml(item.title || "Local item")}</p>
+          <p class="mt-1">${shopStatusBadgeHtml(item)}</p>
           ${productPackText(item) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(item))}</p>` : ""}
           <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(item.price)}</p>
           <div class="mt-2 grid grid-cols-2 gap-2">
-            <button type="button" data-pid="${escapeHtml(item.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8]">Basket</button>
+            <button type="button" data-pid="${escapeHtml(item.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(item)}>${shopIsOpen(item) ? "Basket" : "Closed"}</button>
             <button type="button" data-pid="${escapeHtml(item.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
           </div>
         </div>
@@ -6463,6 +6521,8 @@
               <p class="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Available items</p>
               <p class="mt-1 text-3xl font-black text-slate-950">${products.length}</p>
               <p class="mt-1 text-sm font-semibold text-slate-500">${escapeHtml(shop.city || "Nearby")}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
+              <p class="mt-2">${shopStatusBadgeHtml(shop)}</p>
+              ${shopHoursText(shop) ? `<p class="mt-1 text-xs font-bold text-slate-500">${escapeHtml(shopHoursText(shop))}</p>` : ""}
             </div>
             <div class="mt-5 flex flex-wrap gap-2">${categoryButtons || '<span class="text-sm font-semibold text-slate-500">No categories listed yet.</span>'}</div>
           </aside>
@@ -6727,8 +6787,8 @@
         `<p class="home-product-title line-clamp-2">${escapeHtml(p.title || "Local item")}</p>` +
         `<p class="home-product-meta">${escapeHtml(p.category || "Local pick")}</p>` +
         `<p class="home-product-price">${rupee(p.price)}</p>` +
-        `<p class="home-product-meta">Best local price</p>` +
-        `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-add-cart">Add to basket</button>` +
+        `<p class="home-product-meta">${shopIsOpen(p) ? "Best local price" : escapeHtml(shopClosedMessage(p))}</p>` +
+        `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-add-cart" ${closedActionAttrs(p)}>${shopIsOpen(p) ? "Add to basket" : "Shop closed"}</button>` +
         `</article>`
       );
     }
@@ -6788,6 +6848,7 @@
               city: item.city || city,
               region: item.region || region,
               verified: Boolean(item.seller_verified),
+              shop_hours: item.shop_hours || {},
               image: item.shop_photo || item.shop_image || item.store_photo || item.storefront_photo || (Array.isArray(item.images) ? item.images.find(Boolean) : ""),
               count: 0,
               categories: new Set(),
@@ -6859,6 +6920,7 @@
                   ${shop.shop_name_locked && !buyerCanViewShopNames() ? '<span class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase text-[#0056d2]">Premium unlock</span>' : ""}
                 </div>
                 <p class="mt-1 truncate text-xs font-semibold text-slate-500">${escapeHtml(shop.city)}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
+                <p class="mt-1">${shopStatusBadgeHtml(shop)}</p>
                 <div class="shop-row-meta mt-2 text-xs font-bold text-slate-500">
                   <span class="text-amber-500">★ <span class="text-slate-600">${(4.8 - index * 0.1).toFixed(1)} (${124 - index * 26})</span></span>
                   <span>${shop.count} ${shop.count === 1 ? "listing" : "listings"}</span>
@@ -7134,6 +7196,10 @@
       if (!productId) return false;
       if (!hasSession()) return addGuestCartItem(productId);
       try {
+        const item = await fetchCatalogProduct(productId).catch(function () {
+          return null;
+        });
+        if (item && !canOrderProduct(item)) return false;
         const currentCart = await api("GET", "/api/cart");
         const existing = (Array.isArray(currentCart) ? currentCart : []).find((line) => line.product_id === productId);
         const nextQuantity = Math.min(99, (Number(existing?.quantity) || 0) + 1);
@@ -7176,10 +7242,11 @@
       const title = String(line.title || "Local item");
       const qty = Number(line.quantity) || 1;
       const productId = escapeHtml(line.product_id);
+      const closed = !shopIsOpen(line);
       const qtyControls = `<div class="cart-qty-control" aria-label="Change quantity for ${escapeHtml(title)}">
-        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty - 1}" aria-label="Decrease ${escapeHtml(title)} quantity" ${qty <= 1 ? "disabled" : ""}>-</button>
+        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty - 1}" aria-label="Decrease ${escapeHtml(title)} quantity" ${qty <= 1 || closed ? "disabled" : ""}>-</button>
         <span>Qty ${qty}</span>
-        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty + 1}" aria-label="Increase ${escapeHtml(title)} quantity" ${qty >= 99 ? "disabled" : ""}>+</button>
+        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty + 1}" aria-label="Increase ${escapeHtml(title)} quantity" ${qty >= 99 || closed ? "disabled" : ""}>+</button>
       </div>`;
       const thumb = image
         ? `<div class="cart-thumb"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy"></div>`
@@ -7189,6 +7256,7 @@
         <div class="min-w-0">
           <h3 class="cart-title">${escapeHtml(title)}</h3>
           <p class="cart-meta">${escapeHtml(line.category || "Local item")} - ${rupee(line.price)} each</p>
+          <p class="cart-meta">${shopStatusBadgeHtml(line)}${shopHoursText(line) ? ` <span>${escapeHtml(shopHoursText(line))}</span>` : ""}</p>
           ${qtyControls}
         </div>
         <div class="cart-line-total">
@@ -7283,6 +7351,7 @@
           });
           return;
         }
+        const closedLine = (Array.isArray(freshCart) ? freshCart : []).find((line) => !shopIsOpen(line));
         const subtotal = freshCart.reduce((sum, line) => sum + cartLineTotal(line), 0);
         const shopCount = new Set(freshCart.map((line) => String(line.shop_name || line.seller_id || ""))).size || 1;
         bodyEl.innerHTML = `<div class="cart-shell">
@@ -7292,8 +7361,8 @@
             <div class="cart-summary-row"><span>Items</span><strong>${itemTotal}</strong></div>
             <div class="cart-summary-row"><span>Shops</span><strong>${shopCount}</strong></div>
             <div class="cart-summary-row cart-summary-total"><span>Subtotal</span><strong>${rupee(subtotal)}</strong></div>
-            <button type="button" id="cart-checkout" class="cart-checkout-btn">${hasSession() ? "Proceed to checkout" : "Sign in to checkout"}</button>
-            <p class="mt-3 text-xs font-semibold leading-5 text-slate-500">${hasSession() ? "Checkout works for items from one shop at a time. If needed, remove items from other shops first." : "Your basket is saved in this browser. Sign in to continue checkout and we will move these items to your account."}</p>
+            <button type="button" id="cart-checkout" class="cart-checkout-btn" ${closedLine ? "disabled" : ""}>${closedLine ? "Shop closed" : hasSession() ? "Proceed to checkout" : "Sign in to checkout"}</button>
+            <p class="mt-3 text-xs font-semibold leading-5 ${closedLine ? "text-amber-700" : "text-slate-500"}">${closedLine ? escapeHtml(shopClosedMessage(closedLine)) : hasSession() ? "Checkout works for items from one shop at a time. If needed, remove items from other shops first." : "Your basket is saved in this browser. Sign in to continue checkout and we will move these items to your account."}</p>
           </aside>
         </div>`;
         bindCartActions(bodyEl);

@@ -6,6 +6,7 @@ const User = require("../models/User");
 const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
+const { ensureShopOpen, publicBusinessHours } = require("../lib/shopHours");
 
 const router = express.Router();
 
@@ -27,11 +28,15 @@ async function cartWithProducts(userId) {
   const cart = await getOrCreateCart(userId);
   const pids = cart.items.map((i) => i.product);
   const products = await Product.find({ _id: { $in: pids } }).lean();
+  const sellerIds = [...new Set(products.map((p) => String(p.seller)))];
+  const sellers = sellerIds.length ? await Seller.find({ _id: { $in: sellerIds } }).lean() : [];
+  const sellerMap = Object.fromEntries(sellers.map((s) => [String(s._id), s]));
   const pmap = Object.fromEntries(products.map((p) => [String(p._id), p]));
   const items = cart.items
     .map((row) => {
       const p = pmap[String(row.product)];
       if (!p || !p.isActive) return null;
+      const seller = sellerMap[String(p.seller)];
       const price = buyerDisplayPrice(p.sellerPrice, p._id);
       return {
         product_id: String(p._id),
@@ -41,6 +46,8 @@ async function cartWithProducts(userId) {
         price,
         quantity: row.quantity,
         line_total: row.quantity * price,
+        shop_name: seller?.shopName || "",
+        shop_hours: publicBusinessHours(seller || {}),
       };
     })
     .filter(Boolean);
@@ -87,6 +94,14 @@ router.post("/items", async (req, res, next) => {
     if (!seller || normText(seller.city) !== normText(city) || normText(seller.region) !== normText(region)) {
       return res.status(400).json({ error: "This product is not available in your current city." });
     }
+    const closedErr = ensureShopOpen(seller);
+    if (closedErr) {
+      return res.status(closedErr.status).json({
+        error: closedErr.message,
+        code: closedErr.code,
+        shop_open_status: closedErr.shop_open_status,
+      });
+    }
 
     const cart = await getOrCreateCart(req.user.id);
     const idx = cart.items.findIndex((i) => String(i.product) === String(product_id));
@@ -115,6 +130,18 @@ router.patch("/items/:productId", async (req, res, next) => {
     const cart = await getOrCreateCart(req.user.id);
     const idx = cart.items.findIndex((i) => String(i.product) === String(productId));
     if (idx < 0) return res.status(404).json({ error: "Item not in cart" });
+    const product = await Product.findOne({ _id: productId, isActive: true }).lean();
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    const seller = await Seller.findById(product.seller).lean();
+    if (!seller) return res.status(404).json({ error: "Seller not found" });
+    const closedErr = ensureShopOpen(seller);
+    if (closedErr) {
+      return res.status(closedErr.status).json({
+        error: closedErr.message,
+        code: closedErr.code,
+        shop_open_status: closedErr.shop_open_status,
+      });
+    }
     cart.items[idx].quantity = qty;
     await cart.save();
     const out = await cartWithProducts(req.user.id);

@@ -75,6 +75,20 @@
                 <input id="f-locality" type="text" maxlength="200" class="w-full rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm" placeholder="Neighbourhood, landmark, pincode area" />
               </div>
               <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Shop opening hours</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <span class="mb-1 block text-[11px] font-bold text-slate-500">Open time</span>
+                    <input id="f-open-time" type="time" class="w-full rounded-xl border border-[#e5e7eb] px-3 py-2.5 text-sm" value="09:00" />
+                  </div>
+                  <div>
+                    <span class="mb-1 block text-[11px] font-bold text-slate-500">Close time</span>
+                    <input id="f-close-time" type="time" class="w-full rounded-xl border border-[#e5e7eb] px-3 py-2.5 text-sm" value="21:00" />
+                  </div>
+                </div>
+                <p class="mt-1 text-[11px] text-slate-500">Customers can add to basket and checkout only during these hours.</p>
+              </div>
+              <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Business categories</label>
                 <p class="text-[11px] text-slate-500 mb-2">Select all that apply (scroll).</p>
                 <div id="cat-box" class="max-h-48 overflow-y-auto rounded-xl border border-[#e5e7eb] p-3 space-y-2 text-sm bg-slate-50/50"></div>
@@ -592,7 +606,10 @@
           document.getElementById("f-city").value = seller.city || u.city || "";
           document.getElementById("f-region").value = seller.region || u.region || "";
           var bus = k.business || {};
+          var hours = seller.business_hours || {};
           document.getElementById("f-locality").value = bus.locality || "";
+          document.getElementById("f-open-time").value = hours.open_time || "09:00";
+          document.getElementById("f-close-time").value = hours.close_time || "21:00";
           serviceAreaList = Array.isArray(bus.service_areas) ? bus.service_areas.slice() : [];
           renderAreaChips();
           if (bus.offers_delivery === false) {
@@ -690,6 +707,8 @@
             city: document.getElementById("f-city").value,
             region: document.getElementById("f-region").value,
             locality: document.getElementById("f-locality").value,
+            open_time: document.getElementById("f-open-time").value || "09:00",
+            close_time: document.getElementById("f-close-time").value || "21:00",
             service_areas: serviceAreaList,
             offers_delivery: offers,
             gst_number: document.getElementById("f-gst").value.trim(),

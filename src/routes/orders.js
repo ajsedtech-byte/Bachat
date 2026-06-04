@@ -15,6 +15,7 @@ const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
 const { claimTimeoutMs, normalizeAddressPart } = require("../lib/delivery");
 const { recordEvent } = require("../lib/analytics");
 const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
+const { ensureShopOpen } = require("../lib/shopHours");
 const { inIndiaBounds, normalizePreciseLocation } = require("../lib/location");
 const {
   DeliveryRequestError,
@@ -128,6 +129,15 @@ router.post(
             throw Object.assign(new Error("Request is already closed"), { status: 400 });
           }
 
+          const seller = await Seller.findById(q.seller).session(session);
+          if (!seller) {
+            throw Object.assign(new Error("Seller not found"), { status: 404 });
+          }
+          const closedErr = ensureShopOpen(seller || {});
+          if (closedErr) {
+            throw Object.assign(closedErr, { status: closedErr.status || 400 });
+          }
+
           const exists = await Order.findOne({ request: r._id }).session(session);
           if (exists) {
             throw Object.assign(new Error("An order already exists for this request"), {
@@ -163,7 +173,11 @@ router.post(
         });
       } catch (e) {
         if (e.status) {
-          return res.status(e.status).json({ error: e.message });
+          return res.status(e.status).json({
+            error: e.message,
+            ...(e.code ? { code: e.code } : {}),
+            ...(e.shop_open_status ? { shop_open_status: e.shop_open_status } : {}),
+          });
         }
         throw e;
       } finally {
@@ -228,6 +242,10 @@ router.post(
               status: 400,
             });
           }
+          const closedErr = ensureShopOpen(seller);
+          if (closedErr) {
+            throw Object.assign(closedErr, { status: closedErr.status || 400 });
+          }
 
           const pmap = Object.fromEntries(products.map((p) => [String(p._id), p]));
           const lineItems = [];
@@ -277,7 +295,11 @@ router.post(
         });
       } catch (e) {
         if (e.status) {
-          return res.status(e.status).json({ error: e.message });
+          return res.status(e.status).json({
+            error: e.message,
+            ...(e.code ? { code: e.code } : {}),
+            ...(e.shop_open_status ? { shop_open_status: e.shop_open_status } : {}),
+          });
         }
         throw e;
       } finally {
