@@ -130,6 +130,7 @@ function withBachatMailShell({ subject, text, html, headerImageSrc }) {
             <tr>
               <td style="border-top:1px solid #e5edf8;padding:16px 28px;color:#64748b;font-size:12px;line-height:1.5;">
                 This email was sent by Bachat.<br>
+                Powered by <strong style="color:#0f172a;">AJs Chalo Seekhen</strong>.<br>
                 For queries or issues, WhatsApp <a href="https://wa.me/919755556235" style="color:#075bd8;text-decoration:none;">+91 9755556235</a> or email <a href="mailto:bachat@seekhen.com" style="color:#075bd8;text-decoration:none;">bachat@seekhen.com</a>.
               </td>
             </tr>
