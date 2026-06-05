@@ -81,6 +81,10 @@ function formatCatalogProduct(doc, seller, options = {}) {
     city: seller?.city || "",
     region: seller?.region || "",
     seller_verified: Boolean(seller?.isVerified),
+    shop_photo: Array.isArray(seller?.shopImages) ? seller.shopImages[0] || "" : "",
+    shop_images: Array.isArray(seller?.shopImages) ? seller.shopImages : [],
+    shop_tagline: seller?.storefrontTagline || "",
+    shop_menu_note: seller?.menuNote || "",
     shop_hours: publicBusinessHours(seller || {}),
   };
 }
@@ -108,7 +112,7 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
     city: exactCiRegex(cleanCity),
     region: exactCiRegex(cleanRegion),
   })
-    .select("_id shopName city region isVerified businessHours")
+    .select("_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote")
     .lean();
   const sellerIds = sellers.map((s) => s._id);
   if (!sellerIds.length) return [];

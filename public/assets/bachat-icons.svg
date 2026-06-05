@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="icon-home" viewBox="0 0 24 24">
+    <path d="M3 11.5 12 4l9 7.5"/>
+    <path d="M5 10.5V20h5v-5h4v5h5v-9.5"/>
+  </symbol>
+  <symbol id="icon-dashboard" viewBox="0 0 24 24">
+    <rect x="4" y="4" width="7" height="7" rx="1.5"/>
+    <rect x="13" y="4" width="7" height="5" rx="1.5"/>
+    <rect x="13" y="11" width="7" height="9" rx="1.5"/>
+    <rect x="4" y="13" width="7" height="7" rx="1.5"/>
+  </symbol>
+  <symbol id="icon-document" viewBox="0 0 24 24">
+    <path d="M7 3h7l5 5v13H7z"/>
+    <path d="M14 3v6h5"/>
+    <path d="M9.5 13h5"/>
+    <path d="M9.5 17h5"/>
+  </symbol>
+  <symbol id="icon-box" viewBox="0 0 24 24">
+    <path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5z"/>
+    <path d="m4 8.5 8 4.5 8-4.5"/>
+    <path d="M12 13v7"/>
+  </symbol>
+  <symbol id="icon-card" viewBox="0 0 24 24">
+    <rect x="3" y="5" width="18" height="14" rx="2"/>
+    <path d="M3 10h18"/>
+    <path d="M7 15h4"/>
+  </symbol>
+  <symbol id="icon-star" viewBox="0 0 24 24">
+    <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2 7.5 14 3 9.6l6.2-.9z"/>
+  </symbol>
+  <symbol id="icon-map-pin" viewBox="0 0 24 24">
+    <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/>
+    <circle cx="12" cy="10" r="2.5"/>
+  </symbol>
+  <symbol id="icon-cart" viewBox="0 0 24 24">
+    <path d="M5 6h16l-2 8H7z"/>
+    <path d="M5 6 4 3H2"/>
+    <circle cx="8" cy="20" r="1.5"/>
+    <circle cx="18" cy="20" r="1.5"/>
+  </symbol>
+  <symbol id="icon-basket" viewBox="0 0 24 24">
+    <path d="M5 10h14l-1.2 9H6.2z"/>
+    <path d="M8 10 12 4l4 6"/>
+    <path d="M9 14v3"/>
+    <path d="M15 14v3"/>
+  </symbol>
+  <symbol id="icon-gift" viewBox="0 0 24 24">
+    <rect x="4" y="9" width="16" height="11" rx="1.5"/>
+    <path d="M4 13h16"/>
+    <path d="M12 9v11"/>
+    <path d="M12 9H8.5A2.5 2.5 0 1 1 12 6.5z"/>
+    <path d="M12 9h3.5A2.5 2.5 0 1 0 12 6.5z"/>
+  </symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="4"/>
+    <path d="M4 21a8 8 0 0 1 16 0"/>
+  </symbol>
+  <symbol id="icon-store" viewBox="0 0 24 24">
+    <path d="M4 9h16l-1.2-5H5.2z"/>
+    <path d="M5 9v11h14V9"/>
+    <path d="M9 20v-6h6v6"/>
+    <path d="M4 9c0 1.4 1.1 2.5 2.5 2.5S9 10.4 9 9"/>
+    <path d="M9 9c0 1.4 1.1 2.5 3 2.5s3-1.1 3-2.5"/>
+    <path d="M15 9c0 1.4 1.1 2.5 2.5 2.5S20 10.4 20 9"/>
+  </symbol>
+  <symbol id="icon-radio" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="2"/>
+    <path d="M8.5 8.5a5 5 0 0 0 0 7"/>
+    <path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+    <path d="M5.5 5.5a9.2 9.2 0 0 0 0 13"/>
+    <path d="M18.5 5.5a9.2 9.2 0 0 1 0 13"/>
+  </symbol>
+  <symbol id="icon-message" viewBox="0 0 24 24">
+    <path d="M5 5h14v10H8l-4 4V6a1 1 0 0 1 1-1z"/>
+    <path d="M8 9h8"/>
+    <path d="M8 12h5"/>
+  </symbol>
+  <symbol id="icon-bell" viewBox="0 0 24 24">
+    <path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16z"/>
+    <path d="M10 20a2 2 0 0 0 4 0"/>
+  </symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="7"/>
+    <path d="m16 16 5 5"/>
+  </symbol>
+  <symbol id="icon-phone" viewBox="0 0 24 24">
+    <rect x="8" y="3" width="8" height="18" rx="2"/>
+    <path d="M11 18h2"/>
+  </symbol>
+  <symbol id="icon-grid" viewBox="0 0 24 24">
+    <rect x="4" y="4" width="6" height="6" rx="1"/>
+    <rect x="14" y="4" width="6" height="6" rx="1"/>
+    <rect x="4" y="14" width="6" height="6" rx="1"/>
+    <rect x="14" y="14" width="6" height="6" rx="1"/>
+  </symbol>
+  <symbol id="icon-fruit" viewBox="0 0 24 24">
+    <path d="M12 8c4.2 0 7 2.7 7 6.4C19 18.2 16.2 21 12 21s-7-2.8-7-6.6C5 10.7 7.8 8 12 8z"/>
+    <path d="M12 8c.8-3.2 3-5 6-5"/>
+    <path d="M12 8c-1.2-2.3-3-3.2-5-3"/>
+  </symbol>
+  <symbol id="icon-grocery" viewBox="0 0 24 24">
+    <path d="M6 9h12l-1.1 11H7.1z"/>
+    <path d="M9 9a3 3 0 0 1 6 0"/>
+    <path d="M9 14h6"/>
+  </symbol>
+  <symbol id="icon-bag" viewBox="0 0 24 24">
+    <path d="M7 6h10l2 15H5z"/>
+    <path d="M9 6a3 3 0 0 1 6 0"/>
+    <path d="M9 13h6"/>
+    <path d="M10 16h4"/>
+  </symbol>
+  <symbol id="icon-utensils" viewBox="0 0 24 24">
+    <path d="M6 3v8"/>
+    <path d="M9 3v8"/>
+    <path d="M6 7h3"/>
+    <path d="M7.5 11v10"/>
+    <path d="M16 3v18"/>
+    <path d="M16 3c2 1.5 3 3.5 3 6s-1 4.5-3 6"/>
+  </symbol>
+  <symbol id="icon-spark" viewBox="0 0 24 24">
+    <path d="M12 3v18"/>
+    <path d="M3 12h18"/>
+    <path d="m5 5 14 14"/>
+    <path d="M19 5 5 19"/>
+  </symbol>
+  <symbol id="icon-diamond" viewBox="0 0 24 24">
+    <path d="M12 3 21 12 12 21 3 12z"/>
+    <path d="M8 12h8"/>
+  </symbol>
+  <symbol id="icon-headset" viewBox="0 0 24 24">
+    <path d="M4 13a8 8 0 0 1 16 0"/>
+    <path d="M5 13h3v5H5z"/>
+    <path d="M16 13h3v5h-3z"/>
+    <path d="M19 18c0 2-2 3-5 3"/>
+  </symbol>
+  <symbol id="icon-truck" viewBox="0 0 24 24">
+    <path d="M3 6h11v10H3z"/>
+    <path d="M14 10h4l3 3v3h-7z"/>
+    <circle cx="7" cy="18" r="2"/>
+    <circle cx="18" cy="18" r="2"/>
+  </symbol>
+</svg>

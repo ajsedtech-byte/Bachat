@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Bachat</title>
+  <title>Login â€” Bachat</title>
   <link rel="icon" href="/assets/bachat-icon-original.png" type="image/png" />
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,7 @@
         </h1>
         <p class="mt-3 text-slate-600 max-w-md text-[15px] leading-relaxed">Post requirements and receive quick quotes from trusted sellers in your city.</p>
         <ul class="mt-6 space-y-3">
-          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">?</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Get quotes in 2–5 minutes</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Competitive quotes from nearby sellers.</p></div></li>
+          <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">?</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Get quotes in 2â€“5 minutes</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Competitive quotes from nearby sellers.</p></div></li>
           <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">?</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Compare trusted local sellers</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Ratings, delivery time &amp; price in one view.</p></div></li>
           <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">?</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Track orders and savings</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Everything stays on Bachat.</p></div></li>
         </ul>
@@ -90,7 +90,7 @@
         <p class="text-center text-sm text-slate-600 mt-3">
           Delivery partner?
           <a href="/delivery-login.html" class="text-[#0056d2] font-bold hover:underline">Log in</a>
-          ·
+          Â·
           <a href="/delivery-signup.html" class="text-[#0056d2] font-bold hover:underline">Sign up</a>
         </p>
 
@@ -123,18 +123,19 @@
   </div>
 
   <script>
-    function dashboardFor(role, data) {
+    function dashboardFor(role, data, selectedRole) {
+      var afterLogin = localStorage.getItem("ajs_after_login") || "";
+      if (afterLogin && afterLogin.charAt(0) === "/" && afterLogin.indexOf("//") !== 0) {
+        localStorage.removeItem("ajs_after_login");
+        return afterLogin;
+      }
       if (role === "seller") {
         if (data && data.seller && data.seller.needs_kyc_completion) return "/seller-kyc.html";
         return "/ShopkeeperDashboard.html";
       }
       if (role === "admin") return "/AdminDashboard.html";
       if (role === "delivery") return "/DeliveryDashboard.html";
-      var afterLogin = localStorage.getItem("ajs_after_login") || "";
-      if (afterLogin && afterLogin.charAt(0) === "/" && afterLogin.indexOf("//") !== 0) {
-        localStorage.removeItem("ajs_after_login");
-        return afterLogin;
-      }
+      if (selectedRole === "buyer" || role === "buyer") return "/UserDashboard.html#shopping-home";
       return "/";
     }
     (function () {
@@ -257,7 +258,8 @@
         return;
       }
       try {
-        var res = await otpFetch("/api/auth/login-otp/request", { email: email });
+        var selectedRole = String(document.getElementById("role").value || "buyer");
+        var res = await otpFetch("/api/auth/login-otp/request", { email: email, role: selectedRole });
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Could not send code");
         if (data.dev_otp && dev) {
@@ -282,17 +284,17 @@
         return;
       }
       try {
-        var res = await otpFetch("/api/auth/login-otp/verify", { email: email, code: code });
+        var selectedRole = String(document.getElementById("role").value || "buyer");
+        var res = await otpFetch("/api/auth/login-otp/verify", { email: email, code: code, role: selectedRole });
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Invalid code");
-        var selectedRole = String(document.getElementById("role").value || "buyer");
         var actualRole = (data.user && data.user.role) || "";
         var roleMismatch = selectedRole !== actualRole && !(selectedRole === "buyer" && actualRole === "admin");
         if (roleMismatch) {
           throw new Error(
             selectedRole === "seller"
               ? "This account is not a shopkeeper account."
-              : "This account is a shopkeeper account — use Shopkeeper tab."
+              : "This account is not a customer account. Create a customer account with the same email or use the Shopkeeper tab."
           );
         }
         localStorage.setItem("ajs_token", data.token);
@@ -300,11 +302,11 @@
         if (data.seller) localStorage.setItem("ajs_seller", JSON.stringify(data.seller));
         else localStorage.removeItem("ajs_seller");
         var needPhoneOtp = data.user && data.user.phone && !data.user.phone_verified_at;
-        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole, data));
+        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole, data, selectedRole));
         if (needPhoneOtp) {
           location.href = "/verify-phone.html";
         } else {
-          location.href = dashboardFor(actualRole, data);
+          location.href = dashboardFor(actualRole, data, selectedRole);
         }
       } catch (x) {
         err.textContent = x.message || "Error";
@@ -320,7 +322,7 @@
       btn.disabled = true;
       var fd = new FormData(e.target);
       var selectedRole = String(fd.get("role") || "buyer");
-      var body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || "") };
+      var body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || ""), role: selectedRole };
       try {
         var res = await loginFetch(body);
         var data = await res.json().catch(function () { return {}; });
@@ -328,18 +330,18 @@
         var actualRole = (data.user && data.user.role) || "";
         var roleMismatch = selectedRole !== actualRole && !(selectedRole === "buyer" && actualRole === "admin");
         if (roleMismatch) {
-          throw new Error(selectedRole === "seller" ? "This account is not a shopkeeper account." : "This account is a shopkeeper account — use Shopkeeper tab.");
+          throw new Error(selectedRole === "seller" ? "This account is not a shopkeeper account." : "This account is not a customer account. Create a customer account with the same email or use the Shopkeeper tab.");
         }
         localStorage.setItem("ajs_token", data.token);
         localStorage.setItem("ajs_user", JSON.stringify(data.user || null));
         if (data.seller) localStorage.setItem("ajs_seller", JSON.stringify(data.seller));
         else localStorage.removeItem("ajs_seller");
         var needPhone = data.user && data.user.phone && !data.user.phone_verified_at;
-        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole, data));
+        sessionStorage.setItem("bachat_post_phone_next", dashboardFor(actualRole, data, selectedRole));
         if (needPhone) {
           location.href = "/verify-phone.html";
         } else {
-          location.href = dashboardFor(actualRole, data);
+          location.href = dashboardFor(actualRole, data, selectedRole);
         }
       } catch (x) {
         err.textContent = x.message || "Error";

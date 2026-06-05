@@ -25,13 +25,14 @@ const startServer = (initialPort) => {
   });
 };
 
+startServer(port);
+
 connectDb()
   .then(() => {
-    startServer(port);
     startDeliveryRouteCleanupJob();
     startNotificationDispatcherJob();
   })
   .catch((err) => {
-    console.error("Failed to connect to MongoDB:", err.message);
-    process.exit(1);
+    console.warn("MongoDB is not connected yet:", err.message);
+    console.warn("Static website pages will still run; DB-backed API routes will retry on request.");
   });

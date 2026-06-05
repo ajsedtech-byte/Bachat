@@ -56,7 +56,7 @@ const preciseLocationSchema = new mongoose.Schema(
 
 const userSchema = new mongoose.Schema(
   {
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     name: { type: String, required: true },
     phone: { type: String, default: "" },
@@ -97,6 +97,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ role: 1, "deliveryKyc.status": 1 });
+userSchema.index({ email: 1, role: 1 }, { unique: true });
 userSchema.index(
   { oidcIssuer: 1, oidcSubject: 1 },
   {

@@ -25,6 +25,7 @@ function rmDir(dir) {
 function copyRecursive(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const name of fs.readdirSync(src)) {
+    if (/\.(apk|aab)$/i.test(name)) continue;
     const s = path.join(src, name);
     const d = path.join(dest, name);
     if (fs.statSync(s).isDirectory()) copyRecursive(s, d);

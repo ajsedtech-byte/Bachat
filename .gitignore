@@ -9,3 +9,7 @@ android/keystore.properties
 
 # Playwright / local screenshot artifacts 
 pw-*.png
+
+# Generated mobile builds and local QA captures
+public/*.apk
+tmp/

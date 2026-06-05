@@ -146,14 +146,16 @@
       const host = location.hostname;
       const isFile = proto === "file:";
       const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
+      const nativeBase = String(window.__BACHAT_API_BASE__ || "").replace(/\/+$/, "");
       const portCandidates = new Set();
       if (location.port) portCandidates.add(location.port);
       portCandidates.add("3000");
       portCandidates.add("3001");
 
       const attempts = [];
+      if (nativeBase) attempts.push({ url: `${nativeBase}${clean}`, persist: nativeBase });
+      if (stored && stored !== nativeBase) attempts.push({ url: `${stored}${clean}`, persist: stored });
       if (!isFile) attempts.push({ url: clean, persist: null });
-      if (stored) attempts.push({ url: `${stored}${clean}`, persist: stored });
       for (const p of portCandidates) {
         const base = `${proto}//${host}:${p}`;
         attempts.push({ url: `${base}${clean}`, persist: base });
@@ -331,6 +333,7 @@
       tabSeller.addEventListener("click", () => setRole("seller"));
 
       let regEmail = "";
+      let regRole = "buyer";
 
       function dashboardFor(role, data) {
         if (role === "seller") {
@@ -389,14 +392,18 @@
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.error || "Registration failed");
           regEmail = body.email;
+          regRole = role;
           document.getElementById("vemail").textContent = regEmail;
           document.getElementById("step-form").classList.add("hidden");
           document.getElementById("step-verify").classList.remove("hidden");
         } catch (x) {
+          const msg = x && x.message ? String(x.message) : "Error";
           err.textContent =
-            x && String(x.message).includes("Failed to fetch")
+            msg.includes("Failed to fetch")
               ? "Could not reach API server. Start backend with npm run dev (or set localStorage.bachat_api_base)."
-              : x.message || "Error";
+              : msg.toLowerCase().includes("already registered")
+                ? "This account type is already registered with this email. You can use the same email for the other account type by choosing Customer or Shopkeeper above."
+                : msg;
           err.classList.remove("hidden");
         } finally {
           btn.disabled = false;
@@ -413,7 +420,7 @@
           const res = await apiFetch("/api/auth/verify-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: regEmail, code }),
+            body: JSON.stringify({ email: regEmail, code, role: regRole }),
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.error || "Invalid code");
@@ -442,7 +449,7 @@
         await apiFetch("/api/auth/resend-verification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: regEmail }),
+          body: JSON.stringify({ email: regEmail, role: regRole }),
         });
         alert("If an account exists, a new code was sent.");
       });

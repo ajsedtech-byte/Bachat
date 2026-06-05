@@ -17,6 +17,23 @@ const router = express.Router();
 
 const DOC_KINDS = new Set(SELLER_KYC_DOC_KINDS);
 const SHOP_TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const MAX_SHOP_IMAGE_CHARS = 750_000;
+
+function normalizeShopImages(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const item of raw.slice(0, 4)) {
+    const src = String(item || "").trim();
+    if (!src) continue;
+    if (src.length > MAX_SHOP_IMAGE_CHARS) {
+      const err = new Error("A shop image is too large. Upload smaller images.");
+      err.status = 400;
+      throw err;
+    }
+    out.push(src);
+  }
+  return out;
+}
 
 function normalizeWeeklyHoursInput(rows, fallbackOpen, fallbackClose) {
   if (!Array.isArray(rows)) return null;
@@ -362,6 +379,24 @@ router.patch("/business-hours", requireAuth, requireRole("seller"), async (req, 
 });
 
 /** Step 3 — optional payout bank (before or after document submit, until verified). */
+router.patch("/storefront", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const { shop_images, storefront_tagline, menu_note } = req.body || {};
+    const seller = await Seller.findOne({ user: req.user.id });
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+    }
+    seller.shopImages = normalizeShopImages(shop_images);
+    seller.storefrontTagline = String(storefront_tagline || "").trim().slice(0, 220);
+    seller.menuNote = String(menu_note || "").trim().slice(0, 1200);
+    await seller.save();
+    const fresh = await Seller.findOne({ user: req.user.id }).lean();
+    return res.json({ seller: formatSeller(fresh), message: "Shop storefront saved" });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.post("/kyc/bank-details", requireAuth, requireRole("seller"), async (req, res, next) => {
   try {
     const { account_holder, ifsc, account_number } = req.body || {};

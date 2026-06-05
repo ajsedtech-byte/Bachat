@@ -92,6 +92,15 @@ function duplicateKeyPayload(err) {
   const fields = Object.keys(keyPattern);
   const field = fields[0] || Object.keys(keyValue)[0] || "";
 
+  if (keyPattern.email && keyPattern.role) {
+    const role = String(keyValue.role || "").toLowerCase();
+    return {
+      error: role === "seller" ? "Shopkeeper account already registered with this email" : "Customer account already registered with this email",
+      duplicate_field: "email_role",
+      duplicate_value: keyValue.email || "",
+    };
+  }
+
   if (field === "email") {
     return { error: "Email already registered", duplicate_field: field, duplicate_value: keyValue[field] || "" };
   }
@@ -143,6 +152,27 @@ function isTeamRole(role) {
   return role === "admin" || role === "sales";
 }
 
+function normalizePublicRole(role, fallback = "buyer") {
+  const r = String(role || fallback).toLowerCase().trim();
+  return ["buyer", "seller"].includes(r) ? r : fallback;
+}
+
+async function findUserForEmailRole(email, role, options = {}) {
+  const normalizedEmail = String(email || "").toLowerCase().trim();
+  const requestedRole = String(role || "").toLowerCase().trim();
+  if (requestedRole === "buyer" && options.allowTeamFallback) {
+    return User.findOne({ email: normalizedEmail, role: { $in: ["buyer", "admin", "sales"] } }).sort({ role: 1 });
+  }
+  if (["buyer", "seller", "delivery"].includes(requestedRole)) {
+    return User.findOne({ email: normalizedEmail, role: requestedRole });
+  }
+  if (options.allowTeamFallback) {
+    return User.findOne({ email: normalizedEmail, role: { $in: ["buyer", "admin", "sales"] } }).sort({ role: 1 });
+  }
+  const users = await User.find({ email: normalizedEmail }).sort({ createdAt: 1 }).limit(2);
+  return users.length === 1 ? users[0] : null;
+}
+
 /** Attach seller profile on login/verify responses so the client can route eKYC. */
 async function jsonWithSellerToken(userDocOrLean) {
   const u = userDocOrLean;
@@ -182,7 +212,8 @@ router.post("/register", async (req, res, next) => {
     if (!email || !password || !name || !city || !region) {
       return badRequest(res, "email, password, name, city, and region are required");
     }
-    if (!["buyer", "seller"].includes(role)) {
+    const accountRole = normalizePublicRole(role, "");
+    if (!["buyer", "seller"].includes(accountRole)) {
       return badRequest(res, "role must be buyer or seller");
     }
 
@@ -192,7 +223,7 @@ router.post("/register", async (req, res, next) => {
     }
 
     let sellerCategories = [];
-    if (role === "seller") {
+    if (accountRole === "seller") {
       sellerCategories = normalizeSellerCategories(
         Array.isArray(categories) ? categories : categories != null ? [categories] : category ? [category] : []
       );
@@ -220,17 +251,12 @@ router.post("/register", async (req, res, next) => {
     }
 
     let createdUser;
-      let user = await User.findOne({ email: normalizedEmail });
+      let user = await User.findOne({ email: normalizedEmail, role: accountRole });
       if (user) {
         if (user.emailVerifiedAt) {
-          const verifiedErr = new Error("Email already registered");
+          const verifiedErr = new Error(accountRole === "seller" ? "Shopkeeper account already registered with this email" : "Customer account already registered with this email");
           verifiedErr.status = 409;
           throw verifiedErr;
-        }
-        if (!["buyer", "seller"].includes(user.role)) {
-          const roleErr = new Error("This email is already reserved for another account type");
-          roleErr.status = 409;
-          throw roleErr;
         }
 
         user.passwordHash = passwordHash;
@@ -239,7 +265,7 @@ router.post("/register", async (req, res, next) => {
         user.phoneVerifiedAt = null;
         user.city = nextCity;
         user.region = nextRegion;
-        user.role = role;
+        user.role = accountRole;
         user.referredBy = referredById || null;
         await user.save();
       } else {
@@ -251,13 +277,13 @@ router.post("/register", async (req, res, next) => {
           phoneVerifiedAt: null,
           city: nextCity,
           region: nextRegion,
-          role,
+          role: accountRole,
           referredBy: referredById || undefined,
         });
       }
       createdUser = user;
 
-      if (role === "seller") {
+      if (accountRole === "seller") {
         await Seller.findOneAndUpdate(
           { user: user._id },
           {
@@ -312,7 +338,7 @@ router.post("/register", async (req, res, next) => {
         );
       }
 
-      if (role === "seller") {
+      if (accountRole === "seller") {
         try {
           const sellerMail = sellerRegistrationMail({ name: createdUser.name });
           await sendMail({
@@ -351,12 +377,12 @@ router.post("/register", async (req, res, next) => {
 
 router.post("/verify-email", async (req, res, next) => {
   try {
-    const { email, code } = req.body || {};
+    const { email, code, role } = req.body || {};
     if (!email || !code) {
       return badRequest(res, "email and code are required");
     }
 
-    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    const user = await findUserForEmailRole(email, normalizePublicRole(role, "buyer"));
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -470,12 +496,13 @@ router.post("/reset-password", async (req, res, next) => {
 
 router.post("/login", async (req, res, next) => {
   try {
-    const { email, password } = req.body || {};
+    const { email, password, role } = req.body || {};
     if (!email || !password) {
       return badRequest(res, "email and password are required");
     }
 
-    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    const accountRole = normalizePublicRole(role, "buyer");
+    const user = await findUserForEmailRole(email, accountRole, { allowTeamFallback: accountRole === "buyer" });
     if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
@@ -661,11 +688,11 @@ router.post(
 
 router.post("/resend-verification", async (req, res, next) => {
   try {
-    const { email } = req.body || {};
+    const { email, role } = req.body || {};
     if (!email) {
       return badRequest(res, "email is required");
     }
-    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    const user = await findUserForEmailRole(email, normalizePublicRole(role, "buyer"));
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -1097,11 +1124,12 @@ router.post(
 
 router.post("/login-otp/request", async (req, res, next) => {
   try {
-    const { email } = req.body || {};
+    const { email, role } = req.body || {};
     if (!email) {
       return badRequest(res, "email is required");
     }
-    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    const accountRole = normalizePublicRole(role, "buyer");
+    const user = await findUserForEmailRole(email, accountRole, { allowTeamFallback: accountRole === "buyer" });
     if (!user || !user.emailVerifiedAt) {
       return res.json({ message: "If an account exists, a code was sent." });
     }
@@ -1128,11 +1156,12 @@ router.post("/login-otp/request", async (req, res, next) => {
 
 router.post("/login-otp/verify", async (req, res, next) => {
   try {
-    const { email, code } = req.body || {};
+    const { email, code, role } = req.body || {};
     if (!email || !code) {
       return badRequest(res, "email and code are required");
     }
-    const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+    const accountRole = normalizePublicRole(role, "buyer");
+    const user = await findUserForEmailRole(email, accountRole, { allowTeamFallback: accountRole === "buyer" });
     if (!user || !user.emailVerifiedAt) {
       return res.status(401).json({ error: "Invalid code" });
     }

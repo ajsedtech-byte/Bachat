@@ -23,6 +23,12 @@ const notificationRoutes = require("./routes/notifications");
 
 const app = express();
 const publicDir = path.join(__dirname, "..", "public");
+const nativeAppOrigins = new Set([
+  "http://localhost",
+  "https://localhost",
+  "capacitor://localhost",
+  "ionic://localhost",
+]);
 
 app.use(
   cors({
@@ -37,7 +43,7 @@ app.use(
       if (!origin || origin === "null") {
         return callback(null, false);
       }
-      if (allowList.includes(origin)) {
+      if (allowList.includes(origin) || nativeAppOrigins.has(origin)) {
         return callback(null, true);
       }
       return callback(null, false);
@@ -46,22 +52,24 @@ app.use(
   })
 );
 
-app.use(async (_req, _res, next) => {
+async function requireDb(_req, _res, next) {
   try {
     await connectDb();
     next();
   } catch (e) {
     next(e);
   }
-});
+}
 
 app.post(
   "/api/payments/razorpay/webhook",
+  requireDb,
   express.raw({ type: "application/json" }),
   handleRazorpayWebhook
 );
 
-app.use("/api/products", express.json({ limit: "8mb" }), productRoutes);
+app.use("/api/products", requireDb, express.json({ limit: "8mb" }), productRoutes);
+app.use("/api/seller", requireDb, express.json({ limit: "8mb" }), sellerRoutes);
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => {
@@ -83,22 +91,21 @@ app.get("/api/categories", (_req, res) => {
 
 app.use("/api/geo", geoRoutes);
 app.use("/api/digilocker", digilockerRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use("/api/notifications", requireDb, notificationRoutes);
 
-app.use("/api/auth", authRoutes);
-app.use("/api/auth/oidc", oidcTeamRoutes);
-app.use("/api/disputes", disputesRoutes);
-app.use("/api/leads", leadsRoutes);
-app.use("/api/requests", requestRoutes);
-app.use("/api/quotes", quoteRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/delivery", deliveryRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/saved", savedRoutes);
-app.use("/api/seller", sellerRoutes);
-app.use("/api", paymentApiRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/admin", adminRoutes);
+app.use("/api/auth", requireDb, authRoutes);
+app.use("/api/auth/oidc", requireDb, oidcTeamRoutes);
+app.use("/api/disputes", requireDb, disputesRoutes);
+app.use("/api/leads", requireDb, leadsRoutes);
+app.use("/api/requests", requireDb, requestRoutes);
+app.use("/api/quotes", requireDb, quoteRoutes);
+app.use("/api/orders", requireDb, orderRoutes);
+app.use("/api/delivery", requireDb, deliveryRoutes);
+app.use("/api/cart", requireDb, cartRoutes);
+app.use("/api/saved", requireDb, savedRoutes);
+app.use("/api", requireDb, paymentApiRoutes);
+app.use("/api/payments", requireDb, paymentRoutes);
+app.use("/api/admin", requireDb, adminRoutes);
 /* /api/products mounted above with larger JSON limit for image payloads */
 
 /** Static UI (local dev + any non-Vercel hosting). On Vercel, files under public/ are served by the CDN. */
