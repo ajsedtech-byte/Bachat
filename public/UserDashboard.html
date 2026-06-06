@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bachat - Your dashboard</title>
-  <link rel="icon" href="/assets/bachat-icon-original.png" type="image/png" />
+  <link rel="icon" href="/assets/bachat-mark-fast.svg" type="image/svg+xml" />
+  <link rel="preload" as="image" href="/assets/bachat-indore-market-hero-fast.webp" fetchpriority="high" />
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/assets/bachat-theme.css" />
   <script defer src="/assets/bachat-local-icons.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1402,7 +1406,7 @@
     .bachat-storefront .hero-slide-local {
       background:
         linear-gradient(90deg, rgba(3, 13, 31, 0.98) 0%, rgba(4, 17, 39, 0.94) 33%, rgba(4, 17, 39, 0.48) 53%, rgba(4, 17, 39, 0.08) 72%),
-        url("/assets/bachat-chappan-night-hero.png") center center / cover no-repeat,
+        url("/assets/bachat-chappan-night-hero-fast.webp") center center / cover no-repeat,
         #07152d;
     }
 
@@ -1526,7 +1530,7 @@
     .bachat-storefront .hero-slide-actions {
       background:
         linear-gradient(90deg, rgba(248, 251, 255, 0.92) 0%, rgba(248, 251, 255, 0.7) 36%, rgba(248, 251, 255, 0.08) 56%, rgba(248, 251, 255, 0) 72%),
-        url("/assets/bachat-actions-hero.png") right center / auto 92% no-repeat,
+        url("/assets/bachat-actions-hero-fast.webp") right center / auto 92% no-repeat,
         linear-gradient(100deg, #f8fbff 0%, #eef7ff 48%, #dcefff 100%);
     }
 
@@ -1584,7 +1588,7 @@
 
     .bachat-storefront .hero-slide-market {
       background:
-        url("/assets/bachat-indore-market-hero.png") center center / cover no-repeat,
+        url("/assets/bachat-indore-market-hero-fast.webp") center center / cover no-repeat,
         linear-gradient(100deg, #0b2247 0%, #16406f 58%, #8fc6ff 100%);
       color: #fff !important;
     }
@@ -2333,7 +2337,7 @@
 
     .bachat-storefront .shop-storefront-main {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.72fr);
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
       gap: 22px;
       align-items: stretch;
       padding: 24px;
@@ -2341,25 +2345,44 @@
 
     .bachat-storefront .shop-storefront-photo {
       position: relative;
-      min-height: 280px;
+      min-height: 250px;
       overflow: hidden;
-      border-radius: 24px;
-      background: #e8f1fc;
-      box-shadow: inset 0 0 0 1px rgba(214, 228, 251, 0.9);
+      border: 1px solid #d6e4fb;
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 18px 44px -34px rgba(15, 23, 42, 0.58);
     }
 
     .bachat-storefront .shop-storefront-photo img {
       height: 100%;
       width: 100%;
-      object-fit: cover;
+      object-fit: contain;
+    }
+
+    .bachat-storefront .shop-storefront-photo-grid {
+      display: block;
+      height: 100%;
+      min-height: 250px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .bachat-storefront .shop-storefront-photo-grid img {
+      display: block;
+      height: 100%;
+      width: 100%;
+      min-height: 230px;
+      border-radius: 16px;
+      background: #fff;
+      object-fit: contain;
     }
 
     .bachat-storefront .shop-storefront-fallback {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
       height: 100%;
-      min-height: 280px;
+      min-height: 190px;
       align-items: center;
       justify-content: center;
       background:
@@ -2370,8 +2393,8 @@
     }
 
     .bachat-storefront .shop-storefront-fallback svg {
-      height: 92px;
-      width: 92px;
+      height: 58px;
+      width: 58px;
       fill: none;
       stroke: currentColor;
       stroke-linecap: round;
@@ -2381,16 +2404,16 @@
     }
 
     .bachat-storefront .shop-storefront-fallback strong {
-      max-width: 240px;
+      max-width: 220px;
       color: #0f172a;
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 950;
       line-height: 1.25;
     }
 
     .bachat-storefront .shop-storefront-fallback span {
       color: #64748b;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
     }
 
@@ -2517,6 +2540,19 @@
         grid-template-columns: 1fr;
       }
 
+      .bachat-storefront .shop-storefront-photo,
+      .bachat-storefront .shop-storefront-fallback {
+        min-height: 220px;
+      }
+
+      .bachat-storefront .shop-storefront-photo-grid {
+        min-height: 220px;
+      }
+
+      .bachat-storefront .shop-storefront-photo-grid img {
+        min-height: 200px;
+      }
+
       .bachat-storefront .shop-detail-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
@@ -2578,6 +2614,69 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 6px 12px;
+    }
+
+    .bachat-storefront .shop-directory-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #d6e4fb;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+      box-shadow: 0 22px 56px -42px rgba(15, 23, 42, 0.65);
+    }
+
+    .bachat-storefront .shop-directory-card:hover {
+      transform: translateY(-3px);
+      border-color: #99bef3;
+      box-shadow: 0 28px 64px -42px rgba(15, 23, 42, 0.74);
+    }
+
+    .bachat-storefront .shop-directory-media {
+      position: relative;
+      display: flex;
+      min-height: 168px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid #dce8f8;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(0, 86, 210, 0.14), transparent 32%),
+        linear-gradient(135deg, #f8fbff, #eef6ff);
+    }
+
+    .bachat-storefront .shop-directory-media img {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+    }
+
+    .bachat-storefront .shop-directory-fallback {
+      display: grid;
+      place-items: center;
+      gap: 8px;
+      color: #0056d2;
+      text-align: center;
+    }
+
+    .bachat-storefront .shop-directory-fallback svg {
+      height: 44px;
+      width: 44px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+    }
+
+    .bachat-storefront .shop-directory-fallback span {
+      color: #345078;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .shop-directory-content {
+      padding: 14px 2px 2px;
     }
 
     .bachat-storefront .saved-row:last-child,
@@ -2843,7 +2942,7 @@
       .bachat-storefront .hero-slide-local {
         background:
           linear-gradient(90deg, rgba(3, 13, 31, 0.98) 0%, rgba(4, 17, 39, 0.92) 44%, rgba(4, 17, 39, 0.42) 68%, rgba(4, 17, 39, 0.12) 100%),
-          url("/assets/bachat-chappan-night-hero.png") 62% center / cover no-repeat,
+          url("/assets/bachat-chappan-night-hero-fast.webp") 62% center / cover no-repeat,
           #07152d;
       }
 
@@ -2883,7 +2982,7 @@
       .bachat-storefront .hero-slide-local {
         background:
           linear-gradient(180deg, rgba(3, 13, 31, 0.98) 0%, rgba(4, 17, 39, 0.94) 52%, rgba(4, 17, 39, 0.66) 100%),
-          url("/assets/bachat-chappan-night-hero.png") 66% center / cover no-repeat,
+          url("/assets/bachat-chappan-night-hero-fast.webp") 66% center / cover no-repeat,
           #07152d;
       }
 
@@ -2908,7 +3007,7 @@
 
       .bachat-storefront .hero-slide-market {
         background-image:
-          url("/assets/bachat-indore-market-hero.png"),
+          url("/assets/bachat-indore-market-hero-fast.webp"),
           linear-gradient(180deg, rgba(10, 35, 75, 0.98) 0%, rgba(11, 49, 93, 0.88) 58%, rgba(13, 71, 125, 0.46) 100%);
         background-position: center, center;
         background-size: cover, auto;
@@ -2974,7 +3073,7 @@
       .bachat-storefront .hero-slide-actions {
         background:
           linear-gradient(180deg, rgba(248, 251, 255, 0.96) 0%, rgba(248, 251, 255, 0.8) 42%, rgba(248, 251, 255, 0.18) 100%),
-          url("/assets/bachat-actions-hero.png") center bottom / auto 58% no-repeat,
+          url("/assets/bachat-actions-hero-fast.webp") center bottom / auto 58% no-repeat,
           linear-gradient(100deg, #f8fbff 0%, #eef7ff 48%, #dcefff 100%);
       }
 
@@ -4141,6 +4240,295 @@
       color: #0056d2;
     }
 
+    .bachat-storefront .user-menu-bar {
+      display: grid;
+      grid-template-columns: minmax(142px, 190px) minmax(0, 1fr) minmax(104px, 150px);
+      align-items: center;
+      gap: 14px;
+      margin: 12px 16px 0;
+      border: 1px solid #d6e4fb;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 10px;
+      box-shadow: 0 22px 58px -42px rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(12px);
+    }
+
+    .bachat-storefront .user-menu-toggle,
+    .bachat-storefront .user-menu-cart {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 1px solid #d6e4fb;
+      border-radius: 18px;
+      background: #fff;
+      color: #0056d2;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 950;
+      text-decoration: none !important;
+      box-shadow: 0 16px 32px -28px rgba(15, 23, 42, 0.75);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .bachat-storefront .user-menu-toggle {
+      justify-content: flex-start;
+      border-color: #0056d2;
+      background: linear-gradient(135deg, #0056d2, #0876ff);
+      color: #fff;
+      box-shadow: 0 18px 38px -26px rgba(0, 86, 210, 0.88);
+    }
+
+    .bachat-storefront .user-menu-toggle:hover,
+    .bachat-storefront .user-menu-cart:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 38px -28px rgba(15, 23, 42, 0.85);
+    }
+
+    .bachat-storefront .user-menu-toggle svg,
+    .bachat-storefront .user-menu-cart svg {
+      height: 20px;
+      width: 20px;
+      stroke-width: 2.4;
+    }
+
+    .bachat-storefront .user-menu-toggle svg {
+      height: 34px;
+      width: 34px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.16);
+      padding: 8px;
+    }
+
+    .bachat-storefront .user-menu-cart {
+      justify-self: end;
+      min-width: 112px;
+      border-radius: 999px;
+      background: #f8fbff;
+    }
+
+    .bachat-storefront .user-menu-current {
+      min-width: 0;
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e4edf8;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f8fbff, #fff);
+      color: #0f172a;
+      font-size: 15px;
+      font-weight: 950;
+      overflow: hidden;
+      padding: 0 18px;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bachat-storefront .user-menu-current::before {
+      content: "Current";
+      margin-right: 10px;
+      border-radius: 999px;
+      background: #e8f1fc;
+      color: #0056d2;
+      padding: 5px 9px;
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .bachat-storefront .user-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 88;
+      background: rgba(15, 23, 42, 0.42);
+      backdrop-filter: blur(4px);
+    }
+
+    .bachat-storefront .user-menu-drawer {
+      position: fixed;
+      top: 14px;
+      bottom: 14px;
+      left: 14px;
+      z-index: 89;
+      display: flex;
+      width: min(88vw, 388px);
+      transform: translateX(calc(-100% - 28px));
+      flex-direction: column;
+      visibility: hidden;
+      overflow: hidden;
+      border: 1px solid #cfe0f8;
+      border-radius: 28px;
+      background: #fff;
+      box-shadow: 28px 0 86px -48px rgba(15, 23, 42, 0.9);
+      transition: transform 0.24s ease, visibility 0.24s ease;
+    }
+
+    .bachat-storefront .user-menu-drawer.is-open {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    .bachat-storefront .user-menu-drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+      background: linear-gradient(135deg, #003f9f, #0876ff);
+      color: #fff;
+    }
+
+    .bachat-storefront .user-menu-close {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .bachat-storefront .user-menu-list {
+      display: grid;
+      gap: 8px;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    .bachat-storefront .user-menu-list a {
+      display: grid;
+      min-height: 54px;
+      grid-template-columns: 42px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      color: #334155;
+      padding: 6px 12px 6px 6px;
+      text-decoration: none !important;
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .bachat-storefront .user-menu-list a svg {
+      height: 42px;
+      width: 42px;
+      border-radius: 14px;
+      background: #eef6ff;
+      color: #0056d2;
+      padding: 10px;
+      stroke-width: 2.2;
+    }
+
+    .bachat-storefront .user-menu-list a.active {
+      border-color: #0056d2;
+      background: #e8f1fc;
+      color: #0056d2;
+      box-shadow: 0 18px 34px -28px rgba(0, 86, 210, 0.72);
+    }
+
+    .bachat-storefront .user-menu-bar {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      margin: 10px 16px 0 !important;
+      border-radius: 22px !important;
+      padding: 8px !important;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row {
+      display: flex !important;
+      min-width: 0 !important;
+      flex: 1 1 auto !important;
+      align-items: center !important;
+      gap: 8px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      border: 1px solid #e2ecf8 !important;
+      border-radius: 18px !important;
+      background: #f8fbff !important;
+      padding: 7px !important;
+      scrollbar-width: thin;
+      scrollbar-color: #bdd4f4 transparent;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: #bdd4f4;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row a {
+      position: relative;
+      display: inline-flex !important;
+      min-height: 42px !important;
+      flex: 0 0 auto !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 7px !important;
+      border: 1px solid transparent !important;
+      border-radius: 14px !important;
+      background: transparent !important;
+      color: #334155 !important;
+      padding: 0 13px !important;
+      text-decoration: none !important;
+      font-size: 13px !important;
+      font-weight: 950 !important;
+      white-space: nowrap !important;
+      box-shadow: none !important;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row a svg {
+      height: 18px !important;
+      width: 18px !important;
+      flex: 0 0 auto !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: currentColor !important;
+      padding: 0 !important;
+      stroke-width: 2.35 !important;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row a:hover {
+      border-color: #cfe0f8 !important;
+      background: #fff !important;
+      color: #0056d2 !important;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row a.active {
+      border-color: #0056d2 !important;
+      background: #0056d2 !important;
+      color: #fff !important;
+      box-shadow: 0 14px 28px -22px rgba(0, 86, 210, 0.8) !important;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row a.active::after {
+      display: none !important;
+    }
+
+    .bachat-storefront .user-menu-cart {
+      min-height: 58px !important;
+      min-width: 94px !important;
+      flex: 0 0 auto !important;
+      border-radius: 18px !important;
+      background: #fff !important;
+    }
+
     .bachat-storefront .app-bottom-nav .app-bottom-badge {
       position: absolute;
       top: 4px;
@@ -4162,6 +4550,52 @@
     @media (max-width: 640px) {
       .bachat-storefront {
         font-size: 15px;
+      }
+
+      .bachat-storefront .user-menu-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        margin: 10px 10px 0;
+        border-radius: 22px;
+        padding: 8px;
+      }
+
+      .bachat-storefront .user-menu-toggle,
+      .bachat-storefront .user-menu-cart {
+        min-height: 46px;
+        border-radius: 16px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+
+      .bachat-storefront .user-menu-toggle svg {
+        height: 32px;
+        width: 32px;
+      }
+
+      .bachat-storefront .user-menu-cart {
+        min-width: 76px;
+      }
+
+      .bachat-storefront .user-menu-current {
+        grid-column: 1 / -1;
+        min-height: 42px;
+        justify-content: flex-start;
+        border-radius: 16px;
+        padding: 0 12px;
+        font-size: 14px;
+      }
+
+      .bachat-storefront .user-menu-current::before {
+        padding: 4px 8px;
+        font-size: 9px;
+      }
+
+      .bachat-storefront .user-menu-drawer {
+        top: 10px;
+        bottom: 10px;
+        left: 10px;
+        border-radius: 24px;
       }
 
       .bachat-storefront .shopping-hero-title {
@@ -4254,15 +4688,95 @@
       }
 
       .bachat-storefront #user-mobile-nav a {
+        position: relative;
+        display: inline-flex;
+        min-height: 44px;
         flex: 0 0 auto;
-        border-radius: 14px;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #d6e4fb;
+        border-radius: 999px;
+        background: #ffffff;
         color: #334155;
+        padding: 0 14px;
         text-decoration: none !important;
+        box-shadow: 0 10px 26px -22px rgba(15, 23, 42, 0.72);
+        transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+      }
+
+      .bachat-storefront #user-mobile-nav a:hover {
+        border-color: #9fc1f2;
+        color: #0056d2;
+        transform: translateY(-1px);
+      }
+
+      .bachat-storefront #user-mobile-nav a svg {
+        height: 17px;
+        width: 17px;
+        flex: 0 0 auto;
+        stroke-width: 2.25;
       }
 
       .bachat-storefront #user-mobile-nav a.active {
-        background: #e8f1fc;
+        border-color: #0056d2;
+        background: #0056d2;
         color: #0056d2;
+        color: #ffffff;
+        box-shadow: 0 16px 32px -22px rgba(0, 86, 210, 0.8);
+      }
+
+      .bachat-storefront #user-mobile-nav a.active::after {
+        content: "";
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: -7px;
+        height: 3px;
+        border-radius: 999px;
+        background: #ffc247;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-drawer {
+        display: flex !important;
+        width: min(88vw, 388px) !important;
+        max-width: min(88vw, 388px) !important;
+        overflow: hidden !important;
+        overflow-x: hidden !important;
+        overflow-y: hidden !important;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-drawer .user-menu-list {
+        overflow-y: auto !important;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-drawer .user-menu-list a {
+        display: grid !important;
+        min-height: 54px !important;
+        grid-template-columns: 42px minmax(0, 1fr) !important;
+        align-items: center !important;
+        gap: 12px !important;
+        border: 1px solid transparent !important;
+        border-radius: 18px !important;
+        background: transparent !important;
+        color: #334155 !important;
+        padding: 6px 12px 6px 6px !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-drawer .user-menu-list a::after {
+        display: none !important;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-drawer .user-menu-list a.active {
+        border-color: #0056d2 !important;
+        background: #e8f1fc !important;
+        color: #0056d2 !important;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-drawer .user-menu-list a svg {
+        height: 42px !important;
+        width: 42px !important;
       }
 
       .bachat-storefront .home-panel a,
@@ -4417,21 +4931,21 @@
       .bachat-storefront .hero-slide-local {
         background:
           linear-gradient(180deg, rgba(3, 13, 31, 0.28) 0%, rgba(3, 13, 31, 0.18) 48%, rgba(3, 13, 31, 0.28) 100%),
-          url("/assets/bachat-chappan-night-hero.png") 62% center / cover no-repeat,
+          url("/assets/bachat-chappan-night-hero-fast.webp") 62% center / cover no-repeat,
           #07152d !important;
       }
 
       .bachat-storefront .hero-slide-actions {
         background:
           linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 252, 255, 0.86) 44%, rgba(233, 245, 255, 0.56) 100%),
-          url("/assets/bachat-actions-hero.png") right bottom / auto 52% no-repeat,
+          url("/assets/bachat-actions-hero-fast.webp") right bottom / auto 52% no-repeat,
           #f8fbff !important;
       }
 
       .bachat-storefront .hero-slide-market {
         background:
           linear-gradient(180deg, rgba(4, 19, 47, 0.26) 0%, rgba(4, 19, 47, 0.18) 46%, rgba(4, 19, 47, 0.3) 100%),
-          url("/assets/bachat-indore-market-hero.png") 52% center / cover no-repeat,
+          url("/assets/bachat-indore-market-hero-fast.webp") 52% center / cover no-repeat,
           #09244d !important;
       }
 
@@ -4637,21 +5151,21 @@
       .bachat-storefront .hero-slide-local {
         background:
           linear-gradient(180deg, rgba(3, 13, 31, 0.68) 0%, rgba(3, 13, 31, 0.26) 48%, rgba(3, 13, 31, 0.72) 100%),
-          url("/assets/bachat-chappan-night-hero.png") 62% center / cover no-repeat,
+          url("/assets/bachat-chappan-night-hero-fast.webp") 62% center / cover no-repeat,
           #07152d !important;
       }
 
       .bachat-storefront .hero-slide-market {
         background:
           linear-gradient(180deg, rgba(4, 19, 47, 0.68) 0%, rgba(4, 19, 47, 0.28) 48%, rgba(4, 19, 47, 0.74) 100%),
-          url("/assets/bachat-indore-market-hero.png") 54% center / cover no-repeat,
+          url("/assets/bachat-indore-market-hero-fast.webp") 54% center / cover no-repeat,
           #09244d !important;
       }
 
       .bachat-storefront .hero-slide-actions {
         background:
           linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 252, 255, 0.94) 52%, rgba(232, 241, 252, 0.84) 100%),
-          url("/assets/bachat-actions-hero.png") right bottom / auto 46% no-repeat,
+          url("/assets/bachat-actions-hero-fast.webp") right bottom / auto 46% no-repeat,
           #f8fbff !important;
       }
 
@@ -4918,6 +5432,52 @@
         width: fit-content !important;
         max-width: 100% !important;
         margin: 0 auto !important;
+      }
+    }
+
+    .bachat-storefront .user-menu-bar {
+      display: flex !important;
+      grid-template-columns: none !important;
+      flex-wrap: nowrap !important;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row {
+      position: static !important;
+      display: flex !important;
+      visibility: visible !important;
+      width: auto !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      transform: none !important;
+      flex: 1 1 auto !important;
+      flex-direction: row !important;
+      align-items: center !important;
+    }
+
+    .bachat-storefront #user-mobile-nav.user-menu-row a {
+      display: inline-flex !important;
+    }
+
+    @media (max-width: 640px) {
+      .bachat-storefront .user-menu-bar {
+        margin: 8px 10px 0 !important;
+        padding: 7px !important;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-row {
+        min-height: 52px !important;
+      }
+
+      .bachat-storefront #user-mobile-nav.user-menu-row a {
+        min-height: 38px !important;
+        padding: 0 11px !important;
+        font-size: 12px !important;
+      }
+
+      .bachat-storefront .user-menu-cart {
+        min-height: 52px !important;
+        min-width: 74px !important;
+        padding: 0 11px !important;
       }
     }
   </style>
@@ -5214,17 +5774,50 @@
         </div>
       </nav>
 
-      <nav id="user-mobile-nav" class="lg:hidden flex gap-2 overflow-x-auto px-3 py-2 bg-white border-b border-[#e5e7eb] text-xs font-bold text-slate-600 shrink-0">
-        <a href="#shopping-home" data-section="shopping-home" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Home</a>
-        <a href="#dashboard-home" data-section="dashboard-home" class="whitespace-nowrap px-3 py-1.5 rounded-lg bg-[#e8f1fc] text-[#0056d2]">Dashboard</a>
-        <a href="#requests-section" data-section="requests-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Requests &amp; Quotes</a>
-        <a href="#orders-section" data-section="orders-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Orders</a>
-        <a href="#browse-section" data-section="browse-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Shop</a>
-        <a href="#cart-section" data-section="cart-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Basket</a>
-        <a href="#payments-section" data-section="payments-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Payments</a>
-        <a href="#saved-section" data-section="saved-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Saved</a>
-        <a href="#address-section" data-section="address-section" class="whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Address</a>
-      </nav>
+      <div class="user-menu-bar">
+        <nav id="user-mobile-nav" class="user-menu-row" aria-label="Dashboard menu">
+        <a href="#shopping-home" data-section="shopping-home" class="active" data-menu-label="Home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-home"></use></svg>
+          <span>Home</span>
+        </a>
+        <a href="#dashboard-home" data-section="dashboard-home" data-menu-label="Dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-dashboard"></use></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="#requests-section" data-section="requests-section" data-menu-label="Requests & Quotes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-message"></use></svg>
+          <span>Requests &amp; Quotes</span>
+        </a>
+        <a href="#orders-section" data-section="orders-section" data-menu-label="Orders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-document"></use></svg>
+          <span>Orders</span>
+        </a>
+        <a href="#browse-section" data-section="browse-section" data-menu-label="Shop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-store"></use></svg>
+          <span>Shop</span>
+        </a>
+        <a href="#cart-section" data-section="cart-section" data-menu-label="Basket">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-cart"></use></svg>
+          <span>Basket</span>
+        </a>
+        <a href="#payments-section" data-section="payments-section" data-menu-label="Payments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-card"></use></svg>
+          <span>Payments</span>
+        </a>
+        <a href="#saved-section" data-section="saved-section" data-menu-label="Saved">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-star"></use></svg>
+          <span>Saved</span>
+        </a>
+        <a href="#address-section" data-section="address-section" data-menu-label="Address">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-map-pin"></use></svg>
+          <span>Address</span>
+        </a>
+        </nav>
+        <a href="#cart-section" data-cart-link data-section="cart-section" class="user-menu-cart" aria-label="Open basket">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-cart"></use></svg>
+          <span data-cart-badge>0</span>
+        </a>
+      </div>
 
       </div>
 
@@ -5364,10 +5957,10 @@
                 <div>
                   <h2 class="text-xl font-black text-slate-950">Shops near you in <span id="shopping-home-shops-city">your city</span></h2>
                 </div>
-                <button type="button" class="text-xs font-black text-[#0056d2]" onclick="selectShopCategory('')">View all shops -></button>
+                <button type="button" class="text-xs font-black text-[#0056d2]" onclick="openAllShopsSection()">View all shops -></button>
               </div>
               <div id="shopping-home-shop-grid" class="mt-5 grid gap-0"></div>
-              <button type="button" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-[#d6e4fb] bg-[#f8fbff] px-4 py-3 text-sm font-black text-[#0056d2]" onclick="selectShopCategory('')">Explore more shops</button>
+              <button type="button" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-[#d6e4fb] bg-[#f8fbff] px-4 py-3 text-sm font-black text-[#0056d2]" onclick="openAllShopsSection()">Explore more shops</button>
             </section>
 
             <section class="home-panel p-5">
@@ -5411,7 +6004,7 @@
           </section>
 
           <section class="trust-strip grid gap-4 md:grid-cols-4">
-            <div><span><img src="/assets/bachat-icon-original.png" alt="" aria-hidden="true" /></span><strong>100% Secure</strong><small>Your payments are safe with us.</small></div>
+            <div><span><img src="/assets/bachat-mark-fast.svg" alt="" aria-hidden="true" /></span><strong>100% Secure</strong><small>Your payments are safe with us.</small></div>
             <div><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-store"></use></svg></span><strong>Verified Local Shops</strong><small>Only trusted and verified sellers.</small></div>
             <div><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-diamond"></use></svg></span><strong>Best Local Prices</strong><small>Compare and choose the best.</small></div>
             <div><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-headset"></use></svg></span><strong>Help &amp; Support</strong><small>We're here to help you anytime.</small></div>
@@ -5462,6 +6055,27 @@
           </footer>
         </section>
 
+        <section id="all-shops-section" class="hidden space-y-5 scroll-mt-28">
+          <div class="rounded-[28px] border border-[#d6e4fb] bg-white p-5 shadow-sm sm:p-6">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-[#0056d2]">Local stores</p>
+                <h1 class="mt-1 text-2xl font-black text-slate-950 sm:text-4xl">Shops near you</h1>
+                <p id="all-shops-subtitle" class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">Browse verified local shops and open a shop to see its menu and items.</p>
+              </div>
+              <button type="button" class="rounded-full border border-[#cfe0f8] bg-white px-4 py-2 text-sm font-black text-[#0056d2] hover:bg-[#e8f1fc]" data-section="shopping-home">Back home</button>
+            </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
+              <input id="all-shops-search" type="search" class="rounded-2xl border border-[#d6e4fb] bg-[#f8fbff] px-4 py-3 text-sm font-bold outline-none focus:border-[#0056d2]" placeholder="Search shops, categories, area..." aria-label="Search shops">
+              <select id="all-shops-filter" class="rounded-2xl border border-[#d6e4fb] bg-white px-4 py-3 text-sm font-black text-slate-700 outline-none focus:border-[#0056d2]">
+                <option value="">All categories</option>
+              </select>
+            </div>
+          </div>
+          <div id="all-shops-grid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
+          <p id="all-shops-empty" class="hidden rounded-[24px] border border-dashed border-slate-300 bg-white p-8 text-center text-sm font-semibold text-slate-500">No shops match your search.</p>
+        </section>
+
         <section id="shop-page-section" class="hidden space-y-5 scroll-mt-28">
           <div class="shop-storefront-hero">
             <div class="shop-storefront-main">
@@ -5479,7 +6093,6 @@
               </div>
               <div id="shop-page-main-photo" class="shop-storefront-photo"></div>
             </div>
-            <div id="shop-page-media-rail" class="shop-storefront-rail hidden"></div>
           </div>
 
           <div class="rounded-[24px] border border-[#d6e4fb] bg-white p-4 shadow-sm">
@@ -6114,6 +6727,17 @@
       return query ? `${path}?${query}` : path;
     }
 
+    function shopsEndpoint() {
+      const params = new URLSearchParams();
+      if (!hasSession()) {
+        params.set("city", (meUser && meUser.city) || GUEST_CITY);
+        params.set("region", (meUser && meUser.region) || GUEST_REGION);
+      }
+      const base = hasSession() ? "/api/products/catalog/nearby-shops" : "/api/products/public-shops";
+      const query = params.toString();
+      return query ? `${base}?${query}` : base;
+    }
+
     function listCount(x) {
       return Array.isArray(x) ? x.length : 0;
     }
@@ -6417,6 +7041,7 @@
     let geoData = null;
     let selectedCategory = "";
     let nearbyCategoriesCache = [];
+    let shoppingHomeShopsCache = [];
     let lastRequests = [];
     let selectedRequestId = null;
     let ordersByRequestId = {};
@@ -7612,11 +8237,12 @@
         const src = String(value || "").trim();
         if (src && !images.includes(src)) images.push(src);
       };
+      const gallery = Array.isArray(shop && shop.shop_images) ? shop.shop_images.filter(Boolean) : [];
+      gallery.forEach(add);
       add(shop && shop.shop_photo);
       add(shop && shop.shop_image);
       add(shop && shop.store_photo);
       add(shop && shop.storefront_photo);
-      (Array.isArray(shop && shop.shop_images) ? shop.shop_images : []).forEach(add);
       return images.slice(0, 5);
     }
 
@@ -7670,9 +8296,7 @@
         return;
       }
       const active = Math.max(0, Math.min(index || 0, images.length - 1));
-      target.innerHTML =
-        `<img src="${escapeHtml(images[active])}" alt="${escapeHtml(shop.display_name || "Shop image")}" loading="lazy" />` +
-        (images.length > 1 ? `<div class="shop-photo-dots">${images.map((_, i) => `<span class="shop-photo-dot${i === active ? " is-active" : ""}"></span>`).join("")}</div>` : "");
+      target.innerHTML = `<div class="shop-storefront-photo-grid"><img src="${escapeHtml(images[active])}" alt="${escapeHtml((shop.display_name || "Shop") + " photo " + (active + 1))}" loading="lazy" /></div>`;
     }
 
     function renderShopMediaRail(rail, shop, images, categories) {
@@ -7728,6 +8352,9 @@
     function openShopPage(shopKey) {
       const shop = shopDetailCache.get(String(shopKey || ""));
       if (!shop) return false;
+      try {
+        sessionStorage.setItem("bachat_last_shop_key", String(shopKey || ""));
+      } catch {}
       closeShopDetail();
       activeShopPage = { shop, visibleCount: 32, pageSize: 32, category: "" };
 
@@ -7739,15 +8366,14 @@
       const openStatus = document.getElementById("shop-page-open-status");
       const summary = document.getElementById("shop-page-summary");
       const mainPhoto = document.getElementById("shop-page-main-photo");
-      const mediaRail = document.getElementById("shop-page-media-rail");
       const cats = document.getElementById("shop-page-categories");
       const menuCount = document.getElementById("shop-page-menu-count");
       const search = document.getElementById("shop-page-search");
       const loadMore = document.getElementById("shop-page-load-more");
       const images = shopImageList(shop);
       const categories = listCategories(shop.categories).slice(0, 18);
-      let activePhotoIndex = 0;
       stopShopPhotoCarousel();
+      let activePhotoIndex = 0;
 
       if (title) title.textContent = shop.display_name || "Local shop";
       if (subtitle) subtitle.textContent = shop.tagline || `${shop.city || "Nearby"}${shop.region ? ", " + shop.region : ""} - ${products.length} ${products.length === 1 ? "item" : "items"} available`;
@@ -7768,25 +8394,12 @@
           summary.innerHTML += `<div class="rounded-2xl border border-[#d6e4fb] bg-white/80 px-4 py-3 sm:col-span-3"><span class="block text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Menu highlights</span><p class="mt-1 whitespace-pre-line text-sm font-semibold leading-6 text-slate-700">${escapeHtml(shop.menu_note)}</p></div>`;
         }
       }
-      if (mainPhoto) {
-        renderShopMainPhoto(mainPhoto, shop, images, activePhotoIndex);
-      }
-      renderShopMediaRail(mediaRail, shop, images, categories);
-      mediaRail?.querySelectorAll("[data-shop-photo-index]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          activePhotoIndex = Number(btn.getAttribute("data-shop-photo-index") || 0) || 0;
-          renderShopMainPhoto(mainPhoto, shop, images, activePhotoIndex);
-        });
-      });
+      renderShopMainPhoto(mainPhoto, shop, images, activePhotoIndex);
       if (images.length > 1) {
         activeShopPhotoTimer = window.setInterval(() => {
           activePhotoIndex = (activePhotoIndex + 1) % images.length;
           renderShopMainPhoto(mainPhoto, shop, images, activePhotoIndex);
-          const tile = mediaRail?.querySelector(`[data-shop-photo-index="${activePhotoIndex}"]`);
-          if (tile && typeof tile.scrollIntoView === "function") {
-            tile.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-          }
-        }, 4200);
+        }, 7000);
       }
       if (search) search.value = "";
 
@@ -7827,6 +8440,18 @@
       const opened = openUserSection("shop-page-section");
       if (opened && history && history.replaceState) history.replaceState(null, "", "#shop-page-section");
       return opened;
+    }
+
+    function restoreShopPageFromHash() {
+      if ((location.hash || "").replace(/^#/, "") !== "shop-page-section") return false;
+      let key = "";
+      try {
+        key = sessionStorage.getItem("bachat_last_shop_key") || "";
+      } catch {}
+      if (key && openShopPage(key)) return true;
+      openAllShopsSection();
+      showToast("Please choose a shop again.");
+      return false;
     }
 
     function openShopDetail(shopKey) {
@@ -8152,7 +8777,7 @@
       if (key.includes("beauty") || key.includes("health")) {
         return sprite("icon-spark");
       }
-      return '<img src="/assets/bachat-icon-original.png" alt="" aria-hidden="true" />';
+      return '<img src="/assets/bachat-mark-fast.svg" alt="" aria-hidden="true" />';
     }
 
     function listCategories(value) {
@@ -8160,6 +8785,81 @@
       if (Array.isArray(value)) return value.filter(Boolean);
       if (value == null || value === "") return [];
       return [value].filter(Boolean);
+    }
+
+    function shopCardHtml(shop, index, options = {}) {
+      const categories = listCategories(shop.categories).slice(0, options.categoryLimit || 3);
+      const full = Boolean(options.full);
+      const bodyClass = full ? "flex h-full flex-col" : "flex gap-3";
+      const thumbClass = full ? "shop-directory-media" : "shop-row-thumb shrink-0 overflow-hidden border border-[#e5edf8] bg-[#f8fbff]";
+      const fallback = full
+        ? `<div class="shop-directory-fallback"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-store"></use></svg><span>Shop photo coming soon</span></div>`
+        : `<div class="flex h-full w-full items-center justify-center text-[#0056d2]"><svg class="h-8 w-8 fill-none stroke-current stroke-[1.9]" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-store"></use></svg></div>`;
+      return `<div class="${bodyClass}">
+        <div class="${thumbClass}">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="${escapeHtml(shop.display_name || "Shop photo")}" loading="lazy" />` : fallback}</div>
+        <div class="${full ? "shop-directory-content" : "min-w-0 flex-1"}">
+          <div class="flex items-center gap-2">
+            <h3 class="${full ? "line-clamp-1 text-lg" : "truncate text-base"} font-black text-slate-950">${escapeHtml(shop.display_name)}</h3>
+            <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">${shop.verified ? "Verified" : "Local"}</span>
+            ${shop.shop_name_locked && !buyerCanViewShopNames() ? '<span class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase text-[#0056d2]">Premium unlock</span>' : ""}
+          </div>
+          <p class="mt-1 truncate text-xs font-semibold text-slate-500">${escapeHtml(shop.city)}${shop.region ? `, ${escapeHtml(shop.region)}` : ""}</p>
+          <p class="mt-1">${shopStatusBadgeHtml(shop)}</p>
+          <div class="shop-row-meta mt-2 text-xs font-bold text-slate-500">
+            <span class="text-amber-500">★ <span class="text-slate-600">${(4.8 - (index % 4) * 0.1).toFixed(1)} (${124 - (index % 4) * 18})</span></span>
+            <span>${shop.count} ${shop.count === 1 ? "listing" : "listings"}</span>
+            <span>${(1.2 + (index % 5) * 0.7).toFixed(1)} km away</span>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-2">${categories
+            .map((category) => `<button type="button" data-home-category="${escapeHtml(category)}" class="home-open-category rounded-full border border-[#d6e4fb] px-2.5 py-1 text-[11px] font-bold text-[#345078]">${escapeHtml(category)}</button>`)
+            .join("")}</div>
+        </div>
+      </div>`;
+    }
+
+    function wireShopCards(root) {
+      if (!root) return;
+      root.querySelectorAll("[data-shop-key]").forEach((card) => {
+        card.addEventListener("click", (e) => {
+          if (e.target.closest("button")) return;
+          openShopPage(card.getAttribute("data-shop-key"));
+        });
+        card.addEventListener("keydown", (e) => {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          e.preventDefault();
+          openShopPage(card.getAttribute("data-shop-key"));
+        });
+      });
+      root.querySelectorAll(".home-open-category").forEach((btn) => {
+        btn.addEventListener("click", () => selectShopCategory(btn.getAttribute("data-home-category") || ""));
+      });
+    }
+
+    function renderAllShops() {
+      const grid = document.getElementById("all-shops-grid");
+      const empty = document.getElementById("all-shops-empty");
+      const subtitle = document.getElementById("all-shops-subtitle");
+      const search = document.getElementById("all-shops-search");
+      const filter = document.getElementById("all-shops-filter");
+      if (!grid || !empty) return;
+      const q = String(search?.value || "").trim().toLowerCase();
+      const cat = String(filter?.value || "").trim().toLowerCase();
+      const shops = shoppingHomeShopsCache.filter((shop) => {
+        const categories = listCategories(shop.categories);
+        const hay = [shop.display_name, shop.city, shop.region, ...categories].filter(Boolean).join(" ").toLowerCase();
+        if (cat && !categories.some((c) => String(c).toLowerCase() === cat)) return false;
+        return !q || hay.includes(q);
+      });
+      if (subtitle) subtitle.textContent = `${shops.length} ${shops.length === 1 ? "shop" : "shops"} available near ${(meUser && meUser.city) || GUEST_CITY}.`;
+      grid.innerHTML = shops.map((shop, index) => `<article class="shop-directory-card" role="button" tabindex="0" data-shop-key="${escapeHtml(shop.key)}" aria-label="Open ${escapeHtml(shop.display_name)}">${shopCardHtml(shop, index, { full: true, categoryLimit: 5 })}</article>`).join("");
+      empty.classList.toggle("hidden", shops.length > 0);
+      wireShopCards(grid);
+    }
+
+    function openAllShopsSection() {
+      renderAllShops();
+      if (typeof openUserSection === "function") openUserSection("all-shops-section");
+      if (history && history.replaceState) history.replaceState(null, "", "#all-shops-section");
     }
 
     async function loadShoppingHome() {
@@ -8179,8 +8879,12 @@
       if (shopsCityEl) shopsCityEl.textContent = city;
 
       try {
-        const data = await api("GET", catalogEndpoint());
+        const [data, shopsData] = await Promise.all([
+          api("GET", catalogEndpoint()),
+          api("GET", shopsEndpoint()).catch(() => ({ shops: [] })),
+        ]);
         const items = Array.isArray(data && data.items) ? data.items : [];
+        const registeredShops = Array.isArray(shopsData && shopsData.shops) ? shopsData.shops : [];
         cacheProductDetailItems(items);
         const shopMap = new Map();
 
@@ -8204,7 +8908,7 @@
               shop_images: Array.isArray(item.shop_images) ? item.shop_images : [],
               tagline: item.shop_tagline || "",
               menu_note: item.shop_menu_note || "",
-              image: item.shop_photo || item.shop_image || item.store_photo || item.storefront_photo || (Array.isArray(item.shop_images) ? item.shop_images.find(Boolean) : ""),
+              image: (Array.isArray(item.shop_images) ? item.shop_images.find(Boolean) : "") || item.shop_photo || item.shop_image || item.store_photo || item.storefront_photo || "",
               count: 0,
               categories: new Set(),
               items: [],
@@ -8230,12 +8934,66 @@
           listCategories([item.category, ...itemCategories]).forEach((category) => summary.categories.add(category));
         });
 
+        registeredShops.forEach((shop) => {
+          const key = `${shop.shop_key || shop.shop_name || shop.shop_id || "Shop"}|${shop.city || ""}|${shop.region || ""}`;
+          const categories = listCategories([shop.category, ...(Array.isArray(shop.categories) ? shop.categories : [])]);
+          if (!shopMap.has(key)) {
+            shopMap.set(key, {
+              key,
+              name: shopDisplayName(shop),
+              shop_name_locked: Boolean(shop.shop_name_locked),
+              city: shop.city || city,
+              region: shop.region || region,
+              verified: Boolean(shop.seller_verified),
+              shop_hours: shop.shop_hours || {},
+              shop_photo: shop.shop_photo || "",
+              shop_image: shop.shop_image || "",
+              store_photo: shop.store_photo || "",
+              storefront_photo: shop.storefront_photo || "",
+              shop_images: Array.isArray(shop.shop_images) ? shop.shop_images : [],
+              tagline: shop.shop_tagline || "",
+              menu_note: shop.shop_menu_note || "",
+              image: (Array.isArray(shop.shop_images) ? shop.shop_images.find(Boolean) : "") || shop.shop_photo || shop.shop_image || shop.store_photo || shop.storefront_photo || "",
+              count: Number(shop.product_count || 0),
+              categories: new Set(categories),
+              items: [],
+            });
+            return;
+          }
+          const summary = shopMap.get(key);
+          summary.count = Math.max(Number(summary.count || 0), Number(shop.product_count || 0));
+          const shopProfileImage = (Array.isArray(shop.shop_images) ? shop.shop_images.find(Boolean) : "") || shop.shop_photo || shop.shop_image || shop.store_photo || shop.storefront_photo || "";
+          if (shopProfileImage) summary.image = shopProfileImage;
+          if (shop.shop_photo) summary.shop_photo = shop.shop_photo;
+          if (shop.shop_image) summary.shop_image = shop.shop_image;
+          if (shop.store_photo) summary.store_photo = shop.store_photo;
+          if (shop.storefront_photo) summary.storefront_photo = shop.storefront_photo;
+          if (!summary.tagline && shop.shop_tagline) summary.tagline = shop.shop_tagline;
+          if (!summary.menu_note && shop.shop_menu_note) summary.menu_note = shop.shop_menu_note;
+          if (Array.isArray(shop.shop_images) && shop.shop_images.length) {
+            const seen = new Set(summary.shop_images || []);
+            shop.shop_images.forEach((src) => {
+              if (src && !seen.has(src)) {
+                seen.add(src);
+                summary.shop_images.push(src);
+              }
+            });
+          }
+          categories.forEach((category) => summary.categories.add(category));
+        });
+
         const shops = [...shopMap.values()].map((shop, index) => ({
           ...shop,
           display_name: shop.shop_name_locked && !buyerCanViewShopNames() ? `Local shop ${index + 1}` : shop.name,
         })).sort((a, b) => b.count - a.count || a.display_name.localeCompare(b.display_name));
+        shoppingHomeShopsCache = shops;
         shopDetailCache.clear();
         shops.forEach((shop) => shopDetailCache.set(shop.key, shop));
+        const shopFilter = document.getElementById("all-shops-filter");
+        if (shopFilter) {
+          const categories = [...new Set(shops.flatMap((shop) => listCategories(shop.categories)))].sort((a, b) => a.localeCompare(b));
+          shopFilter.innerHTML = '<option value="">All categories</option>' + categories.map((cat) => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("");
+        }
         if (shopCountEl) shopCountEl.textContent = String(shops.length);
         if (productCountEl) productCountEl.textContent = String(items.length);
 
@@ -8243,7 +9001,7 @@
         sectionsEl.innerHTML = "";
         shopGridEl.innerHTML = "";
 
-        if (!items.length) {
+        if (!items.length && !registeredShops.length) {
           emptyEl.classList.remove("hidden");
           return;
         }
@@ -9423,6 +10181,7 @@
         if (!hasSession()) {
           applyGuestHeader();
           await loadShoppingHome();
+          restoreShopPageFromHash();
           await loadCatalog();
           await refreshCart();
           return;
@@ -9431,6 +10190,7 @@
         await mergeGuestCartIntoBuyerCart();
         await loadReferralInfo();
         await loadShoppingHome();
+        restoreShopPageFromHash();
         await loadNearbyCategoryPills();
         await loadCatalog();
         await refreshCart();
@@ -9674,9 +10434,12 @@
         document.getElementById("post-section")?.scrollIntoView({ behavior: "smooth" });
       }
     });
+    document.getElementById("all-shops-search")?.addEventListener("input", renderAllShops);
+    document.getElementById("all-shops-filter")?.addEventListener("change", renderAllShops);
 
     const userTabIds = [
       "shopping-home",
+      "all-shops-section",
       "shop-page-section",
       "dashboard-home",
       "requests-section",
@@ -9710,9 +10473,11 @@
       });
       document.querySelectorAll("#user-mobile-nav a[data-section]").forEach((a) => {
         const on = a.getAttribute("data-section") === activeId;
-        a.className =
-          "whitespace-nowrap px-3 py-1.5 rounded-lg " +
-          (on ? "bg-[#e8f1fc] text-[#0056d2]" : "hover:bg-[#f8f9fa]");
+        a.classList.toggle("active", on);
+        if (on) {
+          const label = document.getElementById("user-menu-current");
+          if (label) label.textContent = a.getAttribute("data-menu-label") || a.textContent.trim() || "Menu";
+        }
       });
       document.querySelectorAll("#departments-nav a[data-section]").forEach((a) => {
         const on = a.getAttribute("data-section") === activeId;
@@ -9723,7 +10488,18 @@
         a.classList.toggle("active", on);
       });
     }
-    const publicUserSections = new Set(["shopping-home", "shop-page-section", "browse-section", "cart-section"]);
+    function setUserMenuOpen(open) {
+      const drawer = document.getElementById("user-mobile-nav");
+      const backdrop = document.getElementById("user-menu-backdrop");
+      const trigger = document.getElementById("user-menu-open");
+      if (!drawer || !backdrop) return;
+      drawer.classList.toggle("is-open", Boolean(open));
+      drawer.setAttribute("aria-hidden", open ? "false" : "true");
+      backdrop.classList.toggle("hidden", !open);
+      if (trigger) trigger.setAttribute("aria-expanded", open ? "true" : "false");
+      document.body.classList.toggle("overflow-hidden", Boolean(open));
+    }
+    const publicUserSections = new Set(["shopping-home", "all-shops-section", "shop-page-section", "browse-section", "cart-section"]);
     function openUserSection(sectionId) {
       sectionId = sectionId || "shopping-home";
       if (sectionId !== "shop-page-section") stopShopPhotoCarousel();
@@ -9746,8 +10522,15 @@
         const id = a.getAttribute("data-section");
         if (!id) return;
         const opened = openUserSection(id);
+        if (a.closest("#user-mobile-nav")) setUserMenuOpen(false);
         if (opened && history && history.replaceState) history.replaceState(null, "", "#" + id);
       });
+    });
+    document.getElementById("user-menu-open")?.addEventListener("click", () => setUserMenuOpen(true));
+    document.getElementById("user-menu-close")?.addEventListener("click", () => setUserMenuOpen(false));
+    document.getElementById("user-menu-backdrop")?.addEventListener("click", () => setUserMenuOpen(false));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setUserMenuOpen(false);
     });
     document.querySelectorAll("[data-footer-toast]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -9756,11 +10539,19 @@
     });
     window.addEventListener("hashchange", () => {
       const id = (location.hash || "").replace(/^#/, "");
+      if (id === "shop-page-section") {
+        restoreShopPageFromHash();
+        return;
+      }
       if (id) openUserSection(id);
     });
     const firstSection = ((location.hash || "").replace(/^#/, "") || "shopping-home");
     setHomeGreetingPeriod();
-    openUserSection(firstSection);
+    if (firstSection === "shop-page-section") {
+      openUserSection("shopping-home");
+    } else {
+      openUserSection(firstSection);
+    }
 
     document.getElementById("refer-cta")?.addEventListener("click", async () => {
       const code = (document.getElementById("referral-code-display")?.textContent || "").trim();
@@ -9790,5 +10581,7 @@
   </script>
 </body>
 </html>
+
+
 
 

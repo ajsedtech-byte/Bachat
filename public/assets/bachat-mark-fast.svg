@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bachat">
+  <rect width="64" height="64" rx="16" fill="#0056d2"/>
+  <path fill="#ffffff" d="M18 13h22c7 0 12 4 12 10 0 4-2 7-6 9 5 2 8 6 8 12 0 7-6 12-15 12H18V13Zm12 17h8c3 0 5-2 5-5s-2-5-5-5h-8v10Zm0 18h9c4 0 6-2 6-5s-2-5-6-5h-9v10Z"/>
+  <path fill="#ffc247" d="M10 45c8 6 19 8 33 5 3-.7 6 1.6 6 4.6C36 60 20 57 10 49v-4Z"/>
+</svg>

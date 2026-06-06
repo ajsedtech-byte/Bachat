@@ -89,6 +89,28 @@ function formatCatalogProduct(doc, seller, options = {}) {
   };
 }
 
+function formatCatalogShop(seller, productCount = 0, options = {}) {
+  const showShopNames = options.showShopNames === true;
+  const categories = sellerCategoryList(seller);
+  return {
+    shop_id: String(seller._id),
+    shop_key: publicShopKey(seller),
+    shop_name: showShopNames ? seller.shopName || "Shop" : maskedShopName("shop"),
+    shop_name_locked: !showShopNames,
+    city: seller.city || "",
+    region: seller.region || "",
+    seller_verified: Boolean(seller.isVerified),
+    categories,
+    category: categories[0] || seller.category || "",
+    shop_photo: Array.isArray(seller.shopImages) ? seller.shopImages[0] || "" : "",
+    shop_images: Array.isArray(seller.shopImages) ? seller.shopImages : [],
+    shop_tagline: seller.storefrontTagline || "",
+    shop_menu_note: seller.menuNote || "",
+    shop_hours: publicBusinessHours(seller || {}),
+    product_count: productCount,
+  };
+}
+
 /** Seller listing: their own list price only (field name `price`). */
 function formatSellerProduct(doc) {
   return {
@@ -134,6 +156,28 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
   return products.map((p) => formatCatalogProduct(p, sellerMap[String(p.seller)], { showShopNames }));
 }
 
+async function catalogShopsForLocation({ city, region, showShopNames = false }) {
+  const cleanCity = String(city || "").trim();
+  const cleanRegion = String(region || "").trim();
+  const sellers = await Seller.find({
+    city: exactCiRegex(cleanCity),
+    region: exactCiRegex(cleanRegion),
+  })
+    .select("_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote categories category")
+    .lean();
+  if (!sellers.length) return [];
+
+  const sellerIds = sellers.map((s) => s._id);
+  const counts = await Product.aggregate([
+    { $match: { seller: { $in: sellerIds }, isActive: true } },
+    { $group: { _id: "$seller", count: { $sum: 1 } } },
+  ]);
+  const countMap = Object.fromEntries(counts.map((row) => [String(row._id), row.count]));
+  return sellers
+    .map((seller) => formatCatalogShop(seller, countMap[String(seller._id)] || 0, { showShopNames }))
+    .sort((a, b) => b.product_count - a.product_count || a.shop_name.localeCompare(b.shop_name));
+}
+
 // --- Buyer catalog (same city/region as buyer account) ---
 router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, res, next) => {
   try {
@@ -172,6 +216,35 @@ router.get("/public-catalog", async (req, res, next) => {
 });
 
 /** Categories local shopkeepers selected (same city/region as buyer) — for store filter pills only. */
+router.get("/catalog/nearby-shops", requireAuth, requireRole("buyer", "admin"), async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).lean();
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const city = String(user.city || "").trim();
+    const region = String(user.region || "").trim();
+    if (!city || !region) {
+      return badRequest(res, "Set your city and region on your profile to browse local shops.");
+    }
+    const shops = await catalogShopsForLocation({ city, region, showShopNames: canViewShopNames(user) });
+    return res.json({ shops });
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.get("/public-shops", async (req, res, next) => {
+  try {
+    const city = String(req.query.city || "Indore").trim();
+    const region = String(req.query.region || "Madhya Pradesh").trim();
+    if (!city || !region) {
+      return badRequest(res, "Choose a city and region to browse local shops.");
+    }
+    const shops = await catalogShopsForLocation({ city, region, showShopNames: false });
+    return res.json({ shops });
+  } catch (e) {
+    return next(e);
+  }
+});
 router.get("/catalog/nearby-shop-categories", requireAuth, requireRole("buyer", "admin"), async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).lean();
