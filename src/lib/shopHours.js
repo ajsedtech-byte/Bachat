@@ -120,7 +120,9 @@ function shopOpenStatus(seller, now = new Date()) {
       day: today.day,
       hoursLabel: "Closed today",
       weeklySchedule: publicWeeklySchedule(hours.weeklySchedule),
-      message: next ? `Shop will open ${next.label} at ${formatDisplayTime(next.openTime)}` : "Shop is closed right now",
+      message: next
+        ? `Shop is closed today. Please come back ${next.label} at ${formatDisplayTime(next.openTime)}.`
+        : "Shop is closed today. Please come back on the next open day.",
       nextOpenLabel: next ? formatDisplayTime(next.openTime) : openLabel,
     };
   }

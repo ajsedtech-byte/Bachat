@@ -2140,6 +2140,10 @@
       height: 28px;
       width: 28px;
       color: #0056d2;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
       stroke-width: 2.25;
     }
 
@@ -8777,7 +8781,10 @@
       if (key.includes("beauty") || key.includes("health")) {
         return sprite("icon-spark");
       }
-      return '<img src="/assets/bachat-mark-fast.svg" alt="" aria-hidden="true" />';
+      if (key.includes("view all") || key.includes("categor")) {
+        return sprite("icon-grid");
+      }
+      return sprite("icon-store");
     }
 
     function listCategories(value) {

@@ -32,5 +32,5 @@ test("shopOpenStatus supports different weekly hours and closed days", () => {
   };
   const status = shopHours.shopOpenStatus(seller, new Date("2026-06-04T07:00:00.000Z"));
   assert.equal(status.isOpen, false);
-  assert.equal(status.message, "Shop will open tomorrow at 11:00 AM");
+  assert.equal(status.message, "Shop is closed today. Please come back tomorrow at 11:00 AM.");
 });
