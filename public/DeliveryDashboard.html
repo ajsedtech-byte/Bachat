@@ -13,10 +13,15 @@
 <body class="min-h-screen bg-slate-50 text-slate-900">
   <header class="border-b border-slate-200 bg-white sticky top-0 z-10">
     <div class="max-w-2xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-      <div>
-        <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Delivery partner</p>
-        <p id="hello" class="text-lg font-black text-slate-900">…</p>
-        <p id="area" class="text-xs text-slate-600"></p>
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="/" class="inline-flex shrink-0" aria-label="Bachat home">
+          <img src="/assets/bachat-logo.svg" alt="Bachat" class="h-8 w-auto max-w-[120px] object-contain object-left" />
+        </a>
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Delivery partner</p>
+          <p id="hello" class="text-lg font-black text-slate-900">…</p>
+          <p id="area" class="text-xs text-slate-600"></p>
+        </div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <select id="availability-state" class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold">

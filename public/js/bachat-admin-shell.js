@@ -122,6 +122,9 @@
   if (tb) {
     tb.innerHTML =
       '<div class="flex flex-wrap items-center gap-3 flex-1 min-w-0">' +
+      '<a href="/" class="lg:hidden inline-flex items-center shrink-0" aria-label="Bachat home">' +
+      '<img src="/assets/bachat-logo.svg" alt="Bachat" class="h-8 w-auto max-w-[120px] object-contain object-left" />' +
+      "</a>" +
       '<div class="relative flex-1 min-w-[200px] max-w-xl">' +
       '<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">' +
       iconSvg("M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z") +

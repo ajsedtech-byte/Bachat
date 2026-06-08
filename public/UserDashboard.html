@@ -3760,14 +3760,22 @@
     }
 
     .bachat-storefront #dept-all-panel {
-      position: absolute;
-      left: 0;
-      top: 100%;
+      position: fixed !important;
+      left: var(--dept-menu-left, 16px) !important;
+      top: var(--dept-menu-top, 120px) !important;
+      right: auto !important;
+      z-index: 90 !important;
+      max-width: calc(100vw - 24px);
     }
 
     .bachat-storefront #departments-nav details > div {
-      position: absolute;
-      top: 100%;
+      position: fixed !important;
+      left: var(--dept-menu-left, 16px) !important;
+      top: var(--dept-menu-top, 120px) !important;
+      right: auto !important;
+      z-index: 90 !important;
+      width: min(320px, calc(100vw - 24px)) !important;
+      max-width: calc(100vw - 24px);
     }
 
     .bachat-storefront #dept-all,
@@ -3826,6 +3834,24 @@
       flex: 0 0 auto;
       color: currentColor;
       stroke-width: 2.35;
+    }
+
+    .bachat-storefront #dept-all::before,
+    .bachat-storefront #departments-nav details > summary::before {
+      content: none !important;
+      display: none !important;
+    }
+
+    .bachat-storefront #departments-nav .dept-nav-icon {
+      display: inline-block !important;
+      height: 18px !important;
+      width: 18px !important;
+      color: #0056d2 !important;
+      fill: none !important;
+      stroke: currentColor !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      stroke-width: 2.15 !important;
     }
 
     .bachat-storefront .amazon-nav-link.active::after {
@@ -5601,7 +5627,7 @@
           <a href="#browse-section" data-section="browse-section" class="amazon-nav-link">Catalog</a>
           <div id="dept-all-wrap" class="relative shrink-0 border-r border-white/10">
             <button type="button" id="dept-all" aria-expanded="false" class="h-full shrink-0 px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap">
-              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-grid"></use></svg>
               <span>All categories</span>
             </button>
             <div id="dept-all-panel" class="hidden absolute left-0 top-full z-[70] w-[min(94vw,760px)] max-h-[min(72vh,520px)] overflow-y-auto rounded-b-2xl border border-[#e5e7eb] bg-white p-4 text-slate-900 shadow-2xl">
@@ -5639,7 +5665,7 @@
           </div>
           <details name="shop-dept" class="relative group shrink-0 border-r border-white/10 min-w-0">
             <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
-              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 18h4"/></svg>
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-phone"></use></svg>
               <span>Electronics &amp; mobiles</span>
               <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
             </summary>
@@ -5657,7 +5683,7 @@
           </details>
           <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
             <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
-              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg>
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-grocery"></use></svg>
               <span>Groceries &amp; food</span>
               <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
             </summary>
@@ -5698,7 +5724,7 @@
           </details>
           <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
             <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
-              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-home"></use></svg>
               <span>Home &amp; kitchen</span>
               <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
             </summary>
@@ -5716,7 +5742,7 @@
           </details>
           <details name="shop-dept" class="relative shrink-0 border-r border-white/10 min-w-0">
             <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
-              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3v18"/><path d="M5 12h14"/><path d="m7 7 10 10"/><path d="m17 7-10 10"/></svg>
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-spark"></use></svg>
               <span>Beauty &amp; health</span>
               <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
             </summary>
@@ -5766,7 +5792,7 @@
           </details>
           <details name="shop-dept" class="relative shrink-0 min-w-0">
             <summary class="cursor-pointer list-none px-3 sm:px-4 py-2.5 font-semibold hover:bg-white/10 whitespace-nowrap flex items-center gap-1 select-none marker:content-none [&::-webkit-details-marker]:hidden">
-              <svg class="dept-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+              <svg class="dept-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-grid"></use></svg>
               <span>More</span>
               <span class="text-slate-400 text-[10px]" aria-hidden="true">&#9662;</span>
             </summary>
@@ -5778,7 +5804,7 @@
         </div>
       </nav>
 
-      <div class="user-menu-bar">
+      <div id="user-menu-bar" class="user-menu-bar hidden">
         <nav id="user-mobile-nav" class="user-menu-row" aria-label="Dashboard menu">
         <a href="#shopping-home" data-section="shopping-home" class="active" data-menu-label="Home">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-home"></use></svg>
@@ -6658,6 +6684,11 @@
       return Boolean(token);
     }
 
+    function syncUserMenuVisibility() {
+      const menu = document.getElementById("user-menu-bar");
+      if (menu) menu.classList.toggle("hidden", !hasSession());
+    }
+
     function storedSessionUser() {
       try {
         const raw = localStorage.getItem("ajs_user");
@@ -6702,6 +6733,7 @@
       token = "";
       localStorage.removeItem("ajs_token");
       localStorage.removeItem("ajs_user");
+      syncUserMenuVisibility();
     }
 
     function rememberLoginReturn(hash) {
@@ -7959,6 +7991,21 @@
       if (btn) btn.setAttribute("aria-expanded", "false");
     }
 
+    function placeDeptMenu(trigger, panel, options = {}) {
+      if (!trigger || !panel) return;
+      const rect = trigger.getBoundingClientRect();
+      const gap = 8;
+      const viewportPad = 12;
+      const preferredWidth = options.wide ? Math.min(760, window.innerWidth - viewportPad * 2) : Math.min(320, window.innerWidth - viewportPad * 2);
+      const measuredWidth = Math.min(panel.offsetWidth || preferredWidth, window.innerWidth - viewportPad * 2);
+      const panelWidth = Math.max(Math.min(preferredWidth, measuredWidth), Math.min(240, window.innerWidth - viewportPad * 2));
+      let left = options.alignRight ? rect.right - panelWidth : rect.left;
+      left = Math.max(viewportPad, Math.min(left, window.innerWidth - panelWidth - viewportPad));
+      const top = Math.min(rect.bottom + gap, Math.max(viewportPad, window.innerHeight - 96));
+      panel.style.setProperty("--dept-menu-left", `${left}px`);
+      panel.style.setProperty("--dept-menu-top", `${top}px`);
+    }
+
     function openDeptAllMenu() {
       const panel = document.getElementById("dept-all-panel");
       const btn = document.getElementById("dept-all");
@@ -7967,6 +8014,7 @@
       document.querySelectorAll('#departments-nav details[name="shop-dept"]').forEach((d) => d.removeAttribute("open"));
       panel.classList.toggle("hidden", !isHidden);
       btn.setAttribute("aria-expanded", String(isHidden));
+      if (isHidden) requestAnimationFrame(() => placeDeptMenu(btn, panel, { wide: true }));
     }
 
     function selectShopCategory(cat) {
@@ -10087,11 +10135,23 @@
       selectShopCategory(btn.getAttribute("data-shop-cat") || "");
     });
     document.getElementById("departments-nav")?.addEventListener("toggle", (e) => {
-      if (e.target.matches('details[name="shop-dept"]') && e.target.open) closeDeptAllMenu();
+      if (!e.target.matches('details[name="shop-dept"]')) return;
+      if (e.target.open) {
+        closeDeptAllMenu();
+        const summary = e.target.querySelector("summary");
+        const panel = [...e.target.children].find((child) => child.tagName === "DIV");
+        requestAnimationFrame(() => placeDeptMenu(summary, panel, { alignRight: window.innerWidth < 900 }));
+      }
     }, true);
     document.addEventListener("click", (e) => {
       const wrap = document.getElementById("dept-all-wrap");
-      if (!wrap || wrap.contains(e.target)) return;
+      const nav = document.getElementById("departments-nav");
+      if ((wrap && wrap.contains(e.target)) || (nav && nav.contains(e.target))) return;
+      document.querySelectorAll('#departments-nav details[name="shop-dept"]').forEach((d) => d.removeAttribute("open"));
+      closeDeptAllMenu();
+    });
+    window.addEventListener("resize", () => {
+      document.querySelectorAll('#departments-nav details[name="shop-dept"]').forEach((d) => d.removeAttribute("open"));
       closeDeptAllMenu();
     });
 
@@ -10508,6 +10568,7 @@
     }
     const publicUserSections = new Set(["shopping-home", "all-shops-section", "shop-page-section", "browse-section", "cart-section"]);
     function openUserSection(sectionId) {
+      syncUserMenuVisibility();
       sectionId = sectionId || "shopping-home";
       if (sectionId !== "shop-page-section") stopShopPhotoCarousel();
       if (!hasSession() && !publicUserSections.has(sectionId)) {
