@@ -1010,7 +1010,16 @@
       let filtered = selectedShopCat
         ? allProducts.filter((p) => sameText(p.category, selectedShopCat) && p.is_active !== false)
         : allProducts.filter((p) => p.is_active !== false);
-      if (q) filtered = filtered.filter((p) => String(p.title || "").toLowerCase().includes(q));
+      if (q) {
+        const terms = q.split(/\s+/).filter(Boolean);
+        filtered = filtered.filter((p) => {
+          const hay = [p.title, p.description, p.category, productQuantityLine(p), p.price]
+            .filter((v) => v != null && v !== "")
+            .join(" ")
+            .toLowerCase();
+          return terms.every((term) => hay.includes(term));
+        });
+      }
       if (!filtered.length) {
         empty.classList.remove("hidden");
         return;
@@ -1867,6 +1876,13 @@
     document.getElementById("search-btn")?.addEventListener("click", () => {
       if (currentTab !== "shop") setTab("shop");
       renderProductGrid();
+    });
+    let sellerSearchDebounce = null;
+    document.getElementById("search-q")?.addEventListener("input", () => {
+      clearTimeout(sellerSearchDebounce);
+      sellerSearchDebounce = setTimeout(() => {
+        renderProductGrid();
+      }, 100);
     });
     document.getElementById("search-q")?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
