@@ -8124,6 +8124,10 @@
           card.setAttribute("role", "button");
           card.setAttribute("tabindex", "0");
           card.setAttribute("aria-label", `Open details for ${p.title || "local item"}`);
+          card.setAttribute(
+            "data-catalog-search",
+            [p.title, p.description, p.category, shopDisplayName(p), p.city, p.region, productPackText(p)].filter(Boolean).join(" ").toLowerCase()
+          );
           card.className = "catalog-product-card cursor-pointer flex flex-col";
           const img =
             p.images && p.images[0]
@@ -8156,6 +8160,24 @@
         empty.classList.remove("hidden");
         showToast(e.message || "Could not load catalog", true);
       }
+    }
+
+    function filterVisibleCatalog() {
+      const grid = document.getElementById("catalog-grid");
+      const empty = document.getElementById("catalog-empty");
+      const q = String(document.getElementById("search-q")?.value || "").trim().toLowerCase();
+      const cards = [...(grid?.querySelectorAll("[data-catalog-search]") || [])];
+      if (!cards.length) return false;
+      const terms = q.split(/\s+/).filter(Boolean);
+      let shown = 0;
+      cards.forEach((card) => {
+        const text = String(card.getAttribute("data-catalog-search") || "");
+        const ok = !terms.length || terms.every((term) => text.includes(term));
+        card.classList.toggle("hidden", !ok);
+        if (ok) shown += 1;
+      });
+      if (empty) empty.classList.toggle("hidden", shown > 0);
+      return true;
     }
 
     function escapeHtml(s) {
@@ -10160,13 +10182,20 @@
     });
 
     document.getElementById("search-btn").addEventListener("click", async () => {
-      await loadCatalog();
+      if (!filterVisibleCatalog()) await loadCatalog();
       if (typeof openUserSection === "function") openUserSection("browse-section");
+    });
+    let catalogSearchDebounce = null;
+    document.getElementById("search-q").addEventListener("input", () => {
+      clearTimeout(catalogSearchDebounce);
+      catalogSearchDebounce = setTimeout(() => {
+        filterVisibleCatalog();
+      }, 120);
     });
     document.getElementById("search-q").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        loadCatalog().then(() => {
+        Promise.resolve(filterVisibleCatalog() || loadCatalog()).then(() => {
           if (typeof openUserSection === "function") openUserSection("browse-section");
         });
       }
