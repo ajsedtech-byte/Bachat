@@ -7035,14 +7035,17 @@
       const isFile = proto === "file:";
       const stored = (localStorage.getItem("bachat_api_base") || "").replace(/\/+$/, "");
       const nativeBase = String(window.__BACHAT_API_BASE__ || "").replace(/\/+$/, "");
+      const isLocalHost = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/i.test(host);
       const portCandidates = new Set();
-      if (location.port) portCandidates.add(location.port);
-      portCandidates.add("3000");
-      portCandidates.add("3001");
+      if (isFile || isLocalHost) {
+        if (location.port) portCandidates.add(location.port);
+        portCandidates.add("3000");
+        portCandidates.add("3001");
+      }
       const attempts = [];
       if (nativeBase) attempts.push({ url: `${nativeBase}${clean}`, persist: nativeBase });
-      if (stored && stored !== nativeBase) attempts.push({ url: `${stored}${clean}`, persist: stored });
       if (!isFile) attempts.push({ url: clean, persist: null });
+      if (stored && stored !== nativeBase) attempts.push({ url: `${stored}${clean}`, persist: stored });
       for (const p of portCandidates) {
         attempts.push({ url: `${proto}//${host}:${p}${clean}`, persist: `${proto}//${host}:${p}` });
       }
@@ -7084,6 +7087,14 @@
       return data;
     }
 
+    function withTimeout(promise, ms, fallback) {
+      let timer;
+      const timeout = new Promise((resolve) => {
+        timer = setTimeout(() => resolve(fallback), ms);
+      });
+      return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+    }
+
     let meUser = null;
     let geoData = null;
     let selectedCategory = "";
@@ -7097,6 +7108,7 @@
     const productDetailCache = new Map();
     const shopDetailCache = new Map();
     const GUEST_CART_KEY = "bachat_guest_cart_v1";
+    const SHOPPING_HOME_SNAPSHOT_KEY = "bachat_shopping_home_snapshot_v1";
     const AESTHETIC_SHOP_NAMES = Object.freeze({
       food: ["Momo Verse", "Snack Syndicate", "Chaat Circle", "Bite Bazaar", "Masala Mood", "The Crave Cart", "Noodle Nukkad", "Tandoori Tales"],
       grocery: ["Daily Drop", "Pantry Pop", "Kirana Club", "Freshly Local", "Basket Buddy", "Ghar Ka Stock", "The Daily Shelf", "Grocery Glow"],
@@ -8998,6 +9010,227 @@
       if (history && history.replaceState) history.replaceState(null, "", "#all-shops-section");
     }
 
+    function shoppingHomeSnapshotKey(city, region) {
+      return [hasSession() ? "auth" : "guest", city || "", region || ""].join("|").toLowerCase();
+    }
+
+    function serializableShop(shop) {
+      if (!shop) return null;
+      return {
+        ...shop,
+        categories: listCategories(shop.categories),
+        items: Array.isArray(shop.items) ? shop.items.slice(0, 20) : [],
+      };
+    }
+
+    function rewireShoppingHomePanels() {
+      const shopGridEl = document.getElementById("shopping-home-shop-grid");
+      const sectionsEl = document.getElementById("shopping-home-sections");
+      const lanesEl = document.getElementById("shopping-home-lanes");
+      wireShopCards(shopGridEl);
+      sectionsEl?.querySelectorAll(".home-add-cart").forEach((btn) => {
+        btn.addEventListener("click", () => addToCart(btn.getAttribute("data-pid")));
+      });
+      sectionsEl?.querySelectorAll(".home-save-catalog").forEach((btn) => {
+        btn.addEventListener("click", () => saveProduct(btn.getAttribute("data-pid")));
+      });
+      wireProductDetailCards(sectionsEl);
+      lanesEl?.querySelectorAll("[data-home-category]").forEach((btn) => {
+        btn.addEventListener("click", () => selectShopCategory(btn.getAttribute("data-home-category") || ""));
+      });
+      document.querySelectorAll(".home-open-category").forEach((btn) => {
+        btn.addEventListener("click", () => selectShopCategory(btn.getAttribute("data-home-category") || ""));
+      });
+    }
+
+    function restoreShoppingHomeSnapshot(city, region) {
+      try {
+        const raw = localStorage.getItem(SHOPPING_HOME_SNAPSHOT_KEY);
+        const snap = raw ? JSON.parse(raw) : null;
+        if (!snap || snap.key !== shoppingHomeSnapshotKey(city, region)) return false;
+        const lanesEl = document.getElementById("shopping-home-lanes");
+        const shopGridEl = document.getElementById("shopping-home-shop-grid");
+        const sectionsEl = document.getElementById("shopping-home-sections");
+        const emptyEl = document.getElementById("shopping-home-empty");
+        if (!lanesEl || !shopGridEl || !sectionsEl) return false;
+        lanesEl.innerHTML = snap.lanes_html || "";
+        shopGridEl.innerHTML = snap.shops_html || "";
+        sectionsEl.innerHTML = snap.sections_html || "";
+        if (emptyEl) emptyEl.classList.add("hidden");
+        const shopCountEl = document.getElementById("shopping-home-shop-count");
+        const productCountEl = document.getElementById("shopping-home-product-count");
+        if (shopCountEl && snap.shop_count != null) shopCountEl.textContent = String(snap.shop_count);
+        if (productCountEl && snap.product_count != null) productCountEl.textContent = String(snap.product_count);
+        shoppingHomeShopsCache = Array.isArray(snap.shops) ? snap.shops : [];
+        shopDetailCache.clear();
+        shoppingHomeShopsCache.forEach((shop) => shopDetailCache.set(shop.key, shop));
+        cacheProductDetailItems(snap.items || []);
+        rewireShoppingHomePanels();
+        renderHomeOffers();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function saveShoppingHomeSnapshot(city, region, items, shops) {
+      try {
+        const lanesEl = document.getElementById("shopping-home-lanes");
+        const shopGridEl = document.getElementById("shopping-home-shop-grid");
+        const sectionsEl = document.getElementById("shopping-home-sections");
+        if (!lanesEl || !shopGridEl || !sectionsEl) return;
+        const snap = {
+          key: shoppingHomeSnapshotKey(city, region),
+          saved_at: Date.now(),
+          shop_count: Array.isArray(shops) ? shops.length : 0,
+          product_count: Array.isArray(items) ? items.length : 0,
+          lanes_html: lanesEl.innerHTML,
+          shops_html: shopGridEl.innerHTML,
+          sections_html: sectionsEl.innerHTML,
+          shops: (Array.isArray(shops) ? shops : []).slice(0, 20).map(serializableShop).filter(Boolean),
+          items: (Array.isArray(items) ? items : []).slice(0, 40),
+        };
+        const payload = JSON.stringify(snap);
+        if (payload.length < 900000) localStorage.setItem(SHOPPING_HOME_SNAPSHOT_KEY, payload);
+      } catch (_) {}
+    }
+
+    function paintShoppingHomeLoadingFallback() {
+      const lanesEl = document.getElementById("shopping-home-lanes");
+      const shopGridEl = document.getElementById("shopping-home-shop-grid");
+      const sectionsEl = document.getElementById("shopping-home-sections");
+      const city = (meUser && meUser.city) || GUEST_CITY || "Indore";
+      const region = (meUser && meUser.region) || GUEST_REGION || "Madhya Pradesh";
+      const fallbackItems = [
+        {
+          product_id: "instant-momo-combo",
+          title: "Fried Combo Momo",
+          category: "Food",
+          price: 123,
+          images: [],
+          city,
+          region,
+          shop_name: "Momo Verse",
+          shop_name_locked: true,
+          shop_key: "instant-momo-verse",
+          seller_verified: true,
+          shop_hours: { is_open: false, message: "Shop will open today at 5:00 PM" },
+        },
+        {
+          product_id: "instant-tandoori-momo",
+          title: "Tandoori Combo Momo",
+          category: "Food",
+          price: 121,
+          images: [],
+          city,
+          region,
+          shop_name: "Snack Syndicate",
+          shop_name_locked: true,
+          shop_key: "instant-snack-syndicate",
+          seller_verified: true,
+          shop_hours: { is_open: false, message: "Shop will open today at 5:00 PM" },
+        },
+        {
+          product_id: "instant-grocery",
+          title: "Daily Essentials Pack",
+          category: "Groceries",
+          price: 199,
+          images: [],
+          city,
+          region,
+          shop_name: "Kirana Club",
+          shop_name_locked: true,
+          shop_key: "instant-kirana-club",
+          seller_verified: true,
+          shop_hours: { is_open: false, message: "Live availability is loading..." },
+        },
+        {
+          product_id: "instant-electronics",
+          title: "Fast Charging Cable",
+          category: "Electronics",
+          price: 149,
+          images: [],
+          city,
+          region,
+          shop_name: "Gadget Grid",
+          shop_name_locked: true,
+          shop_key: "instant-gadget-grid",
+          seller_verified: true,
+          shop_hours: { is_open: false, message: "Live availability is loading..." },
+        },
+      ];
+      const fallbackShops = [
+        {
+          key: "instant-momo-verse",
+          display_name: "Momo Verse",
+          city,
+          region,
+          verified: true,
+          count: 39,
+          categories: ["Food"],
+          items: fallbackItems.filter((item) => item.shop_key === "instant-momo-verse"),
+          shop_hours: { is_open: false, message: "Shop will open today at 5:00 PM" },
+        },
+        {
+          key: "instant-snack-syndicate",
+          display_name: "Snack Syndicate",
+          city,
+          region,
+          verified: true,
+          count: 3,
+          categories: ["Fruits", "Groceries", "Atta, rice, dal & oil"],
+          items: fallbackItems.filter((item) => item.shop_key === "instant-snack-syndicate"),
+          shop_hours: { is_open: true, label: "Open now - closes at 9:00 PM" },
+        },
+        {
+          key: "instant-kirana-club",
+          display_name: "Kirana Club",
+          city,
+          region,
+          verified: true,
+          count: 1,
+          categories: ["Atta, rice, dal & oil"],
+          items: fallbackItems.filter((item) => item.shop_key === "instant-kirana-club"),
+          shop_hours: { is_open: true, label: "Open now - closes at 9:00 PM" },
+        },
+      ];
+      if (lanesEl && !lanesEl.children.length) {
+        [
+          { label: "Food", value: "Food" },
+          { label: "Groceries", value: "Groceries" },
+          { label: "Electronics", value: "Electronics" },
+          { label: "Beauty", value: "Beauty & personal care" },
+        ].forEach((tile) => {
+          const lane = document.createElement("button");
+          lane.type = "button";
+          lane.className = "category-tile";
+          lane.setAttribute("data-home-category", tile.value);
+          lane.innerHTML = `<span class="category-icon">${homeCategoryIcon(tile.label)}</span><span>${escapeHtml(tile.label)}</span>`;
+          lane.addEventListener("click", () => selectShopCategory(tile.value));
+          lanesEl.appendChild(lane);
+        });
+      }
+      if (shopGridEl && !shopGridEl.children.length) {
+        shoppingHomeShopsCache = fallbackShops;
+        fallbackShops.forEach((shop) => shopDetailCache.set(shop.key, shop));
+        shopGridEl.innerHTML = fallbackShops
+          .map((shop, index) => `<article class="shop-row" role="button" tabindex="0" data-shop-key="${escapeHtml(shop.key)}" aria-label="Open ${escapeHtml(shop.display_name)}">${shopCardHtml(shop, index, { categoryLimit: 3 })}</article>`)
+          .join("");
+        wireShopCards(shopGridEl);
+      }
+      if (sectionsEl && !sectionsEl.children.length) {
+        cacheProductDetailItems(fallbackItems);
+        sectionsEl.innerHTML = fallbackItems.map((item) => makeHomeProductCard(item)).join("");
+        sectionsEl.querySelectorAll(".home-add-cart").forEach((btn) => {
+          btn.addEventListener("click", () => addToCart(btn.getAttribute("data-pid")));
+        });
+        sectionsEl.querySelectorAll(".home-save-catalog").forEach((btn) => {
+          btn.addEventListener("click", () => saveProduct(btn.getAttribute("data-pid")));
+        });
+        wireProductDetailCards(sectionsEl);
+      }
+    }
+
     async function loadShoppingHome() {
       const cityEl = document.getElementById("shopping-home-city");
       const shopsCityEl = document.getElementById("shopping-home-shops-city");
@@ -9013,11 +9246,13 @@
       const region = (meUser && meUser.region) || "";
       cityEl.textContent = city;
       if (shopsCityEl) shopsCityEl.textContent = city;
+      const restoredSnapshot = restoreShoppingHomeSnapshot(city, region);
+      if (!restoredSnapshot) paintShoppingHomeLoadingFallback();
 
       try {
         const [data, shopsData] = await Promise.all([
           api("GET", catalogEndpoint()),
-          api("GET", shopsEndpoint()).catch(() => ({ shops: [] })),
+          withTimeout(api("GET", shopsEndpoint()).catch(() => ({ shops: [] })), 900, { shops: [] }),
         ]);
         const items = Array.isArray(data && data.items) ? data.items : [];
         const registeredShops = Array.isArray(shopsData && shopsData.shops) ? shopsData.shops : [];
@@ -9156,6 +9391,7 @@
           const lane = document.createElement("button");
           lane.type = "button";
           lane.className = "category-tile";
+          lane.setAttribute("data-home-category", tile.value);
           lane.innerHTML = `<span class="category-icon">${homeCategoryIcon(tile.label)}</span><span>${escapeHtml(tile.label)}</span>`;
           lane.addEventListener("click", () => selectShopCategory(tile.value));
           lanesEl.appendChild(lane);
@@ -9217,8 +9453,10 @@
           btn.addEventListener("click", () => selectShopCategory(btn.getAttribute("data-home-category") || ""));
         });
         renderHomeOffers();
+        saveShoppingHomeSnapshot(city, region, items, shops);
       } catch (e) {
         console.error("Shopping home failed", e);
+        if (restoredSnapshot) return;
         emptyEl.classList.remove("hidden");
         emptyEl.textContent = "We could not load live shops right now. Please check your internet connection and try again.";
       }
@@ -10332,29 +10570,27 @@
     (async function boot() {
       try {
         initHeroCarousel();
-        await safeLoadAllCategories();
+        safeLoadAllCategories();
         if (!hasSession()) {
           applyGuestHeader();
           await loadShoppingHome();
           restoreShopPageFromHash();
-          await loadCatalog();
-          await refreshCart();
+          refreshCart().catch(() => {});
           return;
         }
         await loadMe();
         await mergeGuestCartIntoBuyerCart();
-        await loadReferralInfo();
         await loadShoppingHome();
         restoreShopPageFromHash();
-        await loadNearbyCategoryPills();
-        await loadCatalog();
-        await refreshCart();
-        await loadOrders();
-        await loadRequests();
-        await loadPayments();
-        await loadSaved();
-        await updateKpis();
-        await loadLatestQuotesPreview();
+        Promise.allSettled([
+          loadReferralInfo(),
+          loadNearbyCategoryPills(),
+          refreshCart(),
+          loadOrders(),
+          loadRequests(),
+          loadPayments(),
+          loadSaved(),
+        ]).then(() => Promise.allSettled([updateKpis(), loadLatestQuotesPreview()]));
       } catch (e) {
         console.error("Bachat dashboard boot failed", e);
         applyGuestHeader();
@@ -10670,6 +10906,9 @@
       target.scrollIntoView({ behavior: "smooth", block: "start" });
       resetTopNavScroll();
       paintUserNavActive(sectionId);
+      if (sectionId === "browse-section" && !document.querySelector("#catalog-grid [data-catalog-search]")) {
+        loadCatalog().catch(() => {});
+      }
       return true;
     }
     document.querySelectorAll("#user-sidebar-nav a[data-section], #user-mobile-nav a[data-section], #departments-nav a[data-section], #amazon-head-actions a[data-section], .bachat-footer a[data-section], .app-bottom-nav a[data-section]").forEach((a) => {
