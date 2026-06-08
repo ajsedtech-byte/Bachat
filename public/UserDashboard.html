@@ -4270,6 +4270,10 @@
       color: #0056d2;
     }
 
+    .bachat-storefront [data-auth-only].hidden {
+      display: none !important;
+    }
+
     .bachat-storefront .user-menu-bar {
       display: grid;
       grid-template-columns: minmax(142px, 190px) minmax(0, 1fr) minmax(104px, 150px);
@@ -5471,6 +5475,10 @@
       flex-wrap: nowrap !important;
     }
 
+    .bachat-storefront .user-menu-bar.hidden {
+      display: none !important;
+    }
+
     .bachat-storefront #user-mobile-nav.user-menu-row {
       position: static !important;
       display: flex !important;
@@ -5589,7 +5597,7 @@
           </div>
         </div>
         <div id="amazon-head-actions" class="bachat-head-actions relative flex items-center gap-2 shrink-0 ml-auto">
-          <a href="#orders-section" data-section="orders-section" class="amazon-head-link bachat-head-action" aria-label="View your orders">
+          <a href="#orders-section" data-section="orders-section" data-auth-only class="amazon-head-link bachat-head-action hidden" aria-label="View your orders">
             <span class="bachat-head-action-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
             </span>
@@ -6550,7 +6558,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 10h16l-1.2-5.5H5.2L4 10Z"/><path d="M5 10v9h14v-9"/><path d="M8 14h3v5"/><path d="M15 14h2"/></svg>
       <span>Shop</span>
     </a>
-    <a href="#orders-section" data-section="orders-section">
+    <a href="#orders-section" data-section="orders-section" data-auth-only class="hidden">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 3.5h10v17l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2v-17Z"/><path d="M10 8h4"/><path d="M10 12h4"/><path d="M10 16h2.5"/></svg>
       <span>Orders</span>
     </a>
@@ -6559,7 +6567,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6.5 6.5h14l-1.4 7.4H8L6.5 6.5Z"/><path d="M6.5 6.5 5.8 3H3.5"/><circle cx="9" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/></svg>
       <span>Basket</span>
     </a>
-    <a href="#profile-strip" data-section="profile-strip">
+    <a href="#profile-strip" data-section="profile-strip" data-auth-only class="hidden">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
       <span>Account</span>
     </a>
@@ -6687,6 +6695,9 @@
     function syncUserMenuVisibility() {
       const menu = document.getElementById("user-menu-bar");
       if (menu) menu.classList.toggle("hidden", !hasSession());
+      document.querySelectorAll("[data-auth-only]").forEach((el) => {
+        el.classList.toggle("hidden", !hasSession());
+      });
     }
 
     function storedSessionUser() {
@@ -7086,15 +7097,63 @@
     const productDetailCache = new Map();
     const shopDetailCache = new Map();
     const GUEST_CART_KEY = "bachat_guest_cart_v1";
+    const AESTHETIC_SHOP_NAMES = Object.freeze({
+      food: ["Momo Verse", "Snack Syndicate", "Chaat Circle", "Bite Bazaar", "Masala Mood", "The Crave Cart", "Noodle Nukkad", "Tandoori Tales"],
+      grocery: ["Daily Drop", "Pantry Pop", "Kirana Club", "Freshly Local", "Basket Buddy", "Ghar Ka Stock", "The Daily Shelf", "Grocery Glow"],
+      fashion: ["Drip Lane", "Fit Check Studio", "Street Stitch", "Closet Core", "WearHaus", "Trend Tap", "Urban Threads", "Vibe Wardrobe"],
+      electronics: ["Gadget Grid", "Plug Point", "Tech Tadka", "Byte Bazaar", "Mobile Mood", "Charge Club", "Screen Street", "Device Den"],
+      beauty: ["Glow Grid", "Skin Studio", "Beauty Bloom", "Selfcare Stop", "Glow Cart", "Fresh Face Co.", "Wellness Wave", "Aura Basket"],
+      home: ["Cozy Cart", "Home Hype", "Nest Needs", "Kitchen Kulture", "Decor Drop", "Ghar Glow", "Shelf Stories", "House Blend"],
+      general: ["Local Vibe Co.", "Bazaar Bloom", "Indie Basket", "Neighbourhood Nest", "Fresh Finds", "City Cart", "Daily Vibe", "Bachat Picks"],
+    });
 
     function buyerCanViewShopNames() {
       return Boolean(meUser && meUser.can_view_shop_names);
     }
 
+    function stableNameIndex(seed, size) {
+      const text = String(seed || "bachat-shop");
+      let hash = 0;
+      for (let i = 0; i < text.length; i += 1) {
+        hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+      }
+      return size ? hash % size : 0;
+    }
+
+    function shopNameBucket(row) {
+      const categories = listCategories([
+        row && row.category,
+        ...(row && Array.isArray(row.categories) ? row.categories : []),
+        ...(row && row.categories instanceof Set ? [...row.categories] : []),
+      ]);
+      const key = categories.join(" ").toLowerCase();
+      if (/momo|food|snack|chaat|restaurant|meal|cafe|beverage|tea|coffee|fruit/.test(key)) return "food";
+      if (/grocery|kirana|atta|rice|dal|oil|daily|staple/.test(key)) return "grocery";
+      if (/fashion|cloth|wear|apparel|shoe|style/.test(key)) return "fashion";
+      if (/elect|mobile|phone|gadget|computer|hardware|accessor/.test(key)) return "electronics";
+      if (/beauty|health|wellness|skin|care|pharma/.test(key)) return "beauty";
+      if (/home|kitchen|decor|furniture|house/.test(key)) return "home";
+      return "general";
+    }
+
+    function aestheticShopName(row, kind, index) {
+      const bucket = shopNameBucket(row || {});
+      const names = AESTHETIC_SHOP_NAMES[bucket] || AESTHETIC_SHOP_NAMES.general;
+      const seed = [
+        row && (row.shop_key || row.shop_id || row.seller_id || row.product_id || row.shop_name || row.name),
+        row && row.city,
+        row && row.region,
+        index,
+        bucket,
+      ].filter(Boolean).join("|");
+      const picked = names[stableNameIndex(seed, names.length)] || names[0];
+      return kind === "seller" ? picked : picked;
+    }
+
     function shopDisplayName(row, kind) {
       if (!row) return kind === "seller" ? "Local seller" : "Local shop";
       if (row.shop_name_locked && !buyerCanViewShopNames()) {
-        return kind === "seller" ? "Local seller" : "Local shop";
+        return aestheticShopName(row, kind);
       }
       return row.shop_name || row.name || (kind === "seller" ? "Local seller" : "Local shop");
     }
@@ -9039,7 +9098,7 @@
 
         const shops = [...shopMap.values()].map((shop, index) => ({
           ...shop,
-          display_name: shop.shop_name_locked && !buyerCanViewShopNames() ? `Local shop ${index + 1}` : shop.name,
+          display_name: shop.shop_name_locked && !buyerCanViewShopNames() ? aestheticShopName(shop, "shop", index) : shop.name,
         })).sort((a, b) => b.count - a.count || a.display_name.localeCompare(b.display_name));
         shoppingHomeShopsCache = shops;
         shopDetailCache.clear();
