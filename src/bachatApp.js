@@ -70,6 +70,7 @@ app.post(
 
 app.use("/api/products", requireDb, express.json({ limit: "8mb" }), productRoutes);
 app.use("/api/seller", requireDb, express.json({ limit: "8mb" }), sellerRoutes);
+app.use("/api/admin", requireDb, express.json({ limit: "12mb" }), adminRoutes);
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => {
@@ -105,8 +106,7 @@ app.use("/api/cart", requireDb, cartRoutes);
 app.use("/api/saved", requireDb, savedRoutes);
 app.use("/api", requireDb, paymentApiRoutes);
 app.use("/api/payments", requireDb, paymentRoutes);
-app.use("/api/admin", requireDb, adminRoutes);
-/* /api/products mounted above with larger JSON limit for image payloads */
+/* Upload-heavy routes are mounted above with larger JSON limits for base64 file payloads. */
 
 /** Static UI (local dev + any non-Vercel hosting). On Vercel, files under public/ are served by the CDN. */
 app.use(express.static(publicDir));

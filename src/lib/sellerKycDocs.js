@@ -13,7 +13,7 @@ const SELLER_KYC_DOC_KINDS = Object.freeze([
 
 const FIELD_SALES_REQUIRED_DOC_KINDS = Object.freeze([]);
 
-const MAX_DOC_CHARS = 900000;
+const MAX_DOC_CHARS = 2500000;
 const MAX_DOCS = 12;
 
 module.exports = {

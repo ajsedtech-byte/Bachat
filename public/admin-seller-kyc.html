@@ -221,6 +221,7 @@
         { kind: "udyam", label: "Udyam document", requiredForSalesman: false },
         { kind: "other", label: "Other document", requiredForSalesman: false }
       ];
+      var MAX_KYC_FILE_BYTES = 1800000;
 
       var state = {
         items: [],
@@ -401,6 +402,11 @@
             var file = input.files && input.files[0];
             if (!file) return;
             hideErr();
+            if (file.size > MAX_KYC_FILE_BYTES) {
+              input.value = "";
+              showErr("This file is too large. Please upload a compressed PDF/image under about 1.8 MB.");
+              return;
+            }
             try {
               var content = await readFileAsDataUrl(file);
               setDoc(input.getAttribute("data-kind"), {
