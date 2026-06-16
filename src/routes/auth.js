@@ -154,7 +154,7 @@ function isTeamRole(role) {
 
 function normalizePublicRole(role, fallback = "buyer") {
   const r = String(role || fallback).toLowerCase().trim();
-  return ["buyer", "seller"].includes(r) ? r : fallback;
+  return ["buyer", "seller", "delivery"].includes(r) ? r : fallback;
 }
 
 async function findUserForEmailRole(email, role, options = {}) {

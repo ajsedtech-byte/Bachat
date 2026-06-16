@@ -43,7 +43,7 @@
   <header class="border-b border-neutral-200 bg-white">
     <div class="max-w-lg mx-auto px-4 min-h-[3.5rem] py-2.5 flex items-center justify-between gap-4">
       <a href="/" class="inline-flex flex-col gap-1 min-w-0" aria-label="Bachat home">
-        <img src="/assets/bachat-logo.svg" alt="" width="180" height="56" class="h-9 sm:h-10 w-auto max-w-[160px] object-contain object-left" />
+        <img src="/assets/bachat-logo.svg" alt="" width="180" height="56" class="h-9 sm:h-10 w-auto max-w-[160px] object-contain object-left" decoding="async" />
         <span class="text-[10px] sm:text-[11px] font-semibold text-blue-800/85 tracking-wide">Local deals, real savings</span>
       </a>
       <div class="flex items-center gap-2">
@@ -337,7 +337,6 @@
 
       function dashboardFor(role, data) {
         if (role === "seller") {
-          if (data && data.seller && data.seller.needs_kyc_completion) return "/seller-kyc.html";
           return "/ShopkeeperDashboard.html";
         }
         return "/";

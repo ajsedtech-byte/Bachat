@@ -13,7 +13,6 @@
   <script defer src="/assets/bachat-local-icons.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -5567,7 +5566,7 @@
   <div id="deliver-to" class="hidden" aria-hidden="true"></div>
   <div class="flex min-h-screen">
     <aside class="hidden w-64 shrink-0 flex-col bg-white border-r border-[#e5e7eb] sticky top-0 h-screen">
-      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[160px] object-contain" /></a>
+      <a href="/" class="p-5 border-b border-[#e5e7eb] block"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[160px] object-contain" decoding="async" /></a>
       <nav id="user-sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
         <a href="#shopping-home" data-section="shopping-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>&#127968;</span> Home</a>
         <a href="#dashboard-home" data-section="dashboard-home" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#e8f1fc] text-[#0056d2] border-l-4 border-[#0056d2]"><span>📊</span> Dashboard</a>
@@ -5609,7 +5608,7 @@
       <div class="sticky top-0 z-40 shrink-0 amazon-top-header shadow-[0_2px_14px_rgba(0,0,0,0.28)]">
       <header class="amazon-top-row bachat-exact-head">
         <a href="/" class="bachat-head-brand">
-          <span class="bachat-head-mark"><img src="/assets/bachat-icon-original.png" alt="" /></span>
+          <span class="bachat-head-mark"><img src="/assets/bachat-icon-original.png" alt="" decoding="async" fetchpriority="high" /></span>
           <span>Bachat</span>
         </a>
         <button type="button" id="header-city" class="amazon-city-btn bachat-head-city" aria-label="Change city">
@@ -5912,7 +5911,7 @@
             <div class="hero-carousel-track">
               <article class="hero-slide hero-slide-local" data-hero-slide aria-label="Chappan Dukan food street">
                 <div class="hero-palace-art" aria-hidden="true">
-                  <img src="/assets/bachat-hero-palace-bg.svg" alt="" />
+                  <img src="/assets/bachat-hero-palace-bg.svg" alt="" loading="lazy" decoding="async" />
                 </div>
                 <div class="max-w-3xl">
                   <div class="hero-local-pill">
@@ -5984,14 +5983,14 @@
                     <span class="hero-cloud hero-cloud-two"></span>
                     <span class="hero-tree hero-tree-one"></span>
                     <span class="hero-tree hero-tree-two"></span>
-                    <img src="/assets/bachat-hero-mark-crop.png" alt="" />
+                    <img src="/assets/bachat-hero-mark-crop.png" alt="" loading="lazy" decoding="async" />
                   </div>
                 </div>
               </article>
 
               <article class="hero-slide hero-slide-market is-active" data-hero-slide aria-label="Local market promise">
                 <div class="hero-palace-art" aria-hidden="true">
-                  <img src="/assets/bachat-hero-palace-bg.svg" alt="" />
+                  <img src="/assets/bachat-hero-palace-bg.svg" alt="" loading="lazy" decoding="async" />
                 </div>
                 <div class="shopping-hero-grid relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] xl:items-center">
                   <div>
@@ -6086,7 +6085,7 @@
           </section>
 
           <section class="trust-strip grid gap-4 md:grid-cols-4">
-            <div><span><img src="/assets/bachat-mark-fast.svg" alt="" aria-hidden="true" /></span><strong>100% Secure</strong><small>Your payments are safe with us.</small></div>
+            <div><span><img src="/assets/bachat-mark-fast.svg" alt="" aria-hidden="true" loading="lazy" decoding="async" /></span><strong>100% Secure</strong><small>Your payments are safe with us.</small></div>
             <div><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-store"></use></svg></span><strong>Verified Local Shops</strong><small>Only trusted and verified sellers.</small></div>
             <div><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-diamond"></use></svg></span><strong>Best Local Prices</strong><small>Compare and choose the best.</small></div>
             <div><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-headset"></use></svg></span><strong>Help &amp; Support</strong><small>We're here to help you anytime.</small></div>
@@ -6097,7 +6096,7 @@
               <div class="bachat-footer-columns">
                 <section>
                   <a class="bachat-footer-logo" href="#shopping-home" aria-label="Bachat home">
-                    <span class="inline-flex h-8 w-8 items-center justify-center"><img src="/assets/bachat-icon-original.png" alt="" class="h-8 w-8 object-contain" /></span>
+                    <span class="inline-flex h-8 w-8 items-center justify-center"><img src="/assets/bachat-icon-original.png" alt="" class="h-8 w-8 object-contain" loading="lazy" decoding="async" /></span>
                     <span>Bachat</span>
                   </a>
                   <p class="mt-4 text-xs text-slate-500">&copy; 2026 Bachat. All rights reserved.</p>
@@ -6227,7 +6226,7 @@
               </div>
             </div>
             <div class="hidden sm:block shrink-0 rounded-2xl overflow-hidden shadow-md ring-1 ring-slate-200/90 bg-white mx-auto lg:ml-auto">
-              <img src="/assets/bachat-logo-hero.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto max-w-[220px] object-contain object-center" width="1024" height="1536" />
+              <img src="/assets/bachat-logo-hero.png" alt="" class="h-24 sm:h-28 lg:h-32 w-auto max-w-[220px] object-contain object-center" width="1024" height="1536" loading="lazy" decoding="async" />
             </div>
           </div>
 
@@ -6713,11 +6712,44 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let token = localStorage.getItem("ajs_token") || "";
     const GUEST_CITY = "Indore";
     const GUEST_REGION = "Madhya Pradesh";
+    const lazyScriptLoads = {};
+
+    function loadExternalScript(src) {
+      if (lazyScriptLoads[src]) return lazyScriptLoads[src];
+      lazyScriptLoads[src] = new Promise((resolve, reject) => {
+        const existing = document.querySelector('script[src="' + src + '"]');
+        if (existing) {
+          existing.addEventListener("load", resolve, { once: true });
+          existing.addEventListener("error", reject, { once: true });
+          if (existing.dataset.loaded === "true") resolve();
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = true;
+        script.onload = () => {
+          script.dataset.loaded = "true";
+          resolve();
+        };
+        script.onerror = () => reject(new Error("Could not load " + src));
+        document.head.appendChild(script);
+      });
+      return lazyScriptLoads[src];
+    }
+
+    function ensureLeaflet() {
+      if (window.L) return Promise.resolve();
+      return loadExternalScript("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js");
+    }
+
+    function ensureRazorpay() {
+      if (typeof window.Razorpay === "function") return Promise.resolve();
+      return loadExternalScript("https://checkout.razorpay.com/v1/checkout.js");
+    }
 
     function showToast(text, isErr) {
       const el = document.getElementById("toast");
@@ -6963,7 +6995,7 @@
           };
         }
         modal.classList.remove("hidden");
-        setTimeout(() => {
+        ensureLeaflet().then(() => setTimeout(() => {
           if (!gpsState.map) {
             gpsState.map = L.map("gps-map");
             const normal = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -6998,7 +7030,10 @@
           if (gpsState.marker) gpsState.map.removeLayer(gpsState.marker);
           gpsState.marker = L.marker([lat, lng], { draggable: true }).addTo(gpsState.map);
           gpsState.map.invalidateSize();
-        }, 60);
+        }, 60)).catch((e) => {
+          showToast(e.message || "Map could not load.", true);
+          reject(e);
+        });
         document.getElementById("gps-confirm").onclick = () => {
           if (!gpsState.marker) return;
           const p = gpsState.marker.getLatLng();
@@ -7020,6 +7055,7 @@
     }
 
     async function paintTrackMap(orderId) {
+      await ensureLeaflet();
       const t = await api("GET", "/api/delivery/track/" + encodeURIComponent(orderId));
       const d = t.delivery || {};
       if (!trackState.map) {
@@ -7319,6 +7355,9 @@
     }
 
     function shopStatusBadgeHtml(row) {
+      if (sellerKycPending(row)) {
+        return '<span class="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-black uppercase text-amber-800">eKYC pending</span>';
+      }
       const hours = shopHours(row);
       const label = hours.message || (shopIsOpen(row) ? "Open now" : "Shop closed");
       const cls = shopIsOpen(row)
@@ -7327,14 +7366,43 @@
       return `<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${cls}">${escapeHtml(label)}</span>`;
     }
 
+    function sellerKycPending(row) {
+      return Boolean(row && row.seller_kyc_pending);
+    }
+
+    function productActionText(row, longText) {
+      if (sellerKycPending(row)) return "Notify seller";
+      if (!shopIsOpen(row)) return longText ? "Shop closed" : "Closed";
+      return longText ? "Add to basket" : "Basket";
+    }
+
     function closedActionAttrs(row) {
+      if (sellerKycPending(row)) return ' title="Notify the seller to complete eKYC"';
       return shopIsOpen(row) ? "" : ` disabled title="${escapeHtml(shopClosedMessage(row))}"`;
     }
 
     function canOrderProduct(row) {
+      if (sellerKycPending(row)) {
+        notifySellerKyc(row && row.product_id);
+        return false;
+      }
       if (shopIsOpen(row)) return true;
       showToast(shopClosedMessage(row), true);
       return false;
+    }
+
+    async function notifySellerKyc(productId) {
+      productId = String(productId || "").trim();
+      if (!productId) return false;
+      if (!requireBuyerSession("Please sign in to notify the seller.", "#browse-section")) return false;
+      try {
+        const data = await api("POST", "/api/products/" + encodeURIComponent(productId) + "/notify-seller-kyc", {});
+        showToast(data.message || "Seller notified.");
+        return true;
+      } catch (e) {
+        showToast(e.message || "Could not notify seller.", true);
+        return false;
+      }
     }
 
     function updateCartBadges(count) {
@@ -7843,6 +7911,7 @@
           if (typeof openUserSection === "function") openUserSection("orders-section");
           return false;
         }
+        await ensureRazorpay();
         if (typeof Razorpay !== "function") {
           showToast("Razorpay checkout script did not load. Check internet and try Pay now again.", true);
           return false;
@@ -7956,7 +8025,7 @@
             const row = document.createElement("div");
             row.className = "saved-row flex items-center gap-3";
             const image = Array.isArray(p.images) && p.images[0] ? p.images[0] : "";
-            row.innerHTML = `<div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e5edf8] bg-[#f8fbff]">${image ? `<img src="${escapeHtml(image)}" alt="" class="h-full w-full object-contain" />` : `<div class="flex h-full w-full items-center justify-center text-xs font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "B"))}</div>`}</div><div class="min-w-0 flex-1"><p class="truncate text-sm font-black text-slate-950">${escapeHtml(p.title || "Saved item")}</p><p class="text-xs font-semibold text-slate-500">${escapeHtml(p.category || shopDisplayName(p))}</p></div><strong class="text-sm font-black text-slate-950">${rupee(p.price)}</strong><button type="button" class="sk-saved-browse rounded-lg border border-[#d6e4fb] px-2 py-1 text-[#0056d2]" data-search="${encodeURIComponent(p.title || "")}">🧺</button>`;
+            row.innerHTML = `<div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e5edf8] bg-[#f8fbff]">${image ? `<img src="${escapeHtml(image)}" alt="" class="h-full w-full object-contain" loading="lazy" decoding="async" />` : `<div class="flex h-full w-full items-center justify-center text-xs font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "B"))}</div>`}</div><div class="min-w-0 flex-1"><p class="truncate text-sm font-black text-slate-950">${escapeHtml(p.title || "Saved item")}</p><p class="text-xs font-semibold text-slate-500">${escapeHtml(p.category || shopDisplayName(p))}</p></div><strong class="text-sm font-black text-slate-950">${rupee(p.price)}</strong><button type="button" class="sk-saved-browse rounded-lg border border-[#d6e4fb] px-2 py-1 text-[#0056d2]" data-search="${encodeURIComponent(p.title || "")}">🧺</button>`;
             homeBox.appendChild(row);
           });
         }
@@ -8289,7 +8358,7 @@
               ${productPackText(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(p))}</p>` : ""}
               <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
               <div class="mt-2 grid grid-cols-2 gap-2">
-                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(p)}>${shopIsOpen(p) ? "Basket" : "Closed"}</button>
+                <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(p)}>${productActionText(p, false)}</button>
                 <button type="button" data-pid="${escapeHtml(p.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
               </div>
             </div>`;
@@ -8359,7 +8428,7 @@
           ${productPackText(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(p))}</p>` : ""}
           <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
           <div class="mt-2 grid grid-cols-2 gap-2">
-            <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(p)}>${shopIsOpen(p) ? "Basket" : "Closed"}</button>
+            <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(p)}>${productActionText(p, false)}</button>
             <button type="button" data-pid="${escapeHtml(p.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
           </div>
         </div>`;
@@ -8553,7 +8622,7 @@
         ? '<span class="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Verified seller</span>'
         : '<span class="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-slate-600">Local seller</span>';
       const closedAttrs = closedActionAttrs(p);
-      const primaryActionText = shopIsOpen(p) ? "Add to Basket" : "Shop Closed";
+      const primaryActionText = productActionText(p, true);
       return `<div class="grid gap-6 xl:grid-cols-[minmax(260px,0.9fr)_minmax(360px,1.25fr)_minmax(300px,0.85fr)]">
         <section>
           <div class="flex min-h-[320px] items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white sm:min-h-[430px]">
@@ -8661,7 +8730,7 @@
           <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">Available: ${escapeHtml(productAvailableText(item))}</p>
           <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(item.price)}</p>
           <div class="mt-2 grid grid-cols-2 gap-2">
-            <button type="button" data-pid="${escapeHtml(item.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(item)}>${shopIsOpen(item) ? "Basket" : "Closed"}</button>
+            <button type="button" data-pid="${escapeHtml(item.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(item)}>${productActionText(item, false)}</button>
             <button type="button" data-pid="${escapeHtml(item.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
           </div>
         </div>
@@ -9144,7 +9213,7 @@
         `<p class="home-product-meta">${escapeHtml(p.category || "Local pick")}</p>` +
         `<p class="home-product-price">${rupee(p.price)}</p>` +
         `<p class="home-product-meta">${shopIsOpen(p) ? "Best local price" : escapeHtml(shopClosedMessage(p))}</p>` +
-        `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-add-cart" ${closedActionAttrs(p)}>${shopIsOpen(p) ? "Add to basket" : "Shop closed"}</button>` +
+        `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-add-cart" ${closedActionAttrs(p)}>${productActionText(p, true)}</button>` +
         `</article>`
       );
     }
@@ -9657,7 +9726,7 @@
           const categories = listCategories(shop.categories).slice(0, 3);
           card.innerHTML =
             `<div class="flex gap-3">
-              <div class="shop-row-thumb shrink-0 overflow-hidden border border-[#e5edf8] bg-[#f8fbff]">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="" class="h-full w-full object-cover" />` : `<div class="flex h-full w-full items-center justify-center text-[#0056d2]"><svg class="h-8 w-8 fill-none stroke-current stroke-[1.9]" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-store"></use></svg></div>`}</div>
+              <div class="shop-row-thumb shrink-0 overflow-hidden border border-[#e5edf8] bg-[#f8fbff]">${shop.image ? `<img src="${escapeHtml(shop.image)}" alt="" class="h-full w-full object-cover" loading="lazy" decoding="async" />` : `<div class="flex h-full w-full items-center justify-center text-[#0056d2]"><svg class="h-8 w-8 fill-none stroke-current stroke-[1.9]" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/bachat-icons.svg#icon-store"></use></svg></div>`}</div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
                   <h3 class="truncate text-base font-black text-slate-950">${escapeHtml(shop.display_name)}</h3>
@@ -9942,12 +10011,12 @@
     async function addToCart(productId) {
       productId = String(productId || "").trim();
       if (!productId) return false;
-      if (!hasSession()) return addGuestCartItem(productId);
       try {
         const item = await fetchCatalogProduct(productId).catch(function () {
           return null;
         });
         if (item && !canOrderProduct(item)) return false;
+        if (!hasSession()) return addGuestCartItem(productId);
         const currentCart = await api("GET", "/api/cart");
         const existing = (Array.isArray(currentCart) ? currentCart : []).find((line) => line.product_id === productId);
         const nextQuantity = Math.min(99, (Number(existing?.quantity) || 0) + 1);
@@ -9991,10 +10060,11 @@
       const qty = Number(line.quantity) || 1;
       const productId = escapeHtml(line.product_id);
       const closed = !shopIsOpen(line);
+      const kycPending = sellerKycPending(line);
       const qtyControls = `<div class="cart-qty-control" aria-label="Change quantity for ${escapeHtml(title)}">
-        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty - 1}" aria-label="Decrease ${escapeHtml(title)} quantity" ${qty <= 1 || closed ? "disabled" : ""}>-</button>
+        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty - 1}" aria-label="Decrease ${escapeHtml(title)} quantity" ${qty <= 1 || closed || kycPending ? "disabled" : ""}>-</button>
         <span>Qty ${qty}</span>
-        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty + 1}" aria-label="Increase ${escapeHtml(title)} quantity" ${qty >= 99 || closed ? "disabled" : ""}>+</button>
+        <button type="button" class="cart-qty-btn" data-qty-pid="${productId}" data-next-qty="${qty + 1}" aria-label="Increase ${escapeHtml(title)} quantity" ${qty >= 99 || closed || kycPending ? "disabled" : ""}>+</button>
       </div>`;
       const thumb = image
         ? `<div class="cart-thumb"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy"></div>`
@@ -10100,6 +10170,7 @@
           return;
         }
         const closedLine = (Array.isArray(freshCart) ? freshCart : []).find((line) => !shopIsOpen(line));
+        const kycLine = (Array.isArray(freshCart) ? freshCart : []).find((line) => sellerKycPending(line));
         const subtotal = freshCart.reduce((sum, line) => sum + cartLineTotal(line), 0);
         const shopCount = new Set(freshCart.map((line) => String(line.shop_name || line.seller_id || ""))).size || 1;
         bodyEl.innerHTML = `<div class="cart-shell">
@@ -10109,7 +10180,7 @@
             <div class="cart-summary-row"><span>Items</span><strong>${itemTotal}</strong></div>
             <div class="cart-summary-row"><span>Shops</span><strong>${shopCount}</strong></div>
             <div class="cart-summary-row cart-summary-total"><span>Subtotal</span><strong>${rupee(subtotal)}</strong></div>
-            <button type="button" id="cart-checkout" class="cart-checkout-btn" ${closedLine ? "disabled" : ""}>${closedLine ? "Shop closed" : hasSession() ? "Proceed to checkout" : "Sign in to checkout"}</button>
+            <button type="button" id="cart-checkout" class="cart-checkout-btn" ${closedLine || kycLine ? "disabled" : ""}>${kycLine ? "eKYC pending" : closedLine ? "Shop closed" : hasSession() ? "Proceed to checkout" : "Sign in to checkout"}</button>
             <p class="mt-3 text-xs font-semibold leading-5 ${closedLine ? "text-amber-700" : "text-slate-500"}">${closedLine ? escapeHtml(shopClosedMessage(closedLine)) : hasSession() ? "Checkout works for items from one shop at a time. If needed, remove items from other shops first." : "Your basket is saved in this browser. Sign in to continue checkout and we will move these items to your account."}</p>
           </aside>
         </div>`;

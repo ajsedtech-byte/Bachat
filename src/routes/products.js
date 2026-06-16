@@ -7,12 +7,15 @@ const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
 const { canViewShopNames, maskedShopName, publicShopKey } = require("../lib/buyerPlan");
 const { CATEGORY_SET, canonicalCategory, sellerCategoryList } = require("../lib/categories");
-const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
+const { requireSellerTradeUnblocked, sellerTradeBlocked } = require("../lib/sellerKycGate");
 const { publicBusinessHours } = require("../lib/shopHours");
+const { notifySellerKycPending } = require("../services/sellerKycReminder");
 
 const router = express.Router();
 
 const ALLOWED_CATEGORIES = CATEGORY_SET;
+const MENU_EXTRACT_MAX_IMAGES = 4;
+const MENU_EXTRACT_MAX_IMAGE_CHARS = 1200000;
 
 function badRequest(res, msg) {
   return res.status(400).json({ error: msg });
@@ -53,6 +56,310 @@ function normalizeStockQuantity(raw) {
   return Math.round(n * 1000) / 1000;
 }
 
+function parseMaybeJson(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (_) {
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    try {
+      return JSON.parse(match[0]);
+    } catch (_e) {
+      return null;
+    }
+  }
+}
+
+function inferMenuCategory(row, fallbackCategory) {
+  const explicit = canonicalCategory(row && row.category);
+  if (explicit) return explicit;
+  const text = [
+    row && row.category,
+    row && (row.title || row.name || row.item_name),
+    row && row.description,
+    row && (row.package_type || row.variant),
+  ].filter(Boolean).join(" ").toLowerCase();
+  const rules = [
+    {
+      category: "Food",
+      words: [
+        "pizza", "burger", "momo", "momos", "noodle", "chowmein", "roll", "sandwich", "pasta", "maggi", "fries",
+        "chaat", "samosa", "kachori", "poha", "idli", "dosa", "uttapam", "vada", "paneer", "thali", "biryani",
+        "rice bowl", "fried rice", "manchurian", "spring roll", "paratha", "kulcha", "naan", "roti", "tikka",
+      ],
+    },
+    { category: "Bakery & cakes", words: ["cake", "pastry", "bakery", "bread", "bun", "cookie", "cookies", "muffin", "donut"] },
+    { category: "Sweets & mithai", words: ["sweet", "mithai", "gulab", "jamun", "rasgulla", "barfi", "laddu", "jalebi", "halwa"] },
+    { category: "Snacks & namkeen", words: ["namkeen", "chips", "snack", "sev", "mixture", "bhujia", "kurkure"] },
+    { category: "Tea, coffee & beverages", words: ["tea", "chai", "coffee", "shake", "juice", "lassi", "soda", "cold drink", "beverage"] },
+    { category: "Dairy & eggs", words: ["milk", "curd", "paneer packet", "cheese", "egg", "eggs", "butter", "ghee"] },
+    { category: "Fruits", words: ["apple", "banana", "orange", "mango", "grapes", "watermelon", "papaya", "fruit"] },
+    { category: "Vegetables", words: ["potato", "onion", "tomato", "capsicum", "vegetable", "sabzi"] },
+    { category: "Puja, festive & gifts", words: ["puja", "pooja", "rakhi", "diya", "agarbatti", "incense"] },
+  ];
+  for (const rule of rules) {
+    if (rule.words.some((word) => text.includes(word))) return rule.category;
+  }
+  return fallbackCategory;
+}
+
+function normalizeExtractedMenuItems(items, fallbackCategory) {
+  if (!Array.isArray(items)) return [];
+  const out = [];
+  for (const row of items.slice(0, 80)) {
+    const title = cleanText(row && (row.title || row.name || row.item_name), 120);
+    const rawPrice = row && (row.price != null ? row.price : row.rate);
+    const price = Number(String(rawPrice == null ? "" : rawPrice).replace(/[^\d.]/g, ""));
+    if (!title || !Number.isFinite(price) || price < 1) continue;
+    const category = inferMenuCategory(row, fallbackCategory);
+    if (!category || !ALLOWED_CATEGORIES.has(category)) continue;
+    out.push({
+      title,
+      price: Math.round(price),
+      category,
+      description: cleanText(row && row.description, 300),
+      package_size: cleanText(row && (row.package_size || row.size), 80),
+      package_type: cleanText(row && (row.package_type || row.variant), 80),
+      stock_unit: cleanText(row && row.stock_unit, 40),
+      confidence: Math.max(0, Math.min(1, Number(row && row.confidence) || 0.75)),
+    });
+  }
+  return out;
+}
+
+function responseOutputText(data) {
+  if (typeof data?.output_text === "string") return data.output_text;
+  const chunks = [];
+  for (const item of Array.isArray(data?.output) ? data.output : []) {
+    for (const c of Array.isArray(item?.content) ? item.content : []) {
+      if (typeof c?.text === "string") chunks.push(c.text);
+    }
+  }
+  return chunks.join("\n");
+}
+
+function dataUrlParts(src) {
+  const match = String(src || "").match(/^data:([^;,]+);base64,(.+)$/);
+  if (!match) return null;
+  return { mimeType: match[1], data: match[2] };
+}
+
+function geminiApiKeys() {
+  return [process.env.GEMINI_API_KEY, ...(process.env.GEMINI_API_KEYS || "").split(/[\n,;]/)]
+    .map((key) => String(key || "").trim())
+    .filter(Boolean)
+    .filter((key, index, arr) => arr.indexOf(key) === index);
+}
+
+function groqApiKeys() {
+  return [process.env.GROQ_API_KEY, ...(process.env.GROQ_API_KEYS || "").split(/[\n,;]/)]
+    .map((key) => String(key || "").trim())
+    .filter(Boolean)
+    .filter((key, index, arr) => arr.indexOf(key) === index);
+}
+
+function openAiApiKeys() {
+  return [
+    process.env.OPENAI_API_KEY,
+    ...(process.env.OPENAI_API_KEYS || "").split(/[\n,;]/),
+  ]
+    .map((key) => String(key || "").trim())
+    .filter(Boolean)
+    .filter((key, index, arr) => arr.indexOf(key) === index);
+}
+
+function isOpenAiQuotaError(data, status) {
+  const code = String((data && data.error && data.error.code) || "").toLowerCase();
+  const msg = String((data && data.error && data.error.message) || "").toLowerCase();
+  return status === 429 && (code.includes("quota") || msg.includes("quota") || msg.includes("billing"));
+}
+
+function isQuotaError(data, status) {
+  const code = String((data && data.error && (data.error.code || data.error.status)) || "").toLowerCase();
+  const msg = String((data && data.error && data.error.message) || data.message || "").toLowerCase();
+  return status === 429 && (code.includes("quota") || code.includes("resource_exhausted") || msg.includes("quota") || msg.includes("billing"));
+}
+
+function menuPrompt(fallbackCategory, translateToEnglish) {
+  const languageRule = translateToEnglish
+    ? "If the menu text is Hindi, Hinglish, or any Indian language, translate item names and descriptions into simple English for the listing title. "
+    : "Keep item names in the language that is most readable from the menu unless a direct English name is obvious. ";
+  return (
+    "Extract sellable shop menu/catalog items from these images. Return only real product/menu rows with item name and price. " +
+    "Ignore phone numbers, headings, shop address, offers without item price, totals, and decorative text. " +
+    languageRule +
+    `Choose category only from this valid list: ${CATEGORIES.join(", ")}. Use category '${fallbackCategory}' only when unsure. Prices are INR. Keep item names short for marketplace listings. ` +
+    "Return JSON only in this shape: {\"items\":[{\"title\":\"\",\"price\":0,\"category\":\"\",\"description\":\"\",\"package_size\":\"\",\"package_type\":\"\",\"stock_unit\":\"\",\"confidence\":0.8}]}"
+  );
+}
+
+function menuJsonSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            title: { type: "string" },
+            price: { type: "number" },
+            category: { type: "string" },
+            description: { type: "string" },
+            package_size: { type: "string" },
+            package_type: { type: "string" },
+            stock_unit: { type: "string" },
+            confidence: { type: "number" },
+          },
+          required: ["title", "price", "category", "description", "package_size", "package_type", "stock_unit", "confidence"],
+        },
+      },
+    },
+    required: ["items"],
+  };
+}
+
+function selectedMenuProvider() {
+  const requested = String(process.env.MENU_EXTRACT_PROVIDER || process.env.AI_MENU_PROVIDER || "auto").trim().toLowerCase();
+  if (requested && requested !== "auto") return requested;
+  if (geminiApiKeys().length) return "gemini";
+  if (groqApiKeys().length) return "groq";
+  if (openAiApiKeys().length) return "openai";
+  return "";
+}
+
+async function callGeminiMenuExtract({ images, fallbackCategory, schema, translateToEnglish }) {
+  const keys = geminiApiKeys();
+  if (!keys.length) return { ok: false, status: 503, error: "GEMINI_API_KEY is not configured." };
+  const model = process.env.GEMINI_MENU_MODEL || "gemini-3.5-flash";
+  const parts = [{ text: menuPrompt(fallbackCategory, translateToEnglish) }];
+  for (const src of images) {
+    const parsed = dataUrlParts(src);
+    if (!parsed) return { ok: false, status: 400, error: "Gemini menu images must be data URLs." };
+    parts.push({ inline_data: { mime_type: parsed.mimeType, data: parsed.data } });
+  }
+  const body = JSON.stringify({
+    contents: [{ role: "user", parts }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: schema,
+    },
+  });
+  let last = null;
+  for (let i = 0; i < keys.length; i += 1) {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": keys[i],
+        "Content-Type": "application/json",
+      },
+      body,
+    });
+    const data = await res.json().catch(() => ({}));
+    last = { res, data };
+    if (res.ok) {
+      const text = (data.candidates || [])
+        .flatMap((candidate) => (((candidate || {}).content || {}).parts || []))
+        .map((part) => part && part.text)
+        .filter(Boolean)
+        .join("\n");
+      return { ok: true, provider: "gemini", model, text };
+    }
+    if (!isQuotaError(data, res.status) || i === keys.length - 1) break;
+  }
+  return {
+    ok: false,
+    status: last && last.res ? last.res.status : 500,
+    error: (last && last.data && last.data.error && last.data.error.message) || "Gemini menu extraction failed.",
+  };
+}
+
+async function callGroqMenuExtract({ images, fallbackCategory, translateToEnglish }) {
+  const keys = groqApiKeys();
+  if (!keys.length) return { ok: false, status: 503, error: "GROQ_API_KEY is not configured." };
+  const model = process.env.GROQ_MENU_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct";
+  const content = [
+    { type: "text", text: menuPrompt(fallbackCategory, translateToEnglish) },
+    ...images.map((src) => ({ type: "image_url", image_url: { url: src } })),
+  ];
+  const body = JSON.stringify({
+    model,
+    messages: [{ role: "user", content }],
+    response_format: { type: "json_object" },
+    temperature: 0.1,
+    max_completion_tokens: 4096,
+    stream: false,
+  });
+  let last = null;
+  for (let i = 0; i < keys.length; i += 1) {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${keys[i]}`,
+        "Content-Type": "application/json",
+      },
+      body,
+    });
+    const data = await res.json().catch(() => ({}));
+    last = { res, data };
+    if (res.ok) {
+      return { ok: true, provider: "groq", model, text: data.choices?.[0]?.message?.content || "" };
+    }
+    if (!isQuotaError(data, res.status) || i === keys.length - 1) break;
+  }
+  return {
+    ok: false,
+    status: last && last.res ? last.res.status : 500,
+    error: (last && last.data && last.data.error && last.data.error.message) || "Groq menu extraction failed.",
+  };
+}
+
+async function callOpenAiMenuExtract({ images, fallbackCategory, schema, translateToEnglish }) {
+  const apiKeys = openAiApiKeys();
+  if (!apiKeys.length) return { ok: false, status: 503, error: "OPENAI_API_KEY is not configured." };
+  const model = process.env.OPENAI_MENU_MODEL || "gpt-5.5";
+  const content = [
+    { type: "input_text", text: menuPrompt(fallbackCategory, translateToEnglish) },
+    ...images.map((src) => ({ type: "input_image", image_url: src })),
+  ];
+  const requestBody = JSON.stringify({
+    model,
+    input: [{ role: "user", content }],
+    text: {
+      format: {
+        type: "json_schema",
+        name: "menu_items",
+        strict: true,
+        schema,
+      },
+    },
+  });
+  let last = null;
+  for (let i = 0; i < apiKeys.length; i += 1) {
+    const res = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKeys[i]}`,
+        "Content-Type": "application/json",
+      },
+      body: requestBody,
+    });
+    const data = await res.json().catch(() => ({}));
+    last = { res, data };
+    if (res.ok) return { ok: true, provider: "openai", model, text: responseOutputText(data) };
+    if (!isOpenAiQuotaError(data, res.status) || i === apiKeys.length - 1) break;
+  }
+  return {
+    ok: false,
+    status: last && last.res ? last.res.status : 500,
+    error: (last && last.data && last.data.error && last.data.error.message) || "OpenAI menu extraction failed.",
+  };
+}
+
 function productQuantityFields(doc) {
   return {
     stock_quantity: doc.stockQuantity == null ? null : doc.stockQuantity,
@@ -78,9 +385,11 @@ function formatCatalogProduct(doc, seller, options = {}) {
     shop_name: showShopNames ? seller?.shopName || "Shop" : maskedShopName("shop"),
     shop_name_locked: !showShopNames,
     shop_key: publicShopKey(seller),
+    seller_id: seller?._id ? String(seller._id) : "",
     city: seller?.city || "",
     region: seller?.region || "",
     seller_verified: Boolean(seller?.isVerified),
+    seller_kyc_pending: sellerTradeBlocked(seller),
     shop_photo: Array.isArray(seller?.shopImages) ? seller.shopImages[0] || "" : "",
     shop_images: Array.isArray(seller?.shopImages) ? seller.shopImages : [],
     shop_tagline: seller?.storefrontTagline || "",
@@ -97,6 +406,7 @@ function formatCatalogShop(seller, productCount = 0, options = {}) {
     shop_key: publicShopKey(seller),
     shop_name: showShopNames ? seller.shopName || "Shop" : maskedShopName("shop"),
     shop_name_locked: !showShopNames,
+    seller_kyc_pending: sellerTradeBlocked(seller),
     city: seller.city || "",
     region: seller.region || "",
     seller_verified: Boolean(seller.isVerified),
@@ -245,6 +555,40 @@ router.get("/public-shops", async (req, res, next) => {
     return next(e);
   }
 });
+
+router.post("/:productId/notify-seller-kyc", requireAuth, requireRole("buyer"), async (req, res, next) => {
+  try {
+    const pid = req.params.productId;
+    if (!mongoose.isValidObjectId(pid)) {
+      return badRequest(res, "Invalid product id");
+    }
+    const [product, buyer] = await Promise.all([
+      Product.findOne({ _id: pid, isActive: true }).lean(),
+      User.findById(req.user.id).lean(),
+    ]);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    const seller = await Seller.findById(product.seller).populate("user", "name email").lean();
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+    if (!sellerTradeBlocked(seller)) {
+      return res.json({
+        message: "This shop is verified now. You can add the product to your basket.",
+        seller_kyc_pending: false,
+      });
+    }
+    await notifySellerKycPending({ seller, buyer, product });
+    return res.json({
+      message: "Seller notified. We asked the shopkeeper to complete eKYC so you can buy from this shop.",
+      seller_kyc_pending: true,
+    });
+  } catch (e) {
+    return next(e);
+  }
+});
+
 router.get("/catalog/nearby-shop-categories", requireAuth, requireRole("buyer", "admin"), async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).lean();
@@ -335,6 +679,54 @@ router.get("/seller/mine", requireAuth, requireRole("seller"), async (req, res, 
       .lean();
 
     return res.json({ items: rows.map(formatSellerProduct) });
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.post("/menu-extract", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const seller = await sellerForUser(req.user.id);
+    if (!seller) return res.status(404).json({ error: "Seller profile not found" });
+    const provider = selectedMenuProvider();
+    if (!provider) {
+      return res.status(503).json({
+        error: "Menu extraction needs GEMINI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY configured on the server.",
+      });
+    }
+
+    const fallbackCategory =
+      canonicalCategory(req.body?.category) ||
+      canonicalCategory((sellerCategoryList(seller) || [])[0]) ||
+      canonicalCategory(seller.category);
+    if (!fallbackCategory) {
+      return badRequest(res, "Add at least one shop category before importing menu images.");
+    }
+    const images = Array.isArray(req.body?.images) ? req.body.images.slice(0, MENU_EXTRACT_MAX_IMAGES) : [];
+    if (!images.length) return badRequest(res, "Upload at least one menu image.");
+    const cleanImages = images.map((src) => String(src || "").trim()).filter(Boolean);
+    if (!cleanImages.length) return badRequest(res, "Upload at least one menu image.");
+    if (cleanImages.some((src) => src.length > MENU_EXTRACT_MAX_IMAGE_CHARS || !src.startsWith("data:image/"))) {
+      return badRequest(res, "Menu images must be compressed image files.");
+    }
+
+    const schema = menuJsonSchema();
+    const translateToEnglish = req.body?.translate_to_english !== false;
+    const result =
+      provider === "gemini"
+        ? await callGeminiMenuExtract({ images: cleanImages, fallbackCategory, schema, translateToEnglish })
+        : provider === "groq"
+          ? await callGroqMenuExtract({ images: cleanImages, fallbackCategory, translateToEnglish })
+          : provider === "openai"
+            ? await callOpenAiMenuExtract({ images: cleanImages, fallbackCategory, schema, translateToEnglish })
+            : { ok: false, status: 400, error: "MENU_EXTRACT_PROVIDER must be gemini, groq, openai, or auto." };
+    if (!result.ok) {
+      const status = result.status >= 500 ? 502 : result.status || 400;
+      return res.status(status).json({ error: result.error || "Menu extraction failed." });
+    }
+    const parsed = parseMaybeJson(result.text);
+    const items = normalizeExtractedMenuItems(parsed && parsed.items, fallbackCategory);
+    return res.json({ items, provider: result.provider, model: result.model });
   } catch (e) {
     return next(e);
   }

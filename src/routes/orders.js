@@ -14,7 +14,7 @@ const { buyerDisplayPrice, buyerMaxListedPrice } = require("../lib/buyerPrice");
 const { notifyOrderStatusToBuyer } = require("../services/orderEmails");
 const { claimTimeoutMs, normalizeAddressPart } = require("../lib/delivery");
 const { recordEvent } = require("../lib/analytics");
-const { requireSellerTradeUnblocked } = require("../lib/sellerKycGate");
+const { requireSellerTradeUnblocked, sellerTradeBlocked } = require("../lib/sellerKycGate");
 const { ensureShopOpen } = require("../lib/shopHours");
 const { inIndiaBounds, normalizePreciseLocation } = require("../lib/location");
 const {
@@ -133,6 +133,12 @@ router.post(
           if (!seller) {
             throw Object.assign(new Error("Seller not found"), { status: 404 });
           }
+          if (sellerTradeBlocked(seller)) {
+            throw Object.assign(
+              new Error("This shop's eKYC is pending. Notify the seller to complete eKYC before you buy from this shop."),
+              { status: 403, code: "SELLER_KYC_PENDING" }
+            );
+          }
           const closedErr = ensureShopOpen(seller || {});
           if (closedErr) {
             throw Object.assign(closedErr, { status: closedErr.status || 400 });
@@ -241,6 +247,12 @@ router.post(
             throw Object.assign(new Error("Those items are not available in your delivery area."), {
               status: 400,
             });
+          }
+          if (sellerTradeBlocked(seller)) {
+            throw Object.assign(
+              new Error("This shop's eKYC is pending. Notify the seller to complete eKYC before you buy from this shop."),
+              { status: 403, code: "SELLER_KYC_PENDING" }
+            );
           }
           const closedErr = ensureShopOpen(seller);
           if (closedErr) {

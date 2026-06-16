@@ -103,8 +103,8 @@ userSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      oidcIssuer: { $exists: true, $type: "string", $ne: "" },
-      oidcSubject: { $exists: true, $type: "string", $ne: "" },
+      oidcIssuer: { $gt: "" },
+      oidcSubject: { $gt: "" },
     },
   }
 );

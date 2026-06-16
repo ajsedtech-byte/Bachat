@@ -14,7 +14,7 @@
     <div class="relative hidden lg:flex flex-col min-h-screen p-8 xl:p-10 bg-white border-r border-[#e5e7eb]">
       <div class="flex-1 min-h-0 flex flex-col">
         <div class="flex justify-between items-start gap-4">
-          <a href="/" aria-label="Home"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[170px] object-contain object-left" /></a>
+          <a href="/" aria-label="Home"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto max-w-[170px] object-contain object-left" decoding="async" /></a>
           <a href="/delivery-login.html" class="text-sm font-semibold text-[#0056d2] shrink-0">Already registered? <span class="font-extrabold">Log in</span></a>
         </div>
         <p class="inline-flex mt-5 rounded-full bg-[#e8f1fc] text-[#0056d2] text-xs font-bold px-4 py-1.5">Become a partner</p>
@@ -28,7 +28,7 @@
           <li class="flex gap-3"><span class="w-9 h-9 rounded-full bg-[#e8f1fc] text-[#0056d2] flex items-center justify-center shrink-0 text-sm">🛡</span><div class="min-w-0"><p class="font-bold text-slate-900 text-[15px]">Partner verification</p><p class="text-sm text-slate-600 mt-0.5 leading-snug">Last 4 of Aadhaar + consent; admin review in production.</p></div></li>
         </ul>
         <div class="mt-6 flex justify-center rounded-2xl bg-[#f8f9fa] border border-[#e5e7eb] p-5">
-          <img src="/assets/bachat-logo-hero.png" alt="" class="max-h-32 w-auto max-w-full object-contain rounded-lg" width="1024" height="1536" />
+          <img src="/assets/bachat-logo-hero.png" alt="" class="max-h-32 w-auto max-w-full object-contain rounded-lg" width="1024" height="1536" loading="lazy" decoding="async" />
         </div>
       </div>
       <div class="pt-5 border-t border-[#e5e7eb] mt-6 shrink-0">
@@ -38,7 +38,7 @@
 
     <div class="flex flex-col justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10">
       <div class="lg:hidden mb-4 flex justify-between items-center">
-        <a href="/"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto" /></a>
+        <a href="/"><img src="/assets/bachat-logo.svg" alt="" class="h-9 w-auto" decoding="async" /></a>
         <a href="/delivery-login.html" class="text-sm font-semibold text-[#0056d2]">Log in</a>
       </div>
       <div class="max-w-md w-full mx-auto bg-white rounded-2xl border border-[#e5e7eb] shadow-xl p-5 sm:p-6 flex flex-col">
@@ -293,7 +293,7 @@
         var res = await apiFetch("/api/auth/verify-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: regEmail, code: code }),
+          body: JSON.stringify({ email: regEmail, code: code, role: "delivery" }),
         });
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Invalid code");
@@ -318,7 +318,7 @@
       await apiFetch("/api/auth/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: regEmail }),
+        body: JSON.stringify({ email: regEmail, role: "delivery" }),
       });
       alert("If the account exists, a new code was sent.");
     });

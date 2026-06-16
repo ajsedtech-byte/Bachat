@@ -3,6 +3,7 @@ const Order = require("../models/Order");
 const Payment = require("../models/Payment");
 const Seller = require("../models/Seller");
 const User = require("../models/User");
+const NotificationDelivery = require("../models/NotificationDelivery");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { formatSeller } = require("../lib/format");
 const { normalizeSellerCategories } = require("../lib/categories");
@@ -189,6 +190,30 @@ router.get("/kyc", requireAuth, requireRole("seller"), async (req, res, next) =>
           digilocker_issued_docs: issuedPreview,
         },
       },
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/notifications", requireAuth, requireRole("seller"), async (req, res, next) => {
+  try {
+    const rows = await NotificationDelivery.find({
+      user: req.user.id,
+      channel: "in_app",
+      status: { $in: ["sent", "opened", "clicked"] },
+    })
+      .sort({ createdAt: -1 })
+      .limit(25)
+      .lean();
+    return res.json({
+      items: rows.map((row) => ({
+        notification_id: String(row._id),
+        title: row.title || "Notification",
+        body: row.body || "",
+        click_url: row.clickUrl || "",
+        created_at: row.createdAt,
+      })),
     });
   } catch (err) {
     return next(err);

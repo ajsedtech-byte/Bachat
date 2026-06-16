@@ -7,6 +7,7 @@ const Seller = require("../models/Seller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
 const { ensureShopOpen, publicBusinessHours } = require("../lib/shopHours");
+const { sellerTradeBlocked } = require("../lib/sellerKycGate");
 
 const router = express.Router();
 
@@ -47,6 +48,9 @@ async function cartWithProducts(userId) {
         quantity: row.quantity,
         line_total: row.quantity * price,
         shop_name: seller?.shopName || "",
+        seller_id: seller?._id ? String(seller._id) : "",
+        seller_verified: Boolean(seller?.isVerified),
+        seller_kyc_pending: sellerTradeBlocked(seller),
         shop_hours: publicBusinessHours(seller || {}),
       };
     })
@@ -94,6 +98,12 @@ router.post("/items", async (req, res, next) => {
     if (!seller || normText(seller.city) !== normText(city) || normText(seller.region) !== normText(region)) {
       return res.status(400).json({ error: "This product is not available in your current city." });
     }
+    if (sellerTradeBlocked(seller)) {
+      return res.status(403).json({
+        error: "This shop's eKYC is pending. Notify the seller to complete eKYC before you buy from this shop.",
+        code: "SELLER_KYC_PENDING",
+      });
+    }
     const closedErr = ensureShopOpen(seller);
     if (closedErr) {
       return res.status(closedErr.status).json({
@@ -134,6 +144,12 @@ router.patch("/items/:productId", async (req, res, next) => {
     if (!product) return res.status(404).json({ error: "Product not found" });
     const seller = await Seller.findById(product.seller).lean();
     if (!seller) return res.status(404).json({ error: "Seller not found" });
+    if (sellerTradeBlocked(seller)) {
+      return res.status(403).json({
+        error: "This shop's eKYC is pending. Notify the seller to complete eKYC before you buy from this shop.",
+        code: "SELLER_KYC_PENDING",
+      });
+    }
     const closedErr = ensureShopOpen(seller);
     if (closedErr) {
       return res.status(closedErr.status).json({

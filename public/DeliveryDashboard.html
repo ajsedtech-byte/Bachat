@@ -15,7 +15,7 @@
     <div class="max-w-2xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-3 min-w-0">
         <a href="/" class="inline-flex shrink-0" aria-label="Bachat home">
-          <img src="/assets/bachat-logo.svg" alt="Bachat" class="h-8 w-auto max-w-[120px] object-contain object-left" />
+          <img src="/assets/bachat-logo.svg" alt="Bachat" class="h-8 w-auto max-w-[120px] object-contain object-left" decoding="async" />
         </a>
         <div class="min-w-0">
           <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Delivery partner</p>
@@ -67,8 +67,23 @@
     <footer class="bachat-powered-by">Powered by <strong>AJs Chalo Seekhen</strong></footer>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    let leafletLoadPromise = null;
+
+    function ensureLeaflet() {
+      if (window.L) return Promise.resolve();
+      if (leafletLoadPromise) return leafletLoadPromise;
+      leafletLoadPromise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error("Map script could not load."));
+        document.head.appendChild(script);
+      });
+      return leafletLoadPromise;
+    }
+
     async function apiFetch(path, options) {
       const clean = String(path || "").startsWith("/") ? String(path) : `/${path}`;
       const proto = location.protocol;
@@ -356,7 +371,7 @@
         root.appendChild(card);
       }
       if (items.length) {
-        paintRouteMap(items[0]);
+        await paintRouteMap(items[0]);
       } else {
         document.getElementById("route-card").classList.add("hidden");
       }
@@ -395,7 +410,8 @@
       routeLayers = [];
     }
 
-    function paintRouteMap(row) {
+    async function paintRouteMap(row) {
+      await ensureLeaflet();
       const card = document.getElementById("route-card");
       card.classList.remove("hidden");
       if (!routeMap) {
