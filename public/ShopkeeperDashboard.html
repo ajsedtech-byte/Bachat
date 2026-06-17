@@ -453,6 +453,31 @@
             </form>
           </div>
 
+          <div class="rounded-2xl border border-[#d6e4fb] bg-white p-4 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-slate-900">Bulk price editor</h3>
+                <p class="text-sm text-slate-500">Update MRP and sale rate for all active listings, then save once.</p>
+              </div>
+              <button type="button" id="bulk-price-save" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm disabled:opacity-50">Save all prices</button>
+            </div>
+            <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+              <table class="min-w-[780px] w-full text-sm">
+                <thead class="bg-[#f8f9fb] text-left text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2">Item</th>
+                    <th class="px-3 py-2">Category</th>
+                    <th class="px-3 py-2">MRP</th>
+                    <th class="px-3 py-2">Sale rate</th>
+                    <th class="px-3 py-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="bulk-price-rows"></tbody>
+              </table>
+            </div>
+            <p id="bulk-price-empty" class="hidden py-4 text-sm text-slate-500">No active listings to edit.</p>
+          </div>
+
           <div>
             <h3 class="font-bold text-slate-800 mb-3">Published listings</h3>
             <div id="my-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
@@ -783,6 +808,11 @@
       const d = document.createElement("div");
       d.textContent = s == null ? "" : String(s);
       return d.innerHTML;
+    }
+
+    function escapeSelectorValue(value) {
+      if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value || ""));
+      return String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
     }
 
     function rupee(n) {
@@ -1334,10 +1364,118 @@
       });
     }
 
+    function renderBulkPriceEditor() {
+      const body = document.getElementById("bulk-price-rows");
+      const empty = document.getElementById("bulk-price-empty");
+      if (!body) return;
+      const rows = allProducts.filter((p) => p.is_active !== false);
+      body.innerHTML = "";
+      if (!rows.length) {
+        empty?.classList.remove("hidden");
+        return;
+      }
+      empty?.classList.add("hidden");
+      rows.forEach((p) => {
+        const tr = document.createElement("tr");
+        tr.className = "border-t border-slate-100";
+        tr.innerHTML = `
+          <td class="px-3 py-2 align-top">
+            <p class="font-bold text-slate-900">${escapeHtml(p.title || "Item")}</p>
+            ${productQuantityLine(p) ? `<p class="text-xs text-slate-500">${escapeHtml(productQuantityLine(p))}</p>` : ""}
+          </td>
+          <td class="px-3 py-2 align-top text-slate-600">${escapeHtml(p.category || "")}</td>
+          <td class="px-3 py-2 align-top">
+            <input type="number" min="1" step="1" data-bulk-id="${escapeHtml(p.product_id)}" data-bulk-field="mrp" class="w-28 rounded-lg border border-slate-200 px-2 py-1.5 font-semibold" value="${p.mrp == null ? "" : escapeHtml(p.mrp)}" placeholder="MRP" />
+          </td>
+          <td class="px-3 py-2 align-top">
+            <input type="number" min="1" step="1" data-bulk-id="${escapeHtml(p.product_id)}" data-bulk-field="price" class="w-28 rounded-lg border border-slate-200 px-2 py-1.5 font-semibold" value="${p.price == null ? "" : escapeHtml(p.price)}" placeholder="Rate" />
+          </td>
+          <td class="px-3 py-2 align-top">
+            <span data-bulk-status="${escapeHtml(p.product_id)}" class="text-xs font-semibold text-slate-400">No changes</span>
+          </td>`;
+        body.appendChild(tr);
+      });
+      body.querySelectorAll("input[data-bulk-id]").forEach((input) => {
+        input.addEventListener("input", () => {
+          const id = input.getAttribute("data-bulk-id") || "";
+          const row = allProducts.find((p) => String(p.product_id) === String(id));
+          const safeId = escapeSelectorValue(id);
+          const status = body.querySelector(`[data-bulk-status="${safeId}"]`);
+          if (!row || !status) return;
+          const mrpInput = body.querySelector(`input[data-bulk-id="${safeId}"][data-bulk-field="mrp"]`);
+          const priceInput = body.querySelector(`input[data-bulk-id="${safeId}"][data-bulk-field="price"]`);
+          const nextMrpRaw = String(mrpInput?.value || "").trim();
+          const nextPriceRaw = String(priceInput?.value || "").trim();
+          const changed =
+            nextMrpRaw !== String(row.mrp == null ? "" : row.mrp) ||
+            nextPriceRaw !== String(row.price == null ? "" : row.price);
+          status.textContent = changed ? "Changed" : "No changes";
+          status.className = changed ? "text-xs font-bold text-[#0056d2]" : "text-xs font-semibold text-slate-400";
+        });
+      });
+    }
+
+    async function saveBulkPrices() {
+      const body = document.getElementById("bulk-price-rows");
+      const btn = document.getElementById("bulk-price-save");
+      if (!body || !btn) return;
+      const changed = [];
+      for (const p of allProducts.filter((row) => row.is_active !== false)) {
+        const id = String(p.product_id || "");
+        const safeId = escapeSelectorValue(id);
+        const mrpInput = body.querySelector(`input[data-bulk-id="${safeId}"][data-bulk-field="mrp"]`);
+        const priceInput = body.querySelector(`input[data-bulk-id="${safeId}"][data-bulk-field="price"]`);
+        const mrpRaw = String(mrpInput?.value || "").trim();
+        const priceRaw = String(priceInput?.value || "").trim();
+        const nextMrp = mrpRaw === "" ? null : Number(mrpRaw);
+        const nextPrice = Number(priceRaw);
+        const oldMrp = p.mrp == null ? null : Number(p.mrp);
+        const oldPrice = Number(p.price);
+        if (mrpRaw !== "" && (!Number.isFinite(nextMrp) || nextMrp < 1)) {
+          throw new Error(`Enter a valid MRP for ${p.title}.`);
+        }
+        if (!Number.isFinite(nextPrice) || nextPrice < 1) {
+          throw new Error(`Enter a valid sale rate for ${p.title}.`);
+        }
+        if (nextMrp != null && nextMrp < nextPrice) {
+          throw new Error(`MRP must be greater than or equal to sale rate for ${p.title}.`);
+        }
+        const mrpChanged = (nextMrp == null ? "" : String(nextMrp)) !== (oldMrp == null ? "" : String(oldMrp));
+        const priceChanged = String(nextPrice) !== String(oldPrice);
+        if (mrpChanged || priceChanged) {
+          changed.push({ id, title: p.title, payload: { mrp: nextMrp, price: nextPrice } });
+        }
+      }
+      if (!changed.length) {
+        showToast("No price changes to save.");
+        return;
+      }
+      btn.disabled = true;
+      const oldText = btn.textContent;
+      btn.textContent = "Saving...";
+      try {
+        for (const row of changed) {
+          await api("PATCH", "/api/products/" + encodeURIComponent(row.id), row.payload);
+          const status = body.querySelector(`[data-bulk-status="${escapeSelectorValue(row.id)}"]`);
+          if (status) {
+            status.textContent = "Saved";
+            status.className = "text-xs font-bold text-emerald-700";
+          }
+        }
+        showToast(`Saved prices for ${changed.length} item${changed.length === 1 ? "" : "s"}.`);
+        await loadProducts();
+        await refreshDashboardData();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oldText || "Save all prices";
+      }
+    }
+
     async function loadProducts() {
       try {
         const data = await api("GET", "/api/products/seller/mine");
         allProducts = data.items || [];
+        renderBulkPriceEditor();
         renderProductGrid();
       } catch (e) {
         showToast(e.message, true);
@@ -2167,6 +2305,13 @@
     });
 
     document.getElementById("cancel-edit-btn")?.addEventListener("click", resetProductForm);
+    document.getElementById("bulk-price-save")?.addEventListener("click", async () => {
+      try {
+        await saveBulkPrices();
+      } catch (err) {
+        showToast(err.message || "Could not save prices.", true);
+      }
+    });
 
     document.getElementById("logout").addEventListener("click", () => {
       localStorage.removeItem("ajs_token");
