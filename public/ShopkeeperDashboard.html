@@ -84,6 +84,7 @@
       <nav id="sk-sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 text-sm font-semibold">
         <button type="button" data-sk-nav="home" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left bg-[#e8f1fc] text-[#0056d2] border-l-4 border-[#0056d2]"><span>📊</span> Dashboard</button>
         <button type="button" data-sk-nav="shop" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>🏪</span> My listings</button>
+        <button type="button" data-sk-nav="prices" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>₹</span> Prices</button>
         <button type="button" data-sk-nav="live" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📡</span> Live requests</button>
         <button type="button" data-sk-nav="quotes" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>💬</span> My quotes</button>
         <button type="button" data-sk-nav="orders" class="sk-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-slate-600 hover:bg-[#f8f9fa] border-l-4 border-transparent"><span>📦</span> Orders</button>
@@ -150,6 +151,7 @@
       <nav class="lg:hidden flex gap-2 overflow-x-auto px-3 py-2 bg-white border-b border-[#e5e7eb] text-xs font-bold text-slate-600 shrink-0">
         <button type="button" data-sk-nav="home" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg bg-[#e8f1fc] text-[#0056d2]">Home</button>
         <button type="button" data-sk-nav="shop" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Listings</button>
+        <button type="button" data-sk-nav="prices" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Prices</button>
         <button type="button" data-sk-nav="live" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Live</button>
         <button type="button" data-sk-nav="quotes" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Quotes</button>
         <button type="button" data-sk-nav="orders" class="sk-nav-m whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-[#f8f9fa]">Orders</button>
@@ -381,31 +383,6 @@
             Your account has no shop categories. Complete signup as shopkeeper with categories, or update your profile via the API.
           </p>
 
-          <div class="rounded-2xl border border-[#d6e4fb] bg-white p-4 shadow-sm">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 class="font-bold text-slate-900">Bulk price editor</h3>
-                <p class="text-sm text-slate-500">Update MRP and sale rate for all active listings, then save once.</p>
-              </div>
-              <button type="button" id="bulk-price-save" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm disabled:opacity-50">Save all prices</button>
-            </div>
-            <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
-              <table class="min-w-[780px] w-full text-sm">
-                <thead class="bg-[#f8f9fb] text-left text-slate-500">
-                  <tr>
-                    <th class="px-3 py-2">Item</th>
-                    <th class="px-3 py-2">Category</th>
-                    <th class="px-3 py-2">MRP</th>
-                    <th class="px-3 py-2">Sale rate</th>
-                    <th class="px-3 py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="bulk-price-rows"></tbody>
-              </table>
-            </div>
-            <p id="bulk-price-empty" class="hidden py-4 text-sm text-slate-500">No active listings to edit.</p>
-          </div>
-
           <div class="rounded-2xl border border-[#0056d2]/25 bg-[#e8f1fc]/50 p-6 shadow-sm">
             <h3 id="new-item-title" class="text-lg font-extrabold text-[#0056d2] uppercase tracking-wide mb-4">New item</h3>
             <form id="product-form" class="grid md:grid-cols-2 gap-4">
@@ -482,6 +459,37 @@
             <h3 class="font-bold text-slate-800 mb-3">Published listings</h3>
             <div id="my-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
             <p id="products-empty" class="hidden text-slate-500 text-sm py-6">No items in this category yet.</p>
+          </div>
+        </section>
+
+        <section id="panel-prices" class="tab-panel hidden space-y-4 scroll-mt-24">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900">Prices</h2>
+            <p class="text-slate-600 text-sm mt-1">Update MRP and sale rate for all active listings on one page.</p>
+          </div>
+          <div class="rounded-2xl border border-[#d6e4fb] bg-white p-4 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-slate-900">Bulk price editor</h3>
+                <p class="text-sm text-slate-500">Edit all rates below, then save once.</p>
+              </div>
+              <button type="button" id="bulk-price-save" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm disabled:opacity-50">Save all prices</button>
+            </div>
+            <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+              <table class="min-w-[780px] w-full text-sm">
+                <thead class="bg-[#f8f9fb] text-left text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2">Item</th>
+                    <th class="px-3 py-2">Category</th>
+                    <th class="px-3 py-2">MRP</th>
+                    <th class="px-3 py-2">Sale rate</th>
+                    <th class="px-3 py-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="bulk-price-rows"></tbody>
+              </table>
+            </div>
+            <p id="bulk-price-empty" class="hidden py-4 text-sm text-slate-500">No active listings to edit.</p>
           </div>
         </section>
 
@@ -1190,6 +1198,7 @@
       if (name === "quotes") loadQuotes();
       if (name === "orders") loadOrders();
       if (name === "me") renderMe();
+      if (name === "prices") renderBulkPriceEditor();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
