@@ -376,7 +376,7 @@ function productQuantityFields(doc) {
   };
 }
 
-/** Buyer catalog: marked-up price only, no sellerPrice. */
+/** Buyer catalog: sale rate plus Bachat charges, no internal sellerPrice field name. */
 function formatCatalogProduct(doc, seller, options = {}) {
   const id = doc._id;
   const price = buyerDisplayPrice(doc.sellerPrice, id);
