@@ -29,13 +29,13 @@ router.get("/", requireAuth, requireRole("buyer"), async (req, res, next) => {
       .filter((p) => p && p._id && p.isActive !== false && p.title)
       .map((p) => {
         const seller = p.seller;
-        const price = buyerDisplayPrice(p.sellerPrice, p._id);
+        const price = buyerDisplayPrice(p.sellerPrice, p._id, p.mrp);
         const mrp = Number(p.mrp);
         return {
           product_id: String(p._id),
           title: p.title,
           price,
-          mrp: Number.isFinite(mrp) && mrp > price ? mrp : null,
+          mrp: Number.isFinite(mrp) && mrp > 0 ? mrp : null,
           category: p.category,
           images: p.images || [],
           shop_name: showShopNames ? seller?.shopName || "Shop" : maskedShopName("shop"),

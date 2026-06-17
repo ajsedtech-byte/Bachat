@@ -31,11 +31,16 @@ function markupRateForPriceBand(sellerPrice, productId, secret) {
   return band.minMarkup + n * (band.maxMarkup - band.minMarkup);
 }
 
-function buyerDisplayPrice(sellerPrice, productId) {
+function buyerDisplayPrice(sellerPrice, productId, mrp) {
   const base = Number(sellerPrice);
   if (!Number.isFinite(base) || base <= 0) return 0;
   const m = markupRateForPriceBand(base, productId, PRICE_MARKUP_SALT);
-  return Math.ceil(base * (1 + m));
+  const display = Math.ceil(base * (1 + m));
+  const maxRetail = Number(mrp);
+  if (Number.isFinite(maxRetail) && maxRetail >= base && maxRetail > 0) {
+    return Math.min(display, maxRetail);
+  }
+  return display;
 }
 
 /** Upper bound buyer list price at the max markup for that price band. */

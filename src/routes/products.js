@@ -379,7 +379,7 @@ function productQuantityFields(doc) {
 /** Buyer catalog: sale rate plus Bachat charges, no internal sellerPrice field name. */
 function formatCatalogProduct(doc, seller, options = {}) {
   const id = doc._id;
-  const price = buyerDisplayPrice(doc.sellerPrice, id);
+  const price = buyerDisplayPrice(doc.sellerPrice, id, doc.mrp);
   const mrp = Number(doc.mrp);
   const showShopNames = options.showShopNames === true;
   return {
@@ -389,7 +389,7 @@ function formatCatalogProduct(doc, seller, options = {}) {
     category: doc.category,
     images: doc.images || [],
     price,
-    mrp: Number.isFinite(mrp) && mrp > price ? mrp : null,
+    mrp: Number.isFinite(mrp) && mrp > 0 ? mrp : null,
     ...productQuantityFields(doc),
     shop_name: showShopNames ? seller?.shopName || "Shop" : maskedShopName("shop"),
     shop_name_locked: !showShopNames,

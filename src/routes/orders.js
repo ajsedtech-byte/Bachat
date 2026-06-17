@@ -307,7 +307,7 @@ router.post(
             if (!p) {
               throw Object.assign(new Error("Some items are no longer available."), { status: 400 });
             }
-            const unitPrice = buyerDisplayPrice(p.sellerPrice, p._id);
+            const unitPrice = buyerDisplayPrice(p.sellerPrice, p._id, p.mrp);
             const qty = row.quantity;
             const lineTotal = unitPrice * qty;
             finalPrice += lineTotal;

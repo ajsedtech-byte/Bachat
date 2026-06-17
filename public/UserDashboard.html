@@ -7790,7 +7790,7 @@
       const mrp = Number(row && row.mrp);
       const sale = `<span class="${saleClass || "font-black text-slate-950"}">${rupee(price)}</span>`;
       if (Number.isFinite(mrp) && Number.isFinite(price) && mrp > price) {
-        return `<span class="${wrapClass || "inline-flex flex-wrap items-baseline gap-2"}"><span class="text-slate-400 line-through">${rupee(mrp)}</span>${sale}</span>`;
+        return `<span class="${wrapClass || "inline-flex flex-wrap items-baseline gap-2"}"><span class="text-slate-400 line-through">MRP ${rupee(mrp)}</span>${sale}</span>`;
       }
       return sale;
     }

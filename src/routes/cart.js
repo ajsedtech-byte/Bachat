@@ -38,7 +38,7 @@ async function cartWithProducts(userId) {
       const p = pmap[String(row.product)];
       if (!p || !p.isActive) return null;
       const seller = sellerMap[String(p.seller)];
-      const price = buyerDisplayPrice(p.sellerPrice, p._id);
+      const price = buyerDisplayPrice(p.sellerPrice, p._id, p.mrp);
       const mrp = Number(p.mrp);
       return {
         product_id: String(p._id),
@@ -46,7 +46,7 @@ async function cartWithProducts(userId) {
         category: p.category,
         images: p.images || [],
         price,
-        mrp: Number.isFinite(mrp) && mrp > price ? mrp : null,
+        mrp: Number.isFinite(mrp) && mrp > 0 ? mrp : null,
         quantity: row.quantity,
         line_total: row.quantity * price,
         shop_name: seller?.shopName || "",
