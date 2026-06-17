@@ -381,6 +381,31 @@
             Your account has no shop categories. Complete signup as shopkeeper with categories, or update your profile via the API.
           </p>
 
+          <div class="rounded-2xl border border-[#d6e4fb] bg-white p-4 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-slate-900">Bulk price editor</h3>
+                <p class="text-sm text-slate-500">Update MRP and sale rate for all active listings, then save once.</p>
+              </div>
+              <button type="button" id="bulk-price-save" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm disabled:opacity-50">Save all prices</button>
+            </div>
+            <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+              <table class="min-w-[780px] w-full text-sm">
+                <thead class="bg-[#f8f9fb] text-left text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2">Item</th>
+                    <th class="px-3 py-2">Category</th>
+                    <th class="px-3 py-2">MRP</th>
+                    <th class="px-3 py-2">Sale rate</th>
+                    <th class="px-3 py-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="bulk-price-rows"></tbody>
+              </table>
+            </div>
+            <p id="bulk-price-empty" class="hidden py-4 text-sm text-slate-500">No active listings to edit.</p>
+          </div>
+
           <div class="rounded-2xl border border-[#0056d2]/25 bg-[#e8f1fc]/50 p-6 shadow-sm">
             <h3 id="new-item-title" class="text-lg font-extrabold text-[#0056d2] uppercase tracking-wide mb-4">New item</h3>
             <form id="product-form" class="grid md:grid-cols-2 gap-4">
@@ -451,31 +476,6 @@
                 </button>
               </div>
             </form>
-          </div>
-
-          <div class="rounded-2xl border border-[#d6e4fb] bg-white p-4 shadow-sm">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 class="font-bold text-slate-900">Bulk price editor</h3>
-                <p class="text-sm text-slate-500">Update MRP and sale rate for all active listings, then save once.</p>
-              </div>
-              <button type="button" id="bulk-price-save" class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm disabled:opacity-50">Save all prices</button>
-            </div>
-            <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
-              <table class="min-w-[780px] w-full text-sm">
-                <thead class="bg-[#f8f9fb] text-left text-slate-500">
-                  <tr>
-                    <th class="px-3 py-2">Item</th>
-                    <th class="px-3 py-2">Category</th>
-                    <th class="px-3 py-2">MRP</th>
-                    <th class="px-3 py-2">Sale rate</th>
-                    <th class="px-3 py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="bulk-price-rows"></tbody>
-              </table>
-            </div>
-            <p id="bulk-price-empty" class="hidden py-4 text-sm text-slate-500">No active listings to edit.</p>
           </div>
 
           <div>
