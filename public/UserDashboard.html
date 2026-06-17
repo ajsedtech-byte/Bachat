@@ -6206,6 +6206,20 @@
           </div>
         </section>
 
+        <section id="product-page-section" class="hidden space-y-5 scroll-mt-28">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <button type="button" id="product-page-back" class="inline-flex items-center rounded-full border border-[#cfe0f8] bg-white px-4 py-2 text-sm font-black text-[#0056d2] hover:bg-[#e8f1fc]">Back to products</button>
+            <a href="#browse-section" data-section="browse-section" class="inline-flex items-center rounded-full border border-[#cfe0f8] bg-white px-4 py-2 text-sm font-black text-[#0056d2] hover:bg-[#e8f1fc]">Browse catalog</a>
+          </div>
+          <div class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+            <div class="mb-5 border-b border-slate-200 pb-4">
+              <p class="text-xs font-black uppercase tracking-[0.16em] text-[#0056d2]">Product details</p>
+              <p class="mt-1 text-sm font-semibold text-slate-500">Review item, seller, delivery, and buying options.</p>
+            </div>
+            <div id="product-page-body"></div>
+          </div>
+        </section>
+
         <section id="dashboard-home" class="space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
@@ -8699,6 +8713,14 @@
       }
     }
 
+    function setProductPageLoading() {
+      const body = document.getElementById("product-page-body");
+      if (body) {
+        body.innerHTML =
+          '<div class="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-sm font-semibold text-slate-500">Loading product details...</div>';
+      }
+    }
+
     function closeProductDetail() {
       document.getElementById("product-detail-modal")?.classList.add("hidden");
     }
@@ -9140,6 +9162,56 @@
       }
     }
 
+    async function openProductPage(productId, options) {
+      productId = String(productId || "").trim();
+      const body = document.getElementById("product-page-body");
+      if (!productId || !body) return false;
+      const opened = typeof openUserSection === "function" ? openUserSection("product-page-section") : false;
+      if (!opened) return false;
+      if (!options || options.updateHash !== false) {
+        const nextHash = "#product-page-section/" + encodeURIComponent(productId);
+        if (history && history.replaceState) history.replaceState(null, "", nextHash);
+        else location.hash = nextHash;
+      }
+      setProductPageLoading();
+      try {
+        let item = productDetailCache.get(productId);
+        if (!item || !item.description) {
+          const data = await api("GET", catalogEndpoint(productId));
+          item = data && data.item;
+          if (item && item.product_id) productDetailCache.set(String(item.product_id), item);
+        }
+        if (!item) throw new Error("Product not found");
+        body.innerHTML = productDetailHtml(item);
+        bindProductDetailActions(body, item);
+        return true;
+      } catch (e) {
+        body.innerHTML = `<div class="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm font-semibold text-red-700">${escapeHtml(e.message || "Could not load product details")}</div>`;
+        return false;
+      }
+    }
+
+    function productIdFromHash() {
+      const hash = (location.hash || "").replace(/^#/, "");
+      if (!hash.startsWith("product-page-section/")) return "";
+      try {
+        return decodeURIComponent(hash.slice("product-page-section/".length));
+      } catch (_) {
+        return hash.slice("product-page-section/".length);
+      }
+    }
+
+    function navigateProductPage(productId) {
+      productId = String(productId || "").trim();
+      if (!productId) return;
+      const nextHash = "#product-page-section/" + encodeURIComponent(productId);
+      if (location.hash === nextHash) {
+        openProductPage(productId, { updateHash: false });
+      } else {
+        location.hash = nextHash;
+      }
+    }
+
     function bindProductDetailActions(root, item) {
       const productId = item && item.product_id;
       root.querySelector("[data-product-add]")?.addEventListener("click", async (e) => {
@@ -9191,12 +9263,12 @@
       root.querySelectorAll("[data-product-detail]").forEach((card) => {
         card.addEventListener("click", (e) => {
           if (e.target.closest("button, a, input, select, textarea, label")) return;
-          openProductDetail(card.getAttribute("data-product-detail"));
+          navigateProductPage(card.getAttribute("data-product-detail"));
         });
         card.addEventListener("keydown", (e) => {
           if (e.key !== "Enter" && e.key !== " ") return;
           e.preventDefault();
-          openProductDetail(card.getAttribute("data-product-detail"));
+          navigateProductPage(card.getAttribute("data-product-detail"));
         });
       });
     }
@@ -10777,6 +10849,10 @@
       openUserSection("shopping-home");
       if (history && history.replaceState) history.replaceState(null, "", "#shopping-home");
     });
+    document.getElementById("product-page-back")?.addEventListener("click", () => {
+      openUserSection("shopping-home");
+      if (history && history.replaceState) history.replaceState(null, "", "#shopping-home");
+    });
 
     document.getElementById("dept-all")?.addEventListener("click", (e) => {
       e.preventDefault();
@@ -11166,6 +11242,7 @@
       "shopping-home",
       "all-shops-section",
       "shop-page-section",
+      "product-page-section",
       "dashboard-home",
       "requests-section",
       "orders-section",
@@ -11224,7 +11301,7 @@
       if (trigger) trigger.setAttribute("aria-expanded", open ? "true" : "false");
       document.body.classList.toggle("overflow-hidden", Boolean(open));
     }
-    const publicUserSections = new Set(["shopping-home", "all-shops-section", "shop-page-section", "browse-section", "cart-section"]);
+    const publicUserSections = new Set(["shopping-home", "all-shops-section", "shop-page-section", "product-page-section", "browse-section", "cart-section"]);
     function openUserSection(sectionId) {
       syncUserMenuVisibility();
       sectionId = sectionId || "shopping-home";
@@ -11268,6 +11345,10 @@
     });
     window.addEventListener("hashchange", () => {
       const id = (location.hash || "").replace(/^#/, "");
+      if (id.startsWith("product-page-section/")) {
+        openProductPage(productIdFromHash(), { updateHash: false });
+        return;
+      }
       if (id === "shop-page-section") {
         restoreShopPageFromHash();
         return;
@@ -11276,7 +11357,9 @@
     });
     const firstSection = ((location.hash || "").replace(/^#/, "") || "shopping-home");
     setHomeGreetingPeriod();
-    if (firstSection === "shop-page-section") {
+    if (firstSection.startsWith("product-page-section/")) {
+      openProductPage(productIdFromHash(), { updateHash: false });
+    } else if (firstSection === "shop-page-section") {
       openUserSection("shopping-home");
     } else {
       openUserSection(firstSection);
