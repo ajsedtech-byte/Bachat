@@ -21,6 +21,11 @@ const {
   DeliveryRequestError,
   requestDeliveryForOrder,
 } = require("../services/deliveryRequests");
+const {
+  checkoutReadinessError,
+  inspectCheckoutDeliveryReadiness,
+  notifyMissingCheckoutDeliveryDetails,
+} = require("../services/deliveryReadiness");
 
 const router = express.Router();
 
@@ -32,17 +37,23 @@ function normText(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function requireValidPlace(res, label, place) {
+function deliveryPlaceIssue(label, place) {
   if (!place || place.lat == null || place.lng == null) {
-    badRequest(res, `${label}.lat and ${label}.lng are required`);
-    return false;
+    return `${label}.lat and ${label}.lng are required`;
   }
   if (!inIndiaBounds(place.lat, place.lng)) {
-    badRequest(res, `${label} must be inside supported India bounds`);
-    return false;
+    return `${label} must be inside supported India bounds`;
   }
   if (!String(place.addressText || place.address || "").trim()) {
-    badRequest(res, `${label}.address_text is required`);
+    return `${label}.address_text is required`;
+  }
+  return "";
+}
+
+function requireValidPlace(res, label, place) {
+  const issue = deliveryPlaceIssue(label, place);
+  if (issue) {
+    badRequest(res, issue);
     return false;
   }
   return true;
@@ -125,6 +136,10 @@ router.post(
           if (String(r.user) !== String(req.user.id)) {
             throw Object.assign(new Error("Forbidden"), { status: 403 });
           }
+          const buyer = await User.findById(req.user.id).session(session).lean();
+          if (!buyer) {
+            throw Object.assign(new Error("User not found"), { status: 404 });
+          }
           if (!["open", "quoted"].includes(r.status)) {
             throw Object.assign(new Error("Request is already closed"), { status: 400 });
           }
@@ -142,6 +157,16 @@ router.post(
           const closedErr = ensureShopOpen(seller || {});
           if (closedErr) {
             throw Object.assign(closedErr, { status: closedErr.status || 400 });
+          }
+          const readiness = inspectCheckoutDeliveryReadiness({ buyer, seller });
+          if (!readiness.ok) {
+            const err = checkoutReadinessError(readiness);
+            err.notifyDeliveryReadiness = {
+              buyerId: req.user.id,
+              sellerId: seller._id,
+              readiness,
+            };
+            throw err;
           }
 
           const exists = await Order.findOne({ request: r._id }).session(session);
@@ -179,9 +204,13 @@ router.post(
         });
       } catch (e) {
         if (e.status) {
+          if (e.notifyDeliveryReadiness) {
+            await notifyMissingCheckoutDeliveryDetails(e.notifyDeliveryReadiness);
+          }
           return res.status(e.status).json({
             error: e.message,
             ...(e.code ? { code: e.code } : {}),
+            ...(e.readiness ? { delivery_readiness: e.readiness } : {}),
             ...(e.shop_open_status ? { shop_open_status: e.shop_open_status } : {}),
           });
         }
@@ -258,6 +287,16 @@ router.post(
           if (closedErr) {
             throw Object.assign(closedErr, { status: closedErr.status || 400 });
           }
+          const readiness = inspectCheckoutDeliveryReadiness({ buyer: user, seller });
+          if (!readiness.ok) {
+            const err = checkoutReadinessError(readiness);
+            err.notifyDeliveryReadiness = {
+              buyerId: req.user.id,
+              sellerId: seller._id,
+              readiness,
+            };
+            throw err;
+          }
 
           const pmap = Object.fromEntries(products.map((p) => [String(p._id), p]));
           const lineItems = [];
@@ -307,9 +346,13 @@ router.post(
         });
       } catch (e) {
         if (e.status) {
+          if (e.notifyDeliveryReadiness) {
+            await notifyMissingCheckoutDeliveryDetails(e.notifyDeliveryReadiness);
+          }
           return res.status(e.status).json({
             error: e.message,
             ...(e.code ? { code: e.code } : {}),
+            ...(e.readiness ? { delivery_readiness: e.readiness } : {}),
             ...(e.shop_open_status ? { shop_open_status: e.shop_open_status } : {}),
           });
         }
@@ -548,9 +591,6 @@ router.post(
       if (order.paymentStatus !== "paid") {
         return badRequest(res, "Order is not paid yet");
       }
-      if (!order.delivery?.status || order.delivery.status === "none") {
-        return badRequest(res, "Buyer must request delivery before marking ready for pickup");
-      }
 
       order.delivery = order.delivery || {};
       order.delivery.pickup = order.delivery.pickup || {};
@@ -572,7 +612,33 @@ router.post(
           order.delivery.pickup.contactPhone = normalizeAddressPart(pickup.contactPhone);
         }
       }
-      if (!requireValidPlace(res, "pickup", order.delivery.pickup)) return;
+
+      const currentDeliveryStatus = order.delivery.status || "none";
+      if (["none", "pending_details", "expired_unclaimed"].includes(currentDeliveryStatus)) {
+        try {
+          await requestDeliveryForOrder(order, {
+            pickup: pickup || undefined,
+            allowPendingDetails: true,
+            validateArea: false,
+          });
+        } catch (err) {
+          if (err instanceof DeliveryRequestError) {
+            return res.status(err.status).json({ error: err.message });
+          }
+          throw err;
+        }
+      }
+
+      const pickupIssue = deliveryPlaceIssue("pickup", order.delivery.pickup);
+      const dropoffIssue = deliveryPlaceIssue("dropoff", order.delivery.dropoff);
+      if (pickupIssue || dropoffIssue) {
+        const missingSide = pickupIssue ? "shop pickup details" : "customer drop-off details";
+        return badRequest(
+          res,
+          `Payment is done, but delivery cannot be assigned yet. Missing ${missingSide}: ${pickupIssue || dropoffIssue}`
+        );
+      }
+
       order.delivery.readyForPickupAt = new Date();
       await order.save();
       return res.json({ order: formatOrder(order) });

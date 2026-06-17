@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema(
     category: { type: String, required: true, enum: CATEGORIES },
     images: { type: [String], default: [] },
     sellerPrice: { type: Number, required: true, min: 1 },
+    mrp: { type: Number, default: null, min: 1 },
     stockQuantity: { type: Number, default: null, min: 0 },
     stockUnit: { type: String, default: "", trim: true, maxlength: 40 },
     packageType: { type: String, default: "", trim: true, maxlength: 80 },

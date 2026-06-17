@@ -7785,6 +7785,16 @@
       return "₹" + Math.round(x).toLocaleString("en-IN");
     }
 
+    function priceWithMrpHtml(row, saleClass, wrapClass) {
+      const price = Number(row && row.price);
+      const mrp = Number(row && row.mrp);
+      const sale = `<span class="${saleClass || "font-black text-slate-950"}">${rupee(price)}</span>`;
+      if (Number.isFinite(mrp) && Number.isFinite(price) && mrp > price) {
+        return `<span class="${wrapClass || "inline-flex flex-wrap items-baseline gap-2"}"><span class="text-slate-400 line-through">${rupee(mrp)}</span>${sale}</span>`;
+      }
+      return sale;
+    }
+
     function profileInitials(name, email) {
       const source = String(name || "").trim() || String(email || "").split("@")[0] || "U";
       return source
@@ -8014,7 +8024,7 @@
             <p class="text-xs text-slate-500">${escapeHtml(shopDisplayName(p))}${shopUnlockHint(p) ? ` · ${escapeHtml(shopUnlockHint(p))}` : ""} · ${escapeHtml(p.city || "")}</p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <span class="font-extrabold text-[#0056d2]">${rupee(p.price)}</span>
+            ${priceWithMrpHtml(p, "font-extrabold text-[#0056d2]")}
             <button type="button" class="text-xs font-bold text-[#0056d2] hover:underline sk-saved-browse" data-search="${encodeURIComponent(p.title || "")}">Find in shop</button>
             <button type="button" class="text-xs font-bold text-red-600 hover:underline rm-saved" data-pid="${escapeHtml(p.product_id)}">Remove</button>
           </div>`;
@@ -8025,7 +8035,7 @@
             const row = document.createElement("div");
             row.className = "saved-row flex items-center gap-3";
             const image = Array.isArray(p.images) && p.images[0] ? p.images[0] : "";
-            row.innerHTML = `<div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e5edf8] bg-[#f8fbff]">${image ? `<img src="${escapeHtml(image)}" alt="" class="h-full w-full object-contain" loading="lazy" decoding="async" />` : `<div class="flex h-full w-full items-center justify-center text-xs font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "B"))}</div>`}</div><div class="min-w-0 flex-1"><p class="truncate text-sm font-black text-slate-950">${escapeHtml(p.title || "Saved item")}</p><p class="text-xs font-semibold text-slate-500">${escapeHtml(p.category || shopDisplayName(p))}</p></div><strong class="text-sm font-black text-slate-950">${rupee(p.price)}</strong><button type="button" class="sk-saved-browse rounded-lg border border-[#d6e4fb] px-2 py-1 text-[#0056d2]" data-search="${encodeURIComponent(p.title || "")}">🧺</button>`;
+            row.innerHTML = `<div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e5edf8] bg-[#f8fbff]">${image ? `<img src="${escapeHtml(image)}" alt="" class="h-full w-full object-contain" loading="lazy" decoding="async" />` : `<div class="flex h-full w-full items-center justify-center text-xs font-black text-[#0056d2]">${escapeHtml(shopMonogram(p.title || "B"))}</div>`}</div><div class="min-w-0 flex-1"><p class="truncate text-sm font-black text-slate-950">${escapeHtml(p.title || "Saved item")}</p><p class="text-xs font-semibold text-slate-500">${escapeHtml(p.category || shopDisplayName(p))}</p></div><strong class="text-sm font-black text-slate-950">${priceWithMrpHtml(p, "font-black text-slate-950", "inline-flex flex-col items-end leading-tight")}</strong><button type="button" class="sk-saved-browse rounded-lg border border-[#d6e4fb] px-2 py-1 text-[#0056d2]" data-search="${encodeURIComponent(p.title || "")}">🧺</button>`;
             homeBox.appendChild(row);
           });
         }
@@ -8356,7 +8366,7 @@
               <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(shopDisplayName(p))}${shopUnlockHint(p) ? ` · ${escapeHtml(shopUnlockHint(p))}` : ""}</p>
               <p class="mt-1">${shopStatusBadgeHtml(p)}</p>
               ${productPackText(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(p))}</p>` : ""}
-              <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
+              <p class="mt-auto pt-3 text-lg font-black text-slate-950">${priceWithMrpHtml(p, "font-black text-slate-950")}</p>
               <div class="mt-2 grid grid-cols-2 gap-2">
                 <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(p)}>${productActionText(p, false)}</button>
                 <button type="button" data-pid="${escapeHtml(p.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
@@ -8426,7 +8436,7 @@
           <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(shopDisplayName(p))}${shopUnlockHint(p) ? ` - ${escapeHtml(shopUnlockHint(p))}` : ""}</p>
           <p class="mt-1">${shopStatusBadgeHtml(p)}</p>
           ${productPackText(p) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(p))}</p>` : ""}
-          <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(p.price)}</p>
+          <p class="mt-auto pt-3 text-lg font-black text-slate-950">${priceWithMrpHtml(p, "font-black text-slate-950")}</p>
           <div class="mt-2 grid grid-cols-2 gap-2">
             <button type="button" data-pid="${escapeHtml(p.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(p)}>${productActionText(p, false)}</button>
             <button type="button" data-pid="${escapeHtml(p.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
@@ -8663,7 +8673,7 @@
         </section>
         <aside class="h-fit rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_-35px_rgba(15,23,42,0.4)]">
           <p class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Featured offer</p>
-          <p class="mt-2 text-4xl font-black tracking-[-0.04em] text-slate-950">${rupee(p.price)}</p>
+          <p class="mt-2 text-4xl font-black text-slate-950">${priceWithMrpHtml(p, "font-black text-slate-950")}</p>
           <p class="mt-1 text-sm text-slate-500">Local city pricing for ${locationText}.</p>
           <div class="mt-5 space-y-3 text-sm text-slate-700">
             <p><span class="font-black text-slate-950">Pack:</span> ${packText}</p>
@@ -8728,7 +8738,7 @@
           <p class="mt-1">${shopStatusBadgeHtml(item)}</p>
           ${productPackText(item) ? `<p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(productPackText(item))}</p>` : ""}
           <p class="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">Available: ${escapeHtml(productAvailableText(item))}</p>
-          <p class="mt-auto pt-3 text-lg font-black text-slate-950">${rupee(item.price)}</p>
+          <p class="mt-auto pt-3 text-lg font-black text-slate-950">${priceWithMrpHtml(item, "font-black text-slate-950")}</p>
           <div class="mt-2 grid grid-cols-2 gap-2">
             <button type="button" data-pid="${escapeHtml(item.product_id)}" class="add-cart rounded-lg bg-[#0056d2] py-2 text-xs font-black text-white hover:bg-[#0044a8] disabled:cursor-not-allowed disabled:bg-slate-300"${closedActionAttrs(item)}>${productActionText(item, false)}</button>
             <button type="button" data-pid="${escapeHtml(item.product_id)}" class="save-catalog rounded-lg border border-[#0056d2] py-2 text-xs font-black text-[#0056d2] hover:bg-[#e8f1fc]">Save</button>
@@ -9211,7 +9221,7 @@
         `<div class="home-product-img">${img}</div>` +
         `<p class="home-product-title line-clamp-2">${escapeHtml(p.title || "Local item")}</p>` +
         `<p class="home-product-meta">${escapeHtml(p.category || "Local pick")}</p>` +
-        `<p class="home-product-price">${rupee(p.price)}</p>` +
+        `<p class="home-product-price">${priceWithMrpHtml(p, "font-black text-slate-950")}</p>` +
         `<p class="home-product-meta">${shopIsOpen(p) ? "Best local price" : escapeHtml(shopClosedMessage(p))}</p>` +
         `<button type="button" data-pid="${escapeHtml(p.product_id)}" class="home-add-cart" ${closedActionAttrs(p)}>${productActionText(p, true)}</button>` +
         `</article>`
@@ -10073,7 +10083,7 @@
         ${thumb}
         <div class="min-w-0">
           <h3 class="cart-title">${escapeHtml(title)}</h3>
-          <p class="cart-meta">${escapeHtml(line.category || "Local item")} - ${rupee(line.price)} each</p>
+          <p class="cart-meta">${escapeHtml(line.category || "Local item")} - ${priceWithMrpHtml(line, "font-bold text-slate-700")} each</p>
           <p class="cart-meta">${shopStatusBadgeHtml(line)}${shopHoursText(line) ? ` <span>${escapeHtml(shopHoursText(line))}</span>` : ""}</p>
           ${qtyControls}
         </div>
@@ -10202,7 +10212,7 @@
           row.className = "flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3";
           row.innerHTML = `<div>
             <p class="font-bold">${escapeHtml(line.title)}</p>
-            <p class="text-xs text-slate-500">${rupee(line.price)} × ${line.quantity} = ${rupee(line.line_total)}</p>
+            <p class="text-xs text-slate-500">${priceWithMrpHtml(line, "font-bold text-slate-700")} x ${line.quantity} = ${rupee(line.line_total)}</p>
           </div>
           <button type="button" data-rm="${escapeHtml(line.product_id)}" class="text-red-600 text-xs font-bold hover:underline rm-cart">Remove</button>`;
           body.appendChild(row);

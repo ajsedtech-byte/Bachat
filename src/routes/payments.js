@@ -9,6 +9,13 @@ const { formatOrder } = require("../lib/format");
 const { notifyOrderPaid } = require("../services/orderEmails");
 const { recordEvent } = require("../lib/analytics");
 const { requestDeliveryForOrder } = require("../services/deliveryRequests");
+const {
+  checkoutReadinessError,
+  inspectCheckoutDeliveryReadiness,
+  notifyMissingCheckoutDeliveryDetails,
+} = require("../services/deliveryReadiness");
+const User = require("../models/User");
+const Seller = require("../models/Seller");
 
 const router = express.Router();
 const apiRouter = express.Router();
@@ -212,6 +219,24 @@ async function createBachatPaymentOrder(req, res, next) {
     }
     if (order.paymentStatus === "failed") {
       return res.status(409).json({ error: "Payment failed for this order. Please place a new order." });
+    }
+    const [buyer, seller] = await Promise.all([
+      User.findById(order.user).lean(),
+      Seller.findById(order.seller).lean(),
+    ]);
+    const readiness = inspectCheckoutDeliveryReadiness({ buyer, seller });
+    if (!readiness.ok) {
+      notifyMissingCheckoutDeliveryDetails({
+        buyerId: order.user,
+        sellerId: order.seller,
+        readiness,
+      }).catch((mailErr) => console.error("[payment-readiness-mail:error]", mailErr?.message || mailErr));
+      const err = checkoutReadinessError(readiness);
+      return res.status(err.status).json({
+        error: err.message,
+        code: err.code,
+        delivery_readiness: readiness,
+      });
     }
 
     const amountPaise = Math.round(Number(order.totalAmount) * 100);

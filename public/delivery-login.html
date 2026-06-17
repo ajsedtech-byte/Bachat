@@ -208,7 +208,7 @@
         return;
       }
       try {
-        var res = await otpFetch("/api/auth/login-otp/request", { email: email });
+        var res = await otpFetch("/api/auth/login-otp/request", { email: email, role: "delivery" });
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Could not send code");
         if (data.dev_otp && dev) {
@@ -233,7 +233,7 @@
         return;
       }
       try {
-        var res = await otpFetch("/api/auth/login-otp/verify", { email: email, code: code });
+        var res = await otpFetch("/api/auth/login-otp/verify", { email: email, code: code, role: "delivery" });
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(data.error || "Invalid code");
         var actualRole = (data.user && data.user.role) || "";
@@ -256,7 +256,7 @@
       err.classList.add("hidden");
       btn.disabled = true;
       var fd = new FormData(e.target);
-      var body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || "") };
+      var body = { email: String(fd.get("email") || "").trim(), password: String(fd.get("password") || ""), role: "delivery" };
       try {
         var res = await loginFetch(body);
         var data = await res.json().catch(function () { return {}; });

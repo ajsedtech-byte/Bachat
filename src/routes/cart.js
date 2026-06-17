@@ -39,12 +39,14 @@ async function cartWithProducts(userId) {
       if (!p || !p.isActive) return null;
       const seller = sellerMap[String(p.seller)];
       const price = buyerDisplayPrice(p.sellerPrice, p._id);
+      const mrp = Number(p.mrp);
       return {
         product_id: String(p._id),
         title: p.title,
         category: p.category,
         images: p.images || [],
         price,
+        mrp: Number.isFinite(mrp) && mrp > price ? mrp : null,
         quantity: row.quantity,
         line_total: row.quantity * price,
         shop_name: seller?.shopName || "",

@@ -51,6 +51,11 @@ function resetDeliveryAssignment(order) {
   order.delivery.readyForPickupAt = null;
   order.delivery.pickedUpAt = null;
   order.delivery.deliveredAt = null;
+  order.delivery.deliveryOtpHash = "";
+  order.delivery.deliveryOtpSentAt = null;
+  order.delivery.deliveryOtpExpiresAt = null;
+  order.delivery.deliveryOtpVerifiedAt = null;
+  order.delivery.deliveryOtpAttempts = 0;
   order.delivery.driverLastLat = null;
   order.delivery.driverLastLng = null;
   order.delivery.driverLocationAt = null;

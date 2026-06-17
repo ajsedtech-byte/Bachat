@@ -64,6 +64,12 @@
       <div id="jobs" class="space-y-3"></div>
       <p id="jobs-empty" class="hidden text-sm text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-xl">No open jobs right now. Pull to refresh in a bit.</p>
     </section>
+
+    <section id="sec-pending-paid" class="hidden">
+      <h2 class="text-sm font-black uppercase tracking-wide text-slate-500 mb-3">Paid orders waiting for delivery details</h2>
+      <div id="pending-paid" class="space-y-3"></div>
+      <p id="pending-paid-empty" class="hidden text-sm text-slate-500 py-4 text-center border border-dashed border-slate-200 rounded-xl">No paid blocked orders from today.</p>
+    </section>
     <footer class="bachat-powered-by">Powered by <strong>AJs Chalo Seekhen</strong></footer>
   </div>
 
@@ -135,6 +141,15 @@
     let locInterval = null;
     let routeMap = null;
     let routeLayers = [];
+    function readRejectedPoolJobs() {
+      try {
+        const rows = JSON.parse(localStorage.getItem("bachat_rejected_delivery_jobs") || "[]");
+        return Array.isArray(rows) ? rows : [];
+      } catch (_) {
+        return [];
+      }
+    }
+    const rejectedPoolJobs = new Set(readRejectedPoolJobs());
 
     function stopLocationShare() {
       if (locWatch != null && navigator.geolocation) {
@@ -188,6 +203,9 @@
     function humanStatus(s) {
       const m = {
         delivery_requested: "In pool",
+        pending_details: "Waiting for details",
+        none: "Not requested",
+        expired_unclaimed: "Expired, needs re-offer",
         delivery_assigned: "Assigned to you",
         driver_en_route_pickup: "En route to pickup",
         picked_up: "Picked up",
@@ -238,14 +256,25 @@
         .replace(/"/g, "&quot;");
     }
 
-    async function patchStatus(orderId, status) {
+    async function patchStatus(orderId, status, extra) {
       const res = await apiFetch("/api/delivery/jobs/" + orderId + "/status", {
         method: "PATCH",
         headers: authHeaders(),
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, ...(extra || {}) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Update failed");
+      return data;
+    }
+
+    async function rejectJob(orderId) {
+      const res = await apiFetch("/api/delivery/jobs/" + orderId + "/reject", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ reason: "Rejected by delivery partner" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Reject failed");
       return data;
     }
 
@@ -273,7 +302,7 @@
       return data;
     }
 
-    function renderAssignments(items) {
+    async function renderAssignments(items) {
       const root = document.getElementById("assignments");
       root.innerHTML = "";
       if (!items.length) {
@@ -290,12 +319,17 @@
         const pickup = d.pickup || {};
         const drop = d.dropoff || {};
         const ready = Boolean(d.ready_for_pickup_at);
+        const showDropoff = ["picked_up", "en_route_dropoff", "delivered"].includes(String(d.status || ""));
         let actions = "";
         if (d.status === "delivery_assigned") {
           actions +=
             '<button type="button" data-act="enroute-pu" data-oid="' +
             oid +
             '" class="rounded-xl bg-[#0056d2] text-white text-sm font-bold px-4 py-2">En route to pickup</button>';
+          actions +=
+            '<button type="button" data-act="reject" data-oid="' +
+            oid +
+            '" class="rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-bold px-4 py-2">Reject</button>';
         }
         if (d.status === "driver_en_route_pickup") {
           const dis = ready ? "" : " disabled opacity-50 ";
@@ -318,9 +352,13 @@
         }
         if (d.status === "en_route_dropoff") {
           actions +=
+            '<input type="text" inputmode="numeric" maxlength="6" data-otp="' +
+            oid +
+            '" class="w-32 rounded-xl border border-slate-200 px-3 py-2 text-center text-sm font-mono font-bold tracking-widest" placeholder="OTP" />';
+          actions +=
             '<button type="button" data-act="done" data-oid="' +
             oid +
-            '" class="rounded-xl bg-emerald-600 text-white text-sm font-bold px-4 py-2">Mark delivered</button>';
+            '" class="rounded-xl bg-emerald-600 text-white text-sm font-bold px-4 py-2">Verify OTP & deliver</button>';
         }
         card.innerHTML =
           "<div class=\"flex justify-between gap-2\">" +
@@ -350,18 +388,25 @@
               : "") +
           "</div>" +
           "<div><p class=\"font-bold text-slate-500 uppercase mb-1\">Dropoff</p>" +
-          "<p class=\"text-slate-800\">" +
-          escapeHtml(drop.address || "") +
-          "</p>" +
-          (drop.contact_phone
-            ? "<p class=\"mt-1 font-mono\">" + escapeHtml(drop.contact_phone) + "</p>"
-            : drop.contact_phone_masked
-              ? "<p class=\"mt-1 font-mono\">" + escapeHtml(drop.contact_phone_masked) + "</p>"
-              : "") +
+          (showDropoff
+            ? "<p class=\"text-slate-800\">" +
+              escapeHtml(drop.address || "") +
+              "</p>" +
+              (drop.contact_phone
+                ? "<p class=\"mt-1 font-mono\">" + escapeHtml(drop.contact_phone) + "</p>"
+                : drop.contact_phone_masked
+                  ? "<p class=\"mt-1 font-mono\">" + escapeHtml(drop.contact_phone_masked) + "</p>"
+                  : "")
+            : "<p class=\"text-slate-500\">Customer address unlocks after pickup.</p>") +
           "</div></div>" +
           "<p class=\"text-xs text-slate-500\">Ready for pickup: " +
           (ready ? fmtTime(d.ready_for_pickup_at) : "Not yet") +
           "</p>" +
+          (d.delivery_otp_sent_at
+            ? "<p class=\"text-xs text-emerald-700\">Delivery OTP sent to customer email. Expires: " +
+              fmtTime(d.delivery_otp_expires_at) +
+              "</p>"
+            : "") +
           "<div class=\"flex flex-wrap gap-2 items-center\">" +
           actions +
           '<label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer ml-auto">' +
@@ -385,7 +430,17 @@
             if (act === "enroute-pu") await patchStatus(oid, "driver_en_route_pickup");
             if (act === "picked") await patchStatus(oid, "picked_up");
             if (act === "enroute-do") await patchStatus(oid, "en_route_dropoff");
-            if (act === "done") await patchStatus(oid, "delivered");
+            if (act === "done") {
+              const otpEl = root.querySelector('[data-otp="' + oid + '"]');
+              const code = otpEl ? String(otpEl.value || "").trim() : "";
+              if (!/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit OTP from the customer.");
+              await patchStatus(oid, "delivered", { delivery_otp: code });
+            }
+            if (act === "reject") {
+              if (!confirm("Reject this delivery job and return it to the open pool?")) return;
+              await rejectJob(oid);
+              stopLocationShare();
+            }
             showFlash("Status updated.", "ok");
             await loadAll();
           } catch (e) {
@@ -426,12 +481,13 @@
       const p = d.pickup || {};
       const t = d.dropoff || {};
       const pts = Array.isArray(d.route_points) ? d.route_points : [];
+      const showDropoff = ["picked_up", "en_route_dropoff", "delivered"].includes(String(d.status || ""));
       const bounds = [];
       if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) {
         bounds.push([p.lat, p.lng]);
         routeLayers.push(L.marker([p.lat, p.lng]).addTo(routeMap).bindPopup("Pickup"));
       }
-      if (Number.isFinite(t.lat) && Number.isFinite(t.lng)) {
+      if (showDropoff && Number.isFinite(t.lat) && Number.isFinite(t.lng)) {
         bounds.push([t.lat, t.lng]);
         routeLayers.push(L.marker([t.lat, t.lng]).addTo(routeMap).bindPopup("Dropoff"));
       }
@@ -458,6 +514,7 @@
       const root = document.getElementById("jobs");
       const empty = document.getElementById("jobs-empty");
       root.innerHTML = "";
+      items = (Array.isArray(items) ? items : []).filter((row) => !rejectedPoolJobs.has(String(row.order && row.order.order_id)));
       if (!items.length) {
         empty.classList.remove("hidden");
         return;
@@ -494,7 +551,10 @@
           " fee</p>" +
           '<button type="button" data-claim="' +
           oid +
-          "\" class=\"rounded-xl bg-[#0056d2] text-white text-sm font-bold px-4 py-2\">Claim</button></div>";
+          "\" class=\"rounded-xl bg-[#0056d2] text-white text-sm font-bold px-4 py-2\">Accept</button>" +
+          '<button type="button" data-pool-reject="' +
+          oid +
+          "\" class=\"rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-bold px-4 py-2\">Reject</button></div>";
         root.appendChild(card);
       }
       root.querySelectorAll("button[data-claim]").forEach((btn) => {
@@ -512,6 +572,65 @@
           }
         });
       });
+      root.querySelectorAll("button[data-pool-reject]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const oid = String(btn.getAttribute("data-pool-reject") || "");
+          if (!oid) return;
+          rejectedPoolJobs.add(oid);
+          localStorage.setItem("bachat_rejected_delivery_jobs", JSON.stringify([...rejectedPoolJobs].slice(-200)));
+          showFlash("Job hidden from your pool.", "ok");
+          btn.closest(".bg-white")?.remove();
+          if (!root.children.length) empty.classList.remove("hidden");
+        });
+      });
+    }
+
+    function renderPendingPaid(items) {
+      const section = document.getElementById("sec-pending-paid");
+      const root = document.getElementById("pending-paid");
+      const empty = document.getElementById("pending-paid-empty");
+      root.innerHTML = "";
+      items = Array.isArray(items) ? items : [];
+      section.classList.remove("hidden");
+      if (!items.length) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+      for (const row of items) {
+        const o = row.order || {};
+        const d = row.delivery || {};
+        const card = document.createElement("div");
+        card.className = "rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm";
+        card.innerHTML =
+          "<div class=\"flex flex-col sm:flex-row sm:items-start justify-between gap-3\">" +
+          "<div>" +
+          "<p class=\"text-xs font-bold text-amber-700 uppercase\">Paid, not dispatch-ready</p>" +
+          "<p class=\"font-semibold text-slate-900\">" +
+          escapeHtml(o.summary || "Order") +
+          "</p>" +
+          "<p class=\"text-xs text-slate-600 mt-1\">Order #" +
+          escapeHtml(String(o.order_id || "").slice(-8)) +
+          " - " +
+          fmtTime(o.created_at) +
+          "</p>" +
+          "<p class=\"text-xs text-slate-600 mt-1\">" +
+          escapeHtml(d.dropoff_city || "") +
+          (d.dropoff_region ? ", " + escapeHtml(d.dropoff_region) : "") +
+          "</p>" +
+          "</div>" +
+          "<div class=\"sm:text-right\">" +
+          "<p class=\"text-xs font-bold text-slate-500 uppercase\">Status</p>" +
+          "<p class=\"text-sm font-bold text-slate-900\">" +
+          escapeHtml(humanStatus(d.status || "none")) +
+          "</p>" +
+          "</div>" +
+          "</div>" +
+          "<p class=\"mt-3 text-sm text-amber-900\">" +
+          escapeHtml(row.reason || "Waiting for delivery details") +
+          "</p>";
+        root.appendChild(card);
+      }
     }
 
     async function loadAll() {
@@ -519,14 +638,17 @@
       if (!kycVerified) {
         document.getElementById("sec-pool").classList.add("hidden");
         document.getElementById("sec-assign").classList.add("hidden");
+        document.getElementById("sec-pending-paid").classList.add("hidden");
         return;
       }
-      const [ja, jb] = await Promise.all([
+      const [ja, jb, jp] = await Promise.all([
         apiFetch("/api/delivery/assignments", { headers: authHeaders() }),
         apiFetch("/api/delivery/jobs?strict=" + strict, { headers: authHeaders() }),
+        apiFetch("/api/delivery/pending-paid?strict=" + strict, { headers: authHeaders() }),
       ]);
       const aj = await ja.json().catch(() => ({}));
       const bj = await jb.json().catch(() => ({}));
+      const pj = await jp.json().catch(() => ({}));
       if (!ja.ok) {
         if (ja.status === 403 && aj.kyc_status) {
           kycVerified = false;
@@ -534,13 +656,16 @@
           onboarding.kyc_status = aj.kyc_status;
           renderBanner();
           document.getElementById("sec-pool").classList.add("hidden");
+          document.getElementById("sec-pending-paid").classList.add("hidden");
           return;
         }
         throw new Error(aj.error || "Could not load assignments");
       }
       if (!jb.ok) throw new Error(bj.error || "Could not load jobs");
-      renderAssignments(aj.items || []);
+      if (!jp.ok) throw new Error(pj.error || "Could not load pending paid orders");
+      await renderAssignments(aj.items || []);
       renderJobs(bj.items || []);
+      renderPendingPaid(pj.items || []);
       document.getElementById("sec-pool").classList.remove("hidden");
     }
 

@@ -397,7 +397,14 @@
                 <select name="category" id="product-category" required class="w-full rounded-xl border border-slate-200 px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-[#0056d2]/30"></select>
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Price</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">MRP</label>
+                <div class="flex rounded-xl border border-slate-200 overflow-hidden">
+                  <span class="px-3 py-3 bg-white text-slate-600 font-bold">₹</span>
+                  <input name="mrp" type="number" min="1" step="1" class="flex-1 min-w-0 px-3 py-3 outline-none" placeholder="Original price" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Your sale rate</label>
                 <div class="flex rounded-xl border border-slate-200 overflow-hidden">
                   <span class="px-3 py-3 bg-white text-slate-600 font-bold">₹</span>
                   <input name="price" type="number" min="1" step="1" required class="flex-1 min-w-0 px-3 py-3 outline-none" />
@@ -1212,6 +1219,7 @@
       form.elements.title.value = p.title || "";
       form.elements.description.value = p.description || "";
       form.elements.category.value = p.category || selectedShopCat || "";
+      form.elements.mrp.value = p.mrp == null ? "" : p.mrp;
       form.elements.price.value = p.price == null ? "" : p.price;
       form.elements.stock_quantity.value = p.stock_quantity == null ? "" : p.stock_quantity;
       form.elements.stock_unit.value = p.stock_unit || "";
@@ -1296,7 +1304,10 @@
           img +
           `<div class="p-3 flex-1 flex flex-col">
             <p class="font-bold text-sm line-clamp-2">${escapeHtml(p.title)}</p>
-            <p class="text-[#0056d2] font-black mt-1">${rupee(p.price)}</p>
+            <p class="mt-1 flex flex-wrap items-baseline gap-2">
+              ${Number(p.mrp) > Number(p.price) ? `<span class="text-sm font-bold text-slate-400 line-through">${rupee(p.mrp)}</span>` : ""}
+              <span class="text-[#0056d2] font-black">${rupee(p.price)}</span>
+            </p>
             ${productQuantityLine(p) ? `<p class="text-xs text-slate-500 mt-1">${escapeHtml(productQuantityLine(p))}</p>` : ""}
             <div class="mt-2 flex flex-wrap gap-3">
               <button type="button" data-edit="${escapeHtml(p.product_id)}" class="text-xs font-bold text-[#0056d2] hover:underline text-left edit-p">Edit listing</button>
@@ -1334,7 +1345,7 @@
     }
 
     function exportProductsCsv() {
-      const cols = ["product_id", "title", "description", "category", "price", "stock_quantity", "stock_unit", "package_type", "package_size", "image_1", "image_2", "image_3", "image_4"];
+      const cols = ["product_id", "title", "description", "category", "mrp", "price", "stock_quantity", "stock_unit", "package_type", "package_size", "image_1", "image_2", "image_3", "image_4"];
       const csv = [cols.join(",")].concat(allProducts.map((p) => {
         const row = {
           ...p,
@@ -1400,6 +1411,7 @@
           title,
           description: String(item.description || "").trim(),
           category: String(item.category || selectedShopCat || sellerCategories[0] || "").trim(),
+          mrp: item.mrp == null || item.mrp === "" ? null : Number(item.mrp),
           price: Number(item.price || 0),
           stock_quantity: item.stock_quantity === "" ? null : Number(item.stock_quantity),
           stock_unit: String(item.stock_unit || "").trim(),
@@ -1407,7 +1419,8 @@
           package_size: String(item.package_size || "").trim(),
           images,
         };
-        if (!payload.category || !Number.isFinite(payload.price) || payload.price < 0) continue;
+        if (!payload.category || !Number.isFinite(payload.price) || payload.price < 1) continue;
+        if (payload.mrp != null && (!Number.isFinite(payload.mrp) || payload.mrp < payload.price)) continue;
         const id = String(item.product_id || "").trim();
         if (id) await api("PATCH", "/api/products/" + encodeURIComponent(id), payload);
         else await api("POST", "/api/products", payload);
@@ -2113,11 +2126,23 @@
         const fileInput = document.getElementById("product-files");
         const hasNewImages = fileInput.files && fileInput.files.length > 0;
         const images = hasNewImages ? await filesToImages(fileInput) : [];
+        const mrp = fd.get("mrp") === "" ? null : Number(fd.get("mrp"));
+        const price = Number(fd.get("price"));
+        if (mrp != null && (!Number.isFinite(mrp) || mrp < 1)) {
+          throw new Error("Enter a valid MRP or leave it blank.");
+        }
+        if (!Number.isFinite(price) || price < 1) {
+          throw new Error("Enter a valid sale rate.");
+        }
+        if (mrp != null && mrp < price) {
+          throw new Error("MRP must be greater than or equal to your sale rate.");
+        }
         const body = {
           title: String(fd.get("title") || "").trim(),
           description: String(fd.get("description") || "").trim(),
           category: String(fd.get("category") || "").trim(),
-          price: Number(fd.get("price")),
+          mrp,
+          price,
           stock_quantity: fd.get("stock_quantity") === "" ? null : Number(fd.get("stock_quantity")),
           stock_unit: String(fd.get("stock_unit") || "").trim(),
           package_type: String(fd.get("package_type") || "").trim(),

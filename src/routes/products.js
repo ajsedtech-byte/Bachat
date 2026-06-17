@@ -56,6 +56,13 @@ function normalizeStockQuantity(raw) {
   return Math.round(n * 1000) / 1000;
 }
 
+function normalizeMoney(raw) {
+  if (raw === "" || raw == null) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 1) return NaN;
+  return Math.round(n * 100) / 100;
+}
+
 function parseMaybeJson(text) {
   const raw = String(text || "").trim();
   if (!raw) return null;
@@ -373,6 +380,7 @@ function productQuantityFields(doc) {
 function formatCatalogProduct(doc, seller, options = {}) {
   const id = doc._id;
   const price = buyerDisplayPrice(doc.sellerPrice, id);
+  const mrp = Number(doc.mrp);
   const showShopNames = options.showShopNames === true;
   return {
     product_id: String(id),
@@ -381,6 +389,7 @@ function formatCatalogProduct(doc, seller, options = {}) {
     category: doc.category,
     images: doc.images || [],
     price,
+    mrp: Number.isFinite(mrp) && mrp > price ? mrp : null,
     ...productQuantityFields(doc),
     shop_name: showShopNames ? seller?.shopName || "Shop" : maskedShopName("shop"),
     shop_name_locked: !showShopNames,
@@ -430,6 +439,7 @@ function formatSellerProduct(doc) {
     category: doc.category,
     images: doc.images || [],
     price: doc.sellerPrice,
+    mrp: doc.mrp == null ? null : doc.mrp,
     ...productQuantityFields(doc),
     is_active: doc.isActive,
     created_at: doc.createdAt,
@@ -737,7 +747,7 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
     const seller = await sellerForUser(req.user.id);
     if (!seller) return res.status(404).json({ error: "Seller profile not found" });
 
-    const { title, description, category, images, price, stock_quantity, stock_unit, package_type, package_size } =
+    const { title, description, category, images, price, mrp, stock_quantity, stock_unit, package_type, package_size } =
       req.body || {};
     if (!title || !category || price == null) {
       return badRequest(res, "title, category, and price are required");
@@ -749,6 +759,14 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
     const sellerPrice = Number(price);
     if (!Number.isFinite(sellerPrice) || sellerPrice < 1) {
       return badRequest(res, "price must be a number ≥ 1");
+    }
+
+    const productMrp = normalizeMoney(mrp);
+    if (Number.isNaN(productMrp)) {
+      return badRequest(res, "MRP must be a number >= 1");
+    }
+    if (productMrp != null && productMrp < sellerPrice) {
+      return badRequest(res, "MRP must be greater than or equal to your sale rate");
     }
 
     const stockQuantity = normalizeStockQuantity(stock_quantity);
@@ -768,6 +786,7 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
       category: canonical,
       images: imgs,
       sellerPrice,
+      mrp: productMrp,
       stockQuantity,
       stockUnit: cleanText(stock_unit, 40),
       packageType: cleanText(package_type, 80),
@@ -792,7 +811,7 @@ router.patch("/:productId", requireAuth, requireRole("seller"), requireSellerTra
     const doc = await Product.findOne({ _id: pid, seller: seller._id });
     if (!doc) return res.status(404).json({ error: "Not found" });
 
-    const { title, description, category, images, price, stock_quantity, stock_unit, package_type, package_size, is_active } =
+    const { title, description, category, images, price, mrp, stock_quantity, stock_unit, package_type, package_size, is_active } =
       req.body || {};
     if (title != null) doc.title = String(title).trim().slice(0, 200);
     if (description != null) doc.description = String(description).slice(0, 8000);
@@ -814,6 +833,17 @@ router.patch("/:productId", requireAuth, requireRole("seller"), requireSellerTra
         return badRequest(res, "price must be a number ≥ 1");
       }
       doc.sellerPrice = sellerPrice;
+    }
+    if (mrp !== undefined) {
+      const productMrp = normalizeMoney(mrp);
+      if (Number.isNaN(productMrp)) {
+        return badRequest(res, "MRP must be a number >= 1");
+      }
+      const nextSalePrice = price != null ? Number(price) : Number(doc.sellerPrice);
+      if (productMrp != null && productMrp < nextSalePrice) {
+        return badRequest(res, "MRP must be greater than or equal to your sale rate");
+      }
+      doc.mrp = productMrp;
     }
     if (stock_quantity !== undefined) {
       const stockQuantity = normalizeStockQuantity(stock_quantity);
