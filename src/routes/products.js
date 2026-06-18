@@ -6,7 +6,7 @@ const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { buyerDisplayPrice } = require("../lib/buyerPrice");
 const { canViewShopNames, maskedShopName, publicShopKey } = require("../lib/buyerPlan");
-const { CATEGORY_SET, canonicalCategory, sellerCategoryList } = require("../lib/categories");
+const { CATEGORIES, CATEGORY_SET, canonicalCategory, sellerCategoryList } = require("../lib/categories");
 const { requireSellerTradeUnblocked, sellerTradeBlocked } = require("../lib/sellerKycGate");
 const { publicBusinessHours } = require("../lib/shopHours");
 const { notifySellerKycPending } = require("../services/sellerKycReminder");
@@ -722,14 +722,23 @@ router.post("/menu-extract", requireAuth, requireRole("seller"), async (req, res
 
     const schema = menuJsonSchema();
     const translateToEnglish = req.body?.translate_to_english !== false;
-    const result =
-      provider === "gemini"
-        ? await callGeminiMenuExtract({ images: cleanImages, fallbackCategory, schema, translateToEnglish })
-        : provider === "groq"
-          ? await callGroqMenuExtract({ images: cleanImages, fallbackCategory, translateToEnglish })
-          : provider === "openai"
-            ? await callOpenAiMenuExtract({ images: cleanImages, fallbackCategory, schema, translateToEnglish })
-            : { ok: false, status: 400, error: "MENU_EXTRACT_PROVIDER must be gemini, groq, openai, or auto." };
+    let result;
+    try {
+      result =
+        provider === "gemini"
+          ? await callGeminiMenuExtract({ images: cleanImages, fallbackCategory, schema, translateToEnglish })
+          : provider === "groq"
+            ? await callGroqMenuExtract({ images: cleanImages, fallbackCategory, translateToEnglish })
+            : provider === "openai"
+              ? await callOpenAiMenuExtract({ images: cleanImages, fallbackCategory, schema, translateToEnglish })
+              : { ok: false, status: 400, error: "MENU_EXTRACT_PROVIDER must be gemini, groq, openai, or auto." };
+    } catch (e) {
+      console.error("[menu-extract]", provider, e);
+      const detail = e && e.message ? ` (${e.message})` : "";
+      return res.status(502).json({
+        error: `Menu extraction provider '${provider}' could not be reached. Check the API key, model name, and network connection${detail}.`,
+      });
+    }
     if (!result.ok) {
       const status = result.status >= 500 ? 502 : result.status || 400;
       return res.status(status).json({ error: result.error || "Menu extraction failed." });

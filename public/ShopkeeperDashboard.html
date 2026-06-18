@@ -330,9 +330,10 @@
           <div class="rounded-xl border border-[#e5e7eb] bg-white p-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p class="font-bold text-slate-900">Bulk product tools</p>
-              <p class="text-sm text-slate-500">Export your catalog, edit many items in a spreadsheet, then import CSV rows.</p>
+              <p class="text-sm text-slate-500">Export your catalog, edit many items in a spreadsheet, then import CSV rows with MRP, sale rate, stock, package details, and image URLs.</p>
             </div>
             <div class="flex flex-wrap gap-2">
+              <button type="button" id="download-products-template" class="rounded-lg border border-slate-300 text-slate-700 font-bold px-4 py-2 text-sm">Download template</button>
               <button type="button" id="export-products-csv" class="rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-4 py-2 text-sm">Export CSV</button>
               <label class="rounded-lg bg-[#0056d2] text-white font-bold px-4 py-2 text-sm cursor-pointer">
                 Import CSV
@@ -340,11 +341,12 @@
               </label>
             </div>
           </div>
+          <p class="mt-3 text-xs font-semibold leading-5 text-slate-500">CSV columns: product_id, title, description, category, mrp, price, stock_quantity, stock_unit, package_type, package_size, image_1, image_2, image_3, image_4. Use image URLs or base64 image data in image columns.</p>
           <div class="rounded-xl border border-[#0056d2]/20 bg-white p-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p class="font-bold text-slate-900">Import from menu image</p>
-                <p class="text-sm text-slate-500">Upload menu/catalog photos, review extracted item names and rates, then publish them in bulk.</p>
+                <p class="text-sm text-slate-500">Upload menu/catalog photos, review extracted item names, MRP, rates, and product photos for each row, then publish them in bulk.</p>
               </div>
               <div class="flex flex-wrap gap-2">
                 <label class="rounded-lg border border-[#0056d2] text-[#0056d2] font-bold px-4 py-2 text-sm cursor-pointer">
@@ -364,7 +366,9 @@
                 <thead class="bg-[#f8f9fb] text-left text-slate-500">
                   <tr>
                     <th class="px-3 py-2">Use</th>
+                    <th class="px-3 py-2">Product photo</th>
                     <th class="px-3 py-2">Item name</th>
+                    <th class="px-3 py-2">MRP</th>
                     <th class="px-3 py-2">Rate</th>
                     <th class="px-3 py-2">Category</th>
                     <th class="px-3 py-2">Size / variant</th>
@@ -375,7 +379,7 @@
               </table>
             </div>
             <div id="menu-import-actions" class="mt-3 hidden flex-wrap items-center justify-between gap-3">
-              <p class="text-xs text-slate-500">You can edit names, rates, category, and size before publishing.</p>
+              <p class="text-xs text-slate-500">You can edit names, MRP, rates, category, size, and upload one product photo per item before publishing.</p>
               <button type="button" id="menu-publish-btn" class="rounded-lg bg-emerald-600 text-white font-bold px-4 py-2 text-sm disabled:opacity-50">Publish selected listings</button>
             </div>
           </div>
@@ -706,7 +710,11 @@
           lastErr = e;
         }
       }
-      throw lastErr;
+      const msg = lastErr && lastErr.message ? String(lastErr.message) : "";
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        throw new Error("API server is not reachable. Start or restart the local server with: node src/index.js");
+      }
+      throw lastErr || new Error("API server is not reachable. Start or restart the local server.");
     }
 
     async function loadPayoutsSummary() {
@@ -1012,9 +1020,23 @@
       menuImportRows.forEach((row, i) => {
         const tr = document.createElement("tr");
         tr.className = "border-t border-slate-200";
+        const imagePreview = row.image
+          ? `<img src="${escapeHtml(row.image)}" alt="" class="h-14 w-14 rounded-lg object-cover border border-slate-200 bg-slate-100" loading="lazy" decoding="async" />`
+          : `<span class="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-[10px] font-bold uppercase text-slate-400">Photo</span>`;
         tr.innerHTML = `
           <td class="px-3 py-2 align-top"><input type="checkbox" data-menu-index="${i}" data-menu-field="selected" class="rounded border-slate-300" ${row.selected !== false ? "checked" : ""} /></td>
+          <td class="px-3 py-2 align-top">
+            <div class="flex min-w-[150px] items-center gap-2">
+              ${imagePreview}
+              <label class="rounded-lg border border-[#0056d2] px-3 py-1.5 text-xs font-bold text-[#0056d2] cursor-pointer whitespace-nowrap">
+                Upload
+                <input type="file" accept="image/*" data-menu-index="${i}" data-menu-image class="hidden" />
+              </label>
+              ${row.image ? `<button type="button" data-menu-index="${i}" data-menu-remove-image class="text-xs font-bold text-red-600">Remove</button>` : ""}
+            </div>
+          </td>
           <td class="px-3 py-2 align-top"><input data-menu-index="${i}" data-menu-field="title" class="w-full min-w-[180px] rounded-lg border border-slate-200 px-2 py-1.5 font-semibold" value="${escapeHtml(row.title || "")}" /></td>
+          <td class="px-3 py-2 align-top"><input type="number" min="0" step="1" data-menu-index="${i}" data-menu-field="mrp" class="w-24 rounded-lg border border-slate-200 px-2 py-1.5 font-semibold" value="${escapeHtml(row.mrp || "")}" placeholder="MRP" /></td>
           <td class="px-3 py-2 align-top"><input type="number" min="1" step="1" data-menu-index="${i}" data-menu-field="price" class="w-24 rounded-lg border border-slate-200 px-2 py-1.5 font-semibold" value="${escapeHtml(row.price || "")}" /></td>
           <td class="px-3 py-2 align-top"><select data-menu-index="${i}" data-menu-field="category" class="min-w-[150px] rounded-lg border border-slate-200 px-2 py-1.5">${menuCategoryOptions(row.category || selectedShopCat || sellerCategories[0])}</select></td>
           <td class="px-3 py-2 align-top"><input data-menu-index="${i}" data-menu-field="package_size" class="w-full min-w-[130px] rounded-lg border border-slate-200 px-2 py-1.5" value="${escapeHtml(row.package_size || "")}" /></td>
@@ -1026,6 +1048,17 @@
         el.addEventListener("input", () => updateMenuImportRow(el));
         el.addEventListener("change", () => updateMenuImportRow(el));
       });
+      body.querySelectorAll("[data-menu-image]").forEach((el) => {
+        el.addEventListener("change", () => updateMenuImportImage(el));
+      });
+      body.querySelectorAll("[data-menu-remove-image]").forEach((el) => {
+        el.addEventListener("click", () => {
+          const idx = Number(el.getAttribute("data-menu-index"));
+          if (!Number.isInteger(idx) || !menuImportRows[idx]) return;
+          menuImportRows[idx].image = "";
+          renderMenuImportRows();
+        });
+      });
     }
 
     function updateMenuImportRow(el) {
@@ -1033,8 +1066,22 @@
       const field = el.getAttribute("data-menu-field");
       if (!Number.isInteger(idx) || !menuImportRows[idx] || !field) return;
       if (field === "selected") menuImportRows[idx].selected = Boolean(el.checked);
-      else if (field === "price") menuImportRows[idx].price = Number(el.value || 0);
+      else if (field === "price" || field === "mrp") menuImportRows[idx][field] = Number(el.value || 0) || "";
       else menuImportRows[idx][field] = String(el.value || "").trim();
+    }
+
+    async function updateMenuImportImage(input) {
+      const idx = Number(input.getAttribute("data-menu-index"));
+      if (!Number.isInteger(idx) || !menuImportRows[idx]) return;
+      try {
+        const files = input.files;
+        if (!files || !files[0]) return;
+        menuImportRows[idx].image = await compressImageFile(files[0]);
+        renderMenuImportRows();
+      } catch (e) {
+        input.value = "";
+        showToast(e.message || "Could not prepare product photo.", true);
+      }
     }
 
     function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
@@ -1124,18 +1171,20 @@
         for (const row of rows) {
           const title = String(row.title || "").trim();
           const price = Number(row.price || 0);
+          const mrp = Number(row.mrp || 0);
           const category = String(row.category || selectedShopCat || sellerCategories[0] || "").trim();
           if (!title || !Number.isFinite(price) || price < 1 || !category) continue;
           await api("POST", "/api/products", {
             title,
             description: String(row.description || "Imported from shop menu. Please verify details before accepting orders.").trim(),
             category,
+            mrp: Number.isFinite(mrp) && mrp >= price ? mrp : null,
             price,
             stock_quantity: null,
             stock_unit: String(row.stock_unit || "").trim(),
             package_type: String(row.package_type || "").trim(),
             package_size: String(row.package_size || "").trim(),
-            images: [makeMenuItemImage(row)],
+            images: [row.image || makeMenuItemImage(row)],
           });
           saved += 1;
         }
@@ -1508,6 +1557,37 @@
       const a = document.createElement("a");
       a.href = url;
       a.download = "bachat-products.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadProductsTemplateCsv() {
+      const cols = ["product_id", "title", "description", "category", "mrp", "price", "stock_quantity", "stock_unit", "package_type", "package_size", "image_1", "image_2", "image_3", "image_4"];
+      const example = {
+        product_id: "",
+        title: "Veg Pizza",
+        description: "Freshly prepared veg pizza. Please verify details before accepting orders.",
+        category: selectedShopCat || sellerCategories[0] || "Food",
+        mrp: "80",
+        price: "60",
+        stock_quantity: "50",
+        stock_unit: "piece",
+        package_type: "box",
+        package_size: "Regular",
+        image_1: "https://example.com/veg-pizza.jpg",
+        image_2: "",
+        image_3: "",
+        image_4: "",
+      };
+      const csv = [
+        cols.join(","),
+        cols.map((c) => `"${String(example[c] == null ? "" : example[c]).replace(/"/g, '""')}"`).join(","),
+      ].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bachat-products-template.csv";
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -2413,6 +2493,7 @@
       }
     });
     document.getElementById("export-products-csv")?.addEventListener("click", exportProductsCsv);
+    document.getElementById("download-products-template")?.addEventListener("click", downloadProductsTemplateCsv);
     document.getElementById("import-products-csv")?.addEventListener("change", async (e) => {
       try {
         await importProductsCsv(e.target.files && e.target.files[0]);

@@ -7,6 +7,14 @@ const { startNotificationDispatcherJob } = require("./services/notificationDispa
 
 const port = Number(process.env.PORT) || 3000;
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err && err.stack ? err.stack : err);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled rejection:", err && err.stack ? err.stack : err);
+});
+
 const startServer = (initialPort) => {
   const server = app.listen(initialPort, () => {
     console.log(`API listening on http://localhost:${initialPort}`);
