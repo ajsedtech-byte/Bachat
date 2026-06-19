@@ -1,10 +1,10 @@
 const crypto = require("crypto");
 
 const PRICE_MARKUP_BANDS = Object.freeze([
-  { maxBasePrice: 300, minMarkup: 0.08, maxMarkup: 0.12 },
-  { maxBasePrice: 500, minMarkup: 0.12, maxMarkup: 0.18 },
-  { maxBasePrice: 1000, minMarkup: 0.12, maxMarkup: 0.2 },
-  { maxBasePrice: Infinity, minMarkup: 0.1, maxMarkup: 0.16 },
+  { maxBasePrice: 300, minMarkup: 0.12, maxMarkup: 0.18 },
+  { maxBasePrice: 500, minMarkup: 0.15, maxMarkup: 0.20 },
+  { maxBasePrice: 1000, minMarkup: 0.15, maxMarkup: 0.22 },
+  { maxBasePrice: Infinity, minMarkup: 0.14, maxMarkup: 0.25 },
 ]);
 const PRICE_MARKUP_SALT = "bachat_buyer_markup_v1";
 
