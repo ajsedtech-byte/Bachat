@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288 64" fill="none" role="img" aria-labelledby="lt">
   <title id="lt">Bachat</title>
-  <image href="bachat-icon-original.png" x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid meet"/>
+  <image href="/assets/bachat-icon-original.png" x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid meet"/>
   <text x="72" y="43" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800" fill="#0a2540">Bachat</text>
 </svg>

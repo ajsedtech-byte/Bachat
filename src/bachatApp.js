@@ -20,6 +20,7 @@ const disputesRoutes = require("./routes/disputes");
 const leadsRoutes = require("./routes/leads");
 const oidcTeamRoutes = require("./routes/oidcTeam");
 const notificationRoutes = require("./routes/notifications");
+const careersRoutes = require("./routes/careers");
 
 const app = express();
 const publicDir = path.join(__dirname, "..", "public");
@@ -71,6 +72,7 @@ app.post(
 app.use("/api/products", requireDb, express.json({ limit: "8mb" }), productRoutes);
 app.use("/api/seller", requireDb, express.json({ limit: "8mb" }), sellerRoutes);
 app.use("/api/admin", requireDb, express.json({ limit: "12mb" }), adminRoutes);
+app.use("/api/careers", express.json({ limit: "8mb" }), careersRoutes);
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => {
