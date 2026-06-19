@@ -74,15 +74,9 @@ app.use("/api/seller", requireDb, express.json({ limit: "8mb" }), sellerRoutes);
 app.use("/api/admin", requireDb, express.json({ limit: "12mb" }), adminRoutes);
 app.use("/api/careers", express.json({ limit: "8mb" }), careersRoutes);
 app.use(express.json({ limit: "1mb" }));
-
 app.get("/", (_req, res) => {
   res.sendFile(path.join(publicDir, "UserDashboard.html"));
 });
-
-app.get("/api", (_req, res) => {
-  res.json({ ok: true, service: "bachat-api", version: "0.1.0" });
-});
-
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
