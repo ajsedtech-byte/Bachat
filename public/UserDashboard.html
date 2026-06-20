@@ -6876,6 +6876,11 @@
       return query ? `${base}?${query}` : base;
     }
 
+    function compactEndpoint(path) {
+      const separator = String(path || "").includes("?") ? "&" : "?";
+      return `${path}${separator}compact=1`;
+    }
+
     function listCount(x) {
       return Array.isArray(x) ? x.length : 0;
     }
@@ -9651,8 +9656,8 @@
 
       try {
         const [data, shopsData] = await Promise.all([
-          api("GET", catalogEndpoint()),
-          withTimeout(api("GET", shopsEndpoint()).catch(() => ({ shops: [] })), 900, { shops: [] }),
+          api("GET", compactEndpoint(catalogEndpoint())),
+          withTimeout(api("GET", compactEndpoint(shopsEndpoint())).catch(() => ({ shops: [] })), 900, { shops: [] }),
         ]);
         const items = Array.isArray(data && data.items) ? data.items : [];
         const registeredShops = Array.isArray(shopsData && shopsData.shops) ? shopsData.shops : [];

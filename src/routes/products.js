@@ -382,12 +382,14 @@ function formatCatalogProduct(doc, seller, options = {}) {
   const price = buyerDisplayPrice(doc.sellerPrice, id, doc.mrp);
   const mrp = Number(doc.mrp);
   const showShopNames = options.showShopNames === true;
+  const includeImages = options.includeImages !== false;
+  const includeShopImages = options.includeShopImages !== false;
   return {
     product_id: String(id),
     title: doc.title,
-    description: doc.description,
+    description: options.compact ? String(doc.description || "").slice(0, 220) : doc.description,
     category: doc.category,
-    images: doc.images || [],
+    images: includeImages ? doc.images || [] : [],
     price,
     mrp: Number.isFinite(mrp) && mrp > 0 ? mrp : null,
     ...productQuantityFields(doc),
@@ -399,8 +401,8 @@ function formatCatalogProduct(doc, seller, options = {}) {
     region: seller?.region || "",
     seller_verified: Boolean(seller?.isVerified),
     seller_kyc_pending: sellerTradeBlocked(seller),
-    shop_photo: Array.isArray(seller?.shopImages) ? seller.shopImages[0] || "" : "",
-    shop_images: Array.isArray(seller?.shopImages) ? seller.shopImages : [],
+    shop_photo: includeShopImages && Array.isArray(seller?.shopImages) ? seller.shopImages[0] || "" : "",
+    shop_images: includeShopImages && Array.isArray(seller?.shopImages) ? seller.shopImages : [],
     shop_tagline: seller?.storefrontTagline || "",
     shop_menu_note: seller?.menuNote || "",
     shop_hours: publicBusinessHours(seller || {}),
@@ -409,6 +411,7 @@ function formatCatalogProduct(doc, seller, options = {}) {
 
 function formatCatalogShop(seller, productCount = 0, options = {}) {
   const showShopNames = options.showShopNames === true;
+  const includeShopImages = options.includeShopImages !== false;
   const categories = sellerCategoryList(seller);
   return {
     shop_id: String(seller._id),
@@ -421,8 +424,8 @@ function formatCatalogShop(seller, productCount = 0, options = {}) {
     seller_verified: Boolean(seller.isVerified),
     categories,
     category: categories[0] || seller.category || "",
-    shop_photo: Array.isArray(seller.shopImages) ? seller.shopImages[0] || "" : "",
-    shop_images: Array.isArray(seller.shopImages) ? seller.shopImages : [],
+    shop_photo: includeShopImages && Array.isArray(seller.shopImages) ? seller.shopImages[0] || "" : "",
+    shop_images: includeShopImages && Array.isArray(seller.shopImages) ? seller.shopImages : [],
     shop_tagline: seller.storefrontTagline || "",
     shop_menu_note: seller.menuNote || "",
     shop_hours: publicBusinessHours(seller || {}),
@@ -447,14 +450,16 @@ function formatSellerProduct(doc) {
   };
 }
 
-async function catalogItemsForLocation({ city, region, category, q, limit = 120, showShopNames = false }) {
+async function catalogItemsForLocation({ city, region, category, q, limit = 120, showShopNames = false, compact = false }) {
   const cleanCity = String(city || "").trim();
   const cleanRegion = String(region || "").trim();
   const sellers = await Seller.find({
     city: exactCiRegex(cleanCity),
     region: exactCiRegex(cleanRegion),
   })
-    .select("_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote")
+    .select(compact
+      ? "_id shopName city region isVerified businessHours storefrontTagline menuNote"
+      : "_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote")
     .lean();
   const sellerIds = sellers.map((s) => s._id);
   if (!sellerIds.length) return [];
@@ -468,22 +473,33 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
     filter.$or = [{ title: rx }, { description: rx }];
   }
 
-  const products = await Product.find(filter)
+  const productQuery = Product.find(filter);
+  if (compact) productQuery.select("-images");
+  const products = await productQuery
     .sort({ updatedAt: -1 })
     .limit(limit)
     .lean();
   const sellerMap = Object.fromEntries(sellers.map((s) => [String(s._id), s]));
-  return products.map((p) => formatCatalogProduct(p, sellerMap[String(p.seller)], { showShopNames }));
+  return products.map((p) =>
+    formatCatalogProduct(p, sellerMap[String(p.seller)], {
+      showShopNames,
+      compact,
+      includeImages: !compact,
+      includeShopImages: !compact,
+    })
+  );
 }
 
-async function catalogShopsForLocation({ city, region, showShopNames = false }) {
+async function catalogShopsForLocation({ city, region, showShopNames = false, compact = false }) {
   const cleanCity = String(city || "").trim();
   const cleanRegion = String(region || "").trim();
   const sellers = await Seller.find({
     city: exactCiRegex(cleanCity),
     region: exactCiRegex(cleanRegion),
   })
-    .select("_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote categories category")
+    .select(compact
+      ? "_id shopName city region isVerified businessHours storefrontTagline menuNote categories category"
+      : "_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote categories category")
     .lean();
   if (!sellers.length) return [];
 
@@ -494,7 +510,7 @@ async function catalogShopsForLocation({ city, region, showShopNames = false }) 
   ]);
   const countMap = Object.fromEntries(counts.map((row) => [String(row._id), row.count]));
   return sellers
-    .map((seller) => formatCatalogShop(seller, countMap[String(seller._id)] || 0, { showShopNames }))
+    .map((seller) => formatCatalogShop(seller, countMap[String(seller._id)] || 0, { showShopNames, includeShopImages: !compact }))
     .sort((a, b) => b.product_count - a.product_count || a.shop_name.localeCompare(b.shop_name));
 }
 
@@ -512,7 +528,8 @@ router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, r
 
     const category = req.query.category ? canonicalCategory(req.query.category) : "";
     const q = req.query.q ? String(req.query.q).trim() : "";
-    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: canViewShopNames(user) });
+    const compact = req.query.compact === "1";
+    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: canViewShopNames(user), compact });
     return res.json({ items });
   } catch (e) {
     return next(e);
@@ -528,7 +545,9 @@ router.get("/public-catalog", async (req, res, next) => {
     if (!city || !region) {
       return badRequest(res, "Choose a city and region to browse local items.");
     }
-    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: false });
+    const compact = req.query.compact === "1";
+    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: false, compact });
+    res.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     return res.json({ items });
   } catch (e) {
     return next(e);
@@ -545,7 +564,8 @@ router.get("/catalog/nearby-shops", requireAuth, requireRole("buyer", "admin"), 
     if (!city || !region) {
       return badRequest(res, "Set your city and region on your profile to browse local shops.");
     }
-    const shops = await catalogShopsForLocation({ city, region, showShopNames: canViewShopNames(user) });
+    const compact = req.query.compact === "1";
+    const shops = await catalogShopsForLocation({ city, region, showShopNames: canViewShopNames(user), compact });
     return res.json({ shops });
   } catch (e) {
     return next(e);
@@ -559,7 +579,9 @@ router.get("/public-shops", async (req, res, next) => {
     if (!city || !region) {
       return badRequest(res, "Choose a city and region to browse local shops.");
     }
-    const shops = await catalogShopsForLocation({ city, region, showShopNames: false });
+    const compact = req.query.compact === "1";
+    const shops = await catalogShopsForLocation({ city, region, showShopNames: false, compact });
+    res.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     return res.json({ shops });
   } catch (e) {
     return next(e);
