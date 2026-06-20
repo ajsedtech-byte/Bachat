@@ -30,6 +30,12 @@ function exactCiRegex(value) {
   return new RegExp(`^${escapeRegExp(String(value || "").trim())}$`, "i");
 }
 
+function queryLimit(value, fallback, max) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return Math.min(Math.floor(n), max);
+}
+
 function normText(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -522,7 +528,8 @@ router.get("/catalog", requireAuth, requireRole("buyer", "admin"), async (req, r
     const category = req.query.category ? canonicalCategory(req.query.category) : "";
     const q = req.query.q ? String(req.query.q).trim() : "";
     const compact = req.query.compact === "1";
-    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: canViewShopNames(user), compact });
+    const limit = queryLimit(req.query.limit, compact ? 32 : 120, 120);
+    const items = await catalogItemsForLocation({ city, region, category, q, limit, showShopNames: canViewShopNames(user), compact });
     return res.json({ items });
   } catch (e) {
     return next(e);
@@ -539,7 +546,8 @@ router.get("/public-catalog", async (req, res, next) => {
       return badRequest(res, "Choose a city and region to browse local items.");
     }
     const compact = req.query.compact === "1";
-    const items = await catalogItemsForLocation({ city, region, category, q, showShopNames: false, compact });
+    const limit = queryLimit(req.query.limit, compact ? 32 : 120, 120);
+    const items = await catalogItemsForLocation({ city, region, category, q, limit, showShopNames: false, compact });
     res.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     return res.json({ items });
   } catch (e) {
