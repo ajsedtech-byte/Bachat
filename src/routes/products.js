@@ -383,6 +383,14 @@ function compactImageRefs(doc, options = {}) {
   return [`/api/products/public-image/${String(doc._id)}/0`];
 }
 
+function compactShopImageRefs(seller, options = {}) {
+  const images = Array.isArray(seller?.shopImages) ? seller.shopImages : [];
+  if (!options.compact || !images.length) return images;
+  const first = String(images[0] || "").trim();
+  if (/^https?:\/\//i.test(first) || first.startsWith("/")) return [first];
+  return [`/api/products/public-shop-image/${String(seller._id)}/0`];
+}
+
 /** Buyer catalog: sale rate plus Bachat charges, no internal sellerPrice field name. */
 function formatCatalogProduct(doc, seller, options = {}) {
   const id = doc._id;
@@ -408,8 +416,8 @@ function formatCatalogProduct(doc, seller, options = {}) {
     region: seller?.region || "",
     seller_verified: Boolean(seller?.isVerified),
     seller_kyc_pending: sellerTradeBlocked(seller),
-    shop_photo: includeShopImages && Array.isArray(seller?.shopImages) ? seller.shopImages[0] || "" : "",
-    shop_images: includeShopImages && Array.isArray(seller?.shopImages) ? seller.shopImages : [],
+    shop_photo: includeShopImages ? compactShopImageRefs(seller, options)[0] || "" : "",
+    shop_images: includeShopImages ? compactShopImageRefs(seller, options) : [],
     shop_tagline: seller?.storefrontTagline || "",
     shop_menu_note: seller?.menuNote || "",
     shop_hours: publicBusinessHours(seller || {}),
@@ -431,8 +439,8 @@ function formatCatalogShop(seller, productCount = 0, options = {}) {
     seller_verified: Boolean(seller.isVerified),
     categories,
     category: categories[0] || seller.category || "",
-    shop_photo: includeShopImages && Array.isArray(seller.shopImages) ? seller.shopImages[0] || "" : "",
-    shop_images: includeShopImages && Array.isArray(seller.shopImages) ? seller.shopImages : [],
+    shop_photo: includeShopImages ? compactShopImageRefs(seller, options)[0] || "" : "",
+    shop_images: includeShopImages ? compactShopImageRefs(seller, options) : [],
     shop_tagline: seller.storefrontTagline || "",
     shop_menu_note: seller.menuNote || "",
     shop_hours: publicBusinessHours(seller || {}),
@@ -460,14 +468,13 @@ function formatSellerProduct(doc) {
 async function catalogItemsForLocation({ city, region, category, q, limit = 120, showShopNames = false, compact = false }) {
   const cleanCity = String(city || "").trim();
   const cleanRegion = String(region || "").trim();
-  const sellers = await Seller.find({
+  const sellersQuery = Seller.find({
     city: exactCiRegex(cleanCity),
     region: exactCiRegex(cleanRegion),
   })
-    .select(compact
-      ? "_id shopName city region isVerified businessHours storefrontTagline menuNote"
-      : "_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote")
-    .lean();
+    .select("_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote");
+  if (compact) sellersQuery.slice("shopImages", 1);
+  const sellers = await sellersQuery.lean();
   const sellerIds = sellers.map((s) => s._id);
   if (!sellerIds.length) return [];
 
@@ -492,7 +499,7 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
       showShopNames,
       compact,
       includeImages: true,
-      includeShopImages: !compact,
+      includeShopImages: true,
     })
   );
 }
@@ -500,14 +507,13 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
 async function catalogShopsForLocation({ city, region, showShopNames = false, compact = false }) {
   const cleanCity = String(city || "").trim();
   const cleanRegion = String(region || "").trim();
-  const sellers = await Seller.find({
+  const sellersQuery = Seller.find({
     city: exactCiRegex(cleanCity),
     region: exactCiRegex(cleanRegion),
   })
-    .select(compact
-      ? "_id shopName city region isVerified businessHours storefrontTagline menuNote categories category"
-      : "_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote categories category")
-    .lean();
+    .select("_id shopName city region isVerified businessHours shopImages storefrontTagline menuNote categories category");
+  if (compact) sellersQuery.slice("shopImages", 1);
+  const sellers = await sellersQuery.lean();
   if (!sellers.length) return [];
 
   const sellerIds = sellers.map((s) => s._id);
@@ -517,7 +523,7 @@ async function catalogShopsForLocation({ city, region, showShopNames = false, co
   ]);
   const countMap = Object.fromEntries(counts.map((row) => [String(row._id), row.count]));
   return sellers
-    .map((seller) => formatCatalogShop(seller, countMap[String(seller._id)] || 0, { showShopNames, includeShopImages: !compact }))
+    .map((seller) => formatCatalogShop(seller, countMap[String(seller._id)] || 0, { showShopNames, compact, includeShopImages: true }))
     .sort((a, b) => b.product_count - a.product_count || a.shop_name.localeCompare(b.shop_name));
 }
 
@@ -668,6 +674,32 @@ router.get("/public-image/:productId/:index", async (req, res, next) => {
 
     const doc = await Product.findOne({ _id: pid, isActive: true }).select("images").lean();
     const src = doc && Array.isArray(doc.images) ? String(doc.images[index] || "").trim() : "";
+    if (!src) return res.status(404).end();
+    if (/^https?:\/\//i.test(src) || src.startsWith("/")) {
+      res.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+      return res.redirect(302, src);
+    }
+
+    const match = src.match(/^data:([^;,]+);base64,(.+)$/i);
+    if (!match) return res.status(404).end();
+    const mime = match[1] || "image/jpeg";
+    const body = Buffer.from(match[2], "base64");
+    res.set("Content-Type", mime);
+    res.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    return res.send(body);
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.get("/public-shop-image/:sellerId/:index", async (req, res, next) => {
+  try {
+    const sellerId = req.params.sellerId;
+    const index = Math.max(0, Math.min(3, Number(req.params.index) || 0));
+    if (!mongoose.isValidObjectId(sellerId)) return res.status(404).end();
+
+    const seller = await Seller.findById(sellerId).select("shopImages").lean();
+    const src = seller && Array.isArray(seller.shopImages) ? String(seller.shopImages[index] || "").trim() : "";
     if (!src) return res.status(404).end();
     if (/^https?:\/\//i.test(src) || src.startsWith("/")) {
       res.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
