@@ -375,6 +375,14 @@ function productQuantityFields(doc) {
   };
 }
 
+function compactImageRefs(doc, options = {}) {
+  const images = Array.isArray(doc.images) ? doc.images : [];
+  if (!options.compact || !images.length) return images;
+  const first = String(images[0] || "").trim();
+  if (/^https?:\/\//i.test(first) || first.startsWith("/")) return [first];
+  return [`/api/products/public-image/${String(doc._id)}/0`];
+}
+
 /** Buyer catalog: sale rate plus Bachat charges, no internal sellerPrice field name. */
 function formatCatalogProduct(doc, seller, options = {}) {
   const id = doc._id;
@@ -388,7 +396,7 @@ function formatCatalogProduct(doc, seller, options = {}) {
     title: doc.title,
     description: options.compact ? String(doc.description || "").slice(0, 220) : doc.description,
     category: doc.category,
-    images: includeImages ? doc.images || [] : [],
+    images: includeImages ? compactImageRefs(doc, options) : [],
     price,
     mrp: Number.isFinite(mrp) && mrp > 0 ? mrp : null,
     ...productQuantityFields(doc),
@@ -473,7 +481,7 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
   }
 
   const productQuery = Product.find(filter);
-  if (compact) productQuery.select("-images");
+  if (compact) productQuery.slice("images", 1);
   const products = await productQuery
     .sort({ updatedAt: -1 })
     .limit(limit)
@@ -483,7 +491,7 @@ async function catalogItemsForLocation({ city, region, category, q, limit = 120,
     formatCatalogProduct(p, sellerMap[String(p.seller)], {
       showShopNames,
       compact,
-      includeImages: !compact,
+      includeImages: true,
       includeShopImages: !compact,
     })
   );
@@ -647,6 +655,32 @@ router.get("/catalog/nearby-shop-categories", requireAuth, requireRole("buyer", 
     }
     const categories = [...bag].sort((a, b) => a.localeCompare(b));
     return res.json({ categories });
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.get("/public-image/:productId/:index", async (req, res, next) => {
+  try {
+    const pid = req.params.productId;
+    const index = Math.max(0, Math.min(7, Number(req.params.index) || 0));
+    if (!mongoose.isValidObjectId(pid)) return res.status(404).end();
+
+    const doc = await Product.findOne({ _id: pid, isActive: true }).select("images").lean();
+    const src = doc && Array.isArray(doc.images) ? String(doc.images[index] || "").trim() : "";
+    if (!src) return res.status(404).end();
+    if (/^https?:\/\//i.test(src) || src.startsWith("/")) {
+      res.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+      return res.redirect(302, src);
+    }
+
+    const match = src.match(/^data:([^;,]+);base64,(.+)$/i);
+    if (!match) return res.status(404).end();
+    const mime = match[1] || "image/jpeg";
+    const body = Buffer.from(match[2], "base64");
+    res.set("Content-Type", mime);
+    res.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    return res.send(body);
   } catch (e) {
     return next(e);
   }
