@@ -10,6 +10,7 @@ const { CATEGORIES, CATEGORY_SET, canonicalCategory, sellerCategoryList } = requ
 const { requireSellerTradeUnblocked, sellerTradeBlocked } = require("../lib/sellerKycGate");
 const { publicBusinessHours } = require("../lib/shopHours");
 const { notifySellerKycPending } = require("../services/sellerKycReminder");
+const { externalizeImages } = require("../lib/imageStorage");
 
 const router = express.Router();
 
@@ -35,14 +36,6 @@ function normText(value) {
 
 async function sellerForUser(userId) {
   return Seller.findOne({ user: userId });
-}
-
-function normalizeImages(raw) {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((s) => String(s || "").trim())
-    .filter(Boolean)
-    .slice(0, 8);
 }
 
 function cleanText(value, max) {
@@ -805,10 +798,12 @@ router.post("/", requireAuth, requireRole("seller"), requireSellerTradeUnblocked
       return badRequest(res, "stock quantity must be a number >= 0");
     }
 
-    const imgs = normalizeImages(images);
-    if (imgs.some((u) => u.length > 850000)) {
-      return badRequest(res, "Each image is too large; use smaller files or image links.");
-    }
+    const imgs = await externalizeImages(images, {
+      maxItems: 8,
+      maxChars: 850000,
+      folder: "bachat/products",
+      label: "product image",
+    });
 
     const doc = await Product.create({
       seller: seller._id,
@@ -852,10 +847,12 @@ router.patch("/:productId", requireAuth, requireRole("seller"), requireSellerTra
       doc.category = c;
     }
     if (images != null) {
-      const imgs = normalizeImages(images);
-      if (imgs.some((u) => u.length > 850000)) {
-        return badRequest(res, "Each image is too large; use smaller files or image links.");
-      }
+      const imgs = await externalizeImages(images, {
+        maxItems: 8,
+        maxChars: 850000,
+        folder: "bachat/products",
+        label: "product image",
+      });
       doc.images = imgs;
     }
     if (price != null) {
